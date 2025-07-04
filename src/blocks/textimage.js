@@ -43,6 +43,15 @@ class TextImageBlock {
         this.readOnly = readOnly;
         this.config = config || {};
         
+        // REXMediaTool für Medienpool-Integration
+        this.mediaTool = new REXMediaTool({ 
+            api: this.api, 
+            config: {
+                types: ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'], // Nur Bilder
+                context: 'editorjs_textimage'
+            }
+        });
+        
         this.CSS = {
             baseClass: this.api.styles.block,
             wrapper: 'cdx-textimage',
@@ -81,15 +90,15 @@ class TextImageBlock {
         this.layouts = {
             left: {
                 title: 'Bild links',
-                icon: '⬅️'
+                icon: '<i class="fa-solid fa-align-left"></i>'
             },
             right: {
                 title: 'Bild rechts', 
-                icon: '➡️'
+                icon: '<i class="fa-solid fa-align-right"></i>'
             },
             top: {
                 title: 'Bild oben',
-                icon: '⬆️'
+                icon: '<i class="fa-solid fa-align-center"></i>'
             }
         };
     }
@@ -112,12 +121,14 @@ class TextImageBlock {
         
         imageWrapper.appendChild(this.nodes.image || this.nodes.selectButton);
         
-        // Caption
-        const caption = this._make('div', [this.CSS.caption], {
-            contentEditable: !this.readOnly,
-            innerHTML: this.data.caption || 'Bildunterschrift...'
-        });
-        imageWrapper.appendChild(caption);
+        // Caption nur anzeigen wenn vorhanden
+        if (this.data.caption) {
+            const caption = this._make('div', [this.CSS.caption], {
+                innerHTML: this.data.caption
+            });
+            imageWrapper.appendChild(caption);
+            this.nodes.caption = caption;
+        }
 
         // Text Wrapper
         const textWrapper = this._make('div', [this.CSS.textWrapper]);
@@ -138,7 +149,6 @@ class TextImageBlock {
         this.nodes.imageWrapper = imageWrapper;
         this.nodes.textWrapper = textWrapper;
         this.nodes.text = text;
-        this.nodes.caption = caption;
 
         return holder;
     }
@@ -172,7 +182,7 @@ class TextImageBlock {
 
         // Bild ändern Button
         const changeImageButton = this._make('span', [this.CSS.settingsButton], {
-            innerHTML: '🖼️ Bild ändern',
+            innerHTML: '<i class="fa-solid fa-image"></i>',
             title: 'Bild aus Medienpool wählen'
         });
         
@@ -180,21 +190,46 @@ class TextImageBlock {
             this._openMediapool();
         });
         
+        // Alt-Text Button
+        const altTextButton = this._make('span', [this.CSS.settingsButton], {
+            innerHTML: '<i class="fa-solid fa-universal-access"></i>',
+            title: 'Alt-Text für Barrierefreiheit bearbeiten'
+        });
+        
+        altTextButton.addEventListener('click', () => {
+            this._editAltText();
+        });
+        
+        // Caption Button
+        const captionButton = this._make('span', [this.CSS.settingsButton], {
+            innerHTML: '<i class="fa-solid fa-closed-captioning"></i>',
+            title: 'Bildunterschrift bearbeiten'
+        });
+        
+        if (this.data.caption) {
+            captionButton.classList.add(this.CSS.settingsButtonActive);
+        }
+        
+        captionButton.addEventListener('click', () => {
+            this._editCaption();
+        });
+        
         wrapper.appendChild(changeImageButton);
+        wrapper.appendChild(altTextButton);
+        wrapper.appendChild(captionButton);
 
         return wrapper;
     }
 
     save(blockContent) {
         const text = blockContent.querySelector('.' + this.CSS.text);
-        const caption = blockContent.querySelector('.' + this.CSS.caption);
 
         return {
             text: text.innerHTML,
             imageFile: this.data.imageFile,
             imageUrl: this.data.imageUrl,
             imageAlt: this.data.imageAlt,
-            caption: caption.innerHTML,
+            caption: this.data.caption,
             layout: this.data.layout,
             stretched: this.data.stretched
         };
@@ -254,7 +289,7 @@ class TextImageBlock {
 
     _createSelectButton() {
         const button = this._make('div', [this.CSS.button], {
-            innerHTML: '🖼️ Bild aus Medienpool wählen'
+            innerHTML: '<i class="fa-solid fa-image"></i> Bild aus Medienpool wählen'
         });
         
         button.addEventListener('click', () => {
@@ -265,51 +300,19 @@ class TextImageBlock {
     }
 
     _openMediapool() {
-        if (typeof openMediaPool === 'undefined') {
-            alert('Medienpool ist nicht verfügbar');
-            return;
-        }
-
-        const self = this;
-        let params = 'editorjs_textimage';
-        
-        // Nur Bildtypen zulassen (wenn verfügbar)
-        if (typeof rex !== 'undefined' && rex.editorjs_rex_media_getImageTypes) {
-            params += '&args[types]=' + rex.editorjs_rex_media_getImageTypes.join(',');
-        }
-
-        const mediaPool = openMediaPool(params);
-        
-        // Event Listener für die Medienauswahl
-        if (typeof $ !== 'undefined') {
-            // jQuery Version (falls verfügbar)
-            $(mediaPool).on('rex:selectMedia', function(event, filename) {
-                event.preventDefault();
-                mediaPool.close();
-                self._setImage(filename);
-            });
-        } else {
-            // Vanilla JS Fallback
-            mediaPool.addEventListener('rex:selectMedia', function(event) {
-                event.preventDefault();
-                const filename = event.detail || event.filename;
-                mediaPool.close();
-                self._setImage(filename);
-            });
-        }
+        this.mediaTool.selectImage((mediaData) => {
+            this._setImage(mediaData);
+        }).catch(error => {
+            console.error('Fehler bei der Medienauswahl:', error);
+            alert('Fehler beim Öffnen des Medienpools: ' + error.message);
+        });
     }
 
-    _setImage(filename) {
-        this.data.imageFile = filename;
-        
-        // URL erstellen
-        let imageUrl = '/media/' + filename;
-        if (typeof rex !== 'undefined' && rex.editorjs_imageUrlPath) {
-            imageUrl = rex.editorjs_imageUrlPath + filename;
-        }
-        
-        this.data.imageUrl = imageUrl;
-        this.data.imageAlt = filename;
+    _setImage(mediaData) {
+        // Daten aus dem MediaTool übernehmen
+        this.data.imageFile = mediaData.filename;
+        this.data.imageUrl = mediaData.url;
+        this.data.imageAlt = mediaData.alt;
 
         // DOM aktualisieren - altes Bild oder Button entfernen
         if (this.nodes.selectButton) {
@@ -324,7 +327,10 @@ class TextImageBlock {
 
         // Neues Bild erstellen und einfügen
         this._createImage();
-        this.nodes.imageWrapper.insertBefore(this.nodes.image, this.nodes.caption);
+        this.nodes.imageWrapper.insertBefore(this.nodes.image, this.nodes.imageWrapper.firstChild);
+        
+        // Caption aktualisieren
+        this._updateCaption();
     }
 
     _changeLayout(layout) {
@@ -347,6 +353,46 @@ class TextImageBlock {
         console.log('Layout changed successfully to:', layout);
         console.log('Container classes:', this.nodes.container.className);
         console.log('Container data-layout:', this.nodes.holder.dataset.layout);
+    }
+
+    _editAltText() {
+        const currentAlt = this.data.imageAlt || '';
+        const newAlt = prompt('Alt-Text für Barrierefreiheit eingeben:\n(Beschreibt das Bild für Screenreader)', currentAlt);
+        
+        if (newAlt !== null) { // null bedeutet Abbruch
+            this.data.imageAlt = newAlt;
+            // Img-Tag Alt-Attribut aktualisieren
+            if (this.nodes.image) {
+                this.nodes.image.alt = this.data.imageAlt;
+            }
+        }
+    }
+    
+    _editCaption() {
+        const currentCaption = this.data.caption || '';
+        const newCaption = prompt('Bildunterschrift eingeben:\n(Wird unter dem Bild angezeigt)', currentCaption);
+        
+        if (newCaption !== null) { // null bedeutet Abbruch
+            this.data.caption = newCaption;
+            this._updateCaption();
+        }
+    }
+    
+    _updateCaption() {
+        // Alte Caption entfernen falls vorhanden
+        if (this.nodes.caption) {
+            this.nodes.caption.remove();
+            this.nodes.caption = null;
+        }
+        
+        // Neue Caption hinzufügen falls Text vorhanden
+        if (this.data.caption && this.data.caption.trim()) {
+            const caption = this._make('div', [this.CSS.caption], {
+                innerHTML: this.data.caption
+            });
+            this.nodes.imageWrapper.appendChild(caption);
+            this.nodes.caption = caption;
+        }
     }
 
     _make(tagName, classNames = null, attributes = {}) {

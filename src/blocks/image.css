@@ -1,0 +1,383 @@
+/**
+ * CSS für den Image Block
+ */
+
+.cdx-image {
+    text-align: center;
+}
+
+.cdx-image__wrapper {
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+}
+
+.cdx-image__image {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+}
+
+.cdx-image__image:hover {
+    opacity: 0.9;
+}
+
+/* Gestreckt */
+.cdx-image__image.stretched {
+    width: 100%;
+}
+
+/* Wrapper bei gestrecktem Bild */
+.cdx-image__wrapper:has(.cdx-image__image.stretched) {
+    width: 100%;
+    max-width: none;
+    display: block;
+}
+
+/* Fallback für Browser ohne :has() Support */
+.cdx-image__wrapper.stretched {
+    width: 100%;
+    max-width: none;
+    display: block;
+}
+
+/* Mit Rahmen */
+.cdx-image__image.with-border {
+    border: 2px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 10px;
+}
+
+/* Mit Hintergrund */
+.cdx-image__image.with-background {
+    background-color: #f5f5f5;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+/* Aspect Ratios (Seitenverhältnisse) */
+.cdx-image__wrapper.aspect-16-9 {
+    aspect-ratio: 16/9;
+    overflow: hidden;
+}
+
+.cdx-image__wrapper.aspect-4-3 {
+    aspect-ratio: 4/3;
+    overflow: hidden;
+}
+
+.cdx-image__wrapper.aspect-1-1 {
+    aspect-ratio: 1/1;
+    overflow: hidden;
+}
+
+.cdx-image__wrapper.aspect-3-2 {
+    aspect-ratio: 3/2;
+    overflow: hidden;
+}
+
+.cdx-image__wrapper.aspect-21-9 {
+    aspect-ratio: 21/9;
+    overflow: hidden;
+}
+
+/* Crop Modes - Einfache Implementierung */
+.cdx-image__wrapper.crop-cover .cdx-image__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.cdx-image__wrapper.crop-contain .cdx-image__image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.cdx-image__wrapper.crop-fill .cdx-image__image {
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+}
+
+/* Fallback für Browser ohne aspect-ratio Support */
+@supports not (aspect-ratio: 1) {
+    .cdx-image__wrapper.aspect-16-9 {
+        position: relative;
+        width: 100%;
+        height: 0;
+        padding-bottom: 56.25%; /* 9/16 * 100% */
+    }
+    
+    .cdx-image__wrapper.aspect-4-3 {
+        position: relative;
+        width: 100%;
+        height: 0;
+        padding-bottom: 75%; /* 3/4 * 100% */
+    }
+    
+    .cdx-image__wrapper.aspect-1-1 {
+        position: relative;
+        width: 100%;
+        height: 0;
+        padding-bottom: 100%;
+    }
+    
+    .cdx-image__wrapper.aspect-3-2 {
+        position: relative;
+        width: 100%;
+        height: 0;
+        padding-bottom: 66.67%; /* 2/3 * 100% */
+    }
+    
+    .cdx-image__wrapper.aspect-21-9 {
+        position: relative;
+        width: 100%;
+        height: 0;
+        padding-bottom: 42.86%; /* 9/21 * 100% */
+    }
+    
+    .cdx-image__wrapper[class*="aspect-"] .cdx-image__image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}
+
+.cdx-image__caption {
+    margin-top: 10px;
+    padding: 8px 16px;
+    color: #6c757d;
+    font-size: 14px;
+    font-style: italic;
+    text-align: center;
+    outline: none;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    transition: border-color 0.3s ease;
+}
+
+.cdx-image__caption:focus {
+    border-color: #007bff;
+    background-color: #f8f9fa;
+}
+
+.cdx-image__caption:empty:before {
+    content: attr(placeholder);
+    color: #999;
+}
+
+/* Alt-Text Eingabefeld */
+.cdx-image__alt-text {
+    margin-top: 8px;
+    padding: 6px 12px;
+    color: #495057;
+    font-size: 13px;
+    text-align: center;
+    outline: none;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    transition: border-color 0.3s ease;
+    background-color: #f8f9fa;
+    min-height: 20px;
+}
+
+.cdx-image__alt-text:focus {
+    border-color: #007bff;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.cdx-image__alt-text:empty:before {
+    content: "Alt-Text für Barrierefreiheit eingeben...";
+    color: #999;
+    font-style: italic;
+}
+
+.cdx-image__alt-text:not(:empty) {
+    font-style: normal;
+}
+
+.cdx-image__button {
+    border: 2px dashed #e0e0e0;
+    padding: 40px 20px;
+    background-color: #f8f9fa;
+    color: #6c757d;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    font-size: 16px;
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cdx-image__button i {
+    margin-right: 8px;
+    font-size: 18px;
+}
+
+.cdx-image__button:hover {
+    border-color: #007bff;
+    background-color: #e3f2fd;
+    color: #007bff;
+}
+
+/* Settings Buttons */
+.cdx-image__settings-button {
+    display: inline-block;
+    padding: 8px 12px;
+    margin: 0 4px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    background: #f8f9fa;
+    color: #495057;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.3s ease;
+    -webkit-user-select: none;
+    user-select: none;
+    vertical-align: top;
+}
+
+.cdx-image__settings-button i {
+    margin-right: 6px;
+}
+
+.cdx-image-dropdown__button i {
+    margin-right: 8px;
+    width: 12px;
+    text-align: center;
+}
+
+.cdx-image__settings-button:hover {
+    background: #e9ecef;
+    border-color: #ced4da;
+}
+
+.cdx-image__settings-button--active {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.cdx-image__settings-button--active:hover {
+    background: #0056b3;
+    border-color: #0056b3;
+}
+
+/* Custom Dropdown */
+.cdx-image-dropdown {
+    position: relative;
+    display: inline-block;
+    margin: 0 4px;
+}
+
+.cdx-image-dropdown__button {
+    position: relative;
+    padding-right: 24px !important;
+}
+
+.cdx-image-dropdown__button::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 4px solid currentColor;
+    transition: transform 0.2s ease;
+}
+
+.cdx-image-dropdown--open .cdx-image-dropdown__button::after {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+.cdx-image-dropdown__menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-5px);
+    transition: all 0.2s ease;
+    min-width: 160px;
+}
+
+.cdx-image-dropdown--open .cdx-image-dropdown__menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.cdx-image-dropdown__item {
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 12px;
+    color: #495057;
+    transition: background-color 0.2s ease;
+    white-space: nowrap;
+}
+
+.cdx-image-dropdown__item:hover {
+    background: #f8f9fa;
+}
+
+.cdx-image-dropdown__item--active {
+    background: #007bff;
+    color: white;
+}
+
+.cdx-image-dropdown__item--active:hover {
+    background: #0056b3;
+}
+
+.cdx-image-dropdown__item i {
+    margin-right: 8px;
+    width: 12px;
+    text-align: center;
+}
+
+.cdx-image-settings {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .cdx-image__button {
+        padding: 30px 15px;
+        font-size: 14px;
+        min-height: 100px;
+    }
+    
+    .cdx-image__caption {
+        font-size: 13px;
+        padding: 6px 12px;
+    }
+    
+    .cdx-image__settings-button {
+        padding: 6px 8px;
+        font-size: 11px;
+        margin: 0 2px;
+    }
+}

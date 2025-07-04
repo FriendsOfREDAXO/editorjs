@@ -16659,19 +16659,19 @@ var EditorJSBundle = (() => {
       };
       this.types = {
         info: {
-          icon: "\u{1F4A1}",
+          icon: '<i class="fa-solid fa-info-circle"></i>',
           title: "Info"
         },
         warning: {
-          icon: "\u26A0\uFE0F",
+          icon: '<i class="fa-solid fa-exclamation-triangle"></i>',
           title: "Warnung"
         },
         error: {
-          icon: "\u274C",
+          icon: '<i class="fa-solid fa-times-circle"></i>',
           title: "Fehler"
         },
         success: {
-          icon: "\u2705",
+          icon: '<i class="fa-solid fa-check-circle"></i>',
           title: "Erfolg"
         }
       };
@@ -16802,6 +16802,14 @@ var EditorJSBundle = (() => {
       this.api = api;
       this.readOnly = readOnly;
       this.config = config || {};
+      this.mediaTool = new REXMediaTool({
+        api: this.api,
+        config: {
+          types: ["jpg", "jpeg", "png", "gif", "svg", "webp"],
+          // Nur Bilder
+          context: "editorjs_textimage"
+        }
+      });
       this.CSS = {
         baseClass: this.api.styles.block,
         wrapper: "cdx-textimage",
@@ -16838,15 +16846,15 @@ var EditorJSBundle = (() => {
       this.layouts = {
         left: {
           title: "Bild links",
-          icon: "\u2B05\uFE0F"
+          icon: '<i class="fa-solid fa-align-left"></i>'
         },
         right: {
           title: "Bild rechts",
-          icon: "\u27A1\uFE0F"
+          icon: '<i class="fa-solid fa-align-right"></i>'
         },
         top: {
           title: "Bild oben",
-          icon: "\u2B06\uFE0F"
+          icon: '<i class="fa-solid fa-align-center"></i>'
         }
       };
     }
@@ -16862,11 +16870,13 @@ var EditorJSBundle = (() => {
         this._createSelectButton();
       }
       imageWrapper.appendChild(this.nodes.image || this.nodes.selectButton);
-      const caption = this._make("div", [this.CSS.caption], {
-        contentEditable: !this.readOnly,
-        innerHTML: this.data.caption || "Bildunterschrift..."
-      });
-      imageWrapper.appendChild(caption);
+      if (this.data.caption) {
+        const caption = this._make("div", [this.CSS.caption], {
+          innerHTML: this.data.caption
+        });
+        imageWrapper.appendChild(caption);
+        this.nodes.caption = caption;
+      }
       const textWrapper = this._make("div", [this.CSS.textWrapper]);
       const text = this._make("div", [this.CSS.text], {
         contentEditable: !this.readOnly,
@@ -16880,7 +16890,6 @@ var EditorJSBundle = (() => {
       this.nodes.imageWrapper = imageWrapper;
       this.nodes.textWrapper = textWrapper;
       this.nodes.text = text;
-      this.nodes.caption = caption;
       return holder;
     }
     renderSettings() {
@@ -16903,24 +16912,42 @@ var EditorJSBundle = (() => {
         wrapper.appendChild(button);
       });
       const changeImageButton = this._make("span", [this.CSS.settingsButton], {
-        innerHTML: "\u{1F5BC}\uFE0F Bild \xE4ndern",
+        innerHTML: '<i class="fa-solid fa-image"></i>',
         title: "Bild aus Medienpool w\xE4hlen"
       });
       changeImageButton.addEventListener("click", () => {
         this._openMediapool();
       });
+      const altTextButton = this._make("span", [this.CSS.settingsButton], {
+        innerHTML: '<i class="fa-solid fa-universal-access"></i>',
+        title: "Alt-Text f\xFCr Barrierefreiheit bearbeiten"
+      });
+      altTextButton.addEventListener("click", () => {
+        this._editAltText();
+      });
+      const captionButton = this._make("span", [this.CSS.settingsButton], {
+        innerHTML: '<i class="fa-solid fa-closed-captioning"></i>',
+        title: "Bildunterschrift bearbeiten"
+      });
+      if (this.data.caption) {
+        captionButton.classList.add(this.CSS.settingsButtonActive);
+      }
+      captionButton.addEventListener("click", () => {
+        this._editCaption();
+      });
       wrapper.appendChild(changeImageButton);
+      wrapper.appendChild(altTextButton);
+      wrapper.appendChild(captionButton);
       return wrapper;
     }
     save(blockContent) {
       const text = blockContent.querySelector("." + this.CSS.text);
-      const caption = blockContent.querySelector("." + this.CSS.caption);
       return {
         text: text.innerHTML,
         imageFile: this.data.imageFile,
         imageUrl: this.data.imageUrl,
         imageAlt: this.data.imageAlt,
-        caption: caption.innerHTML,
+        caption: this.data.caption,
         layout: this.data.layout,
         stretched: this.data.stretched
       };
@@ -16974,7 +17001,7 @@ var EditorJSBundle = (() => {
     }
     _createSelectButton() {
       const button = this._make("div", [this.CSS.button], {
-        innerHTML: "\u{1F5BC}\uFE0F Bild aus Medienpool w\xE4hlen"
+        innerHTML: '<i class="fa-solid fa-image"></i> Bild aus Medienpool w\xE4hlen'
       });
       button.addEventListener("click", () => {
         this._openMediapool();
@@ -16982,39 +17009,17 @@ var EditorJSBundle = (() => {
       this.nodes.selectButton = button;
     }
     _openMediapool() {
-      if (typeof openMediaPool === "undefined") {
-        alert("Medienpool ist nicht verf\xFCgbar");
-        return;
-      }
-      const self2 = this;
-      let params = "editorjs_textimage";
-      if (typeof rex !== "undefined" && rex.editorjs_rex_media_getImageTypes) {
-        params += "&args[types]=" + rex.editorjs_rex_media_getImageTypes.join(",");
-      }
-      const mediaPool = openMediaPool(params);
-      if (typeof $ !== "undefined") {
-        $(mediaPool).on("rex:selectMedia", function(event, filename) {
-          event.preventDefault();
-          mediaPool.close();
-          self2._setImage(filename);
-        });
-      } else {
-        mediaPool.addEventListener("rex:selectMedia", function(event) {
-          event.preventDefault();
-          const filename = event.detail || event.filename;
-          mediaPool.close();
-          self2._setImage(filename);
-        });
-      }
+      this.mediaTool.selectImage((mediaData) => {
+        this._setImage(mediaData);
+      }).catch((error) => {
+        console.error("Fehler bei der Medienauswahl:", error);
+        alert("Fehler beim \xD6ffnen des Medienpools: " + error.message);
+      });
     }
-    _setImage(filename) {
-      this.data.imageFile = filename;
-      let imageUrl = "/media/" + filename;
-      if (typeof rex !== "undefined" && rex.editorjs_imageUrlPath) {
-        imageUrl = rex.editorjs_imageUrlPath + filename;
-      }
-      this.data.imageUrl = imageUrl;
-      this.data.imageAlt = filename;
+    _setImage(mediaData) {
+      this.data.imageFile = mediaData.filename;
+      this.data.imageUrl = mediaData.url;
+      this.data.imageAlt = mediaData.alt;
       if (this.nodes.selectButton) {
         this.nodes.selectButton.remove();
         this.nodes.selectButton = null;
@@ -17024,7 +17029,8 @@ var EditorJSBundle = (() => {
         this.nodes.image = null;
       }
       this._createImage();
-      this.nodes.imageWrapper.insertBefore(this.nodes.image, this.nodes.caption);
+      this.nodes.imageWrapper.insertBefore(this.nodes.image, this.nodes.imageWrapper.firstChild);
+      this._updateCaption();
     }
     _changeLayout(layout) {
       console.log("Changing layout from", this.data.layout, "to:", layout);
@@ -17040,6 +17046,37 @@ var EditorJSBundle = (() => {
       console.log("Container classes:", this.nodes.container.className);
       console.log("Container data-layout:", this.nodes.holder.dataset.layout);
     }
+    _editAltText() {
+      const currentAlt = this.data.imageAlt || "";
+      const newAlt = prompt("Alt-Text f\xFCr Barrierefreiheit eingeben:\n(Beschreibt das Bild f\xFCr Screenreader)", currentAlt);
+      if (newAlt !== null) {
+        this.data.imageAlt = newAlt;
+        if (this.nodes.image) {
+          this.nodes.image.alt = this.data.imageAlt;
+        }
+      }
+    }
+    _editCaption() {
+      const currentCaption = this.data.caption || "";
+      const newCaption = prompt("Bildunterschrift eingeben:\n(Wird unter dem Bild angezeigt)", currentCaption);
+      if (newCaption !== null) {
+        this.data.caption = newCaption;
+        this._updateCaption();
+      }
+    }
+    _updateCaption() {
+      if (this.nodes.caption) {
+        this.nodes.caption.remove();
+        this.nodes.caption = null;
+      }
+      if (this.data.caption && this.data.caption.trim()) {
+        const caption = this._make("div", [this.CSS.caption], {
+          innerHTML: this.data.caption
+        });
+        this.nodes.imageWrapper.appendChild(caption);
+        this.nodes.caption = caption;
+      }
+    }
     _make(tagName, classNames = null, attributes = {}) {
       const el = document.createElement(tagName);
       if (Array.isArray(classNames)) {
@@ -17054,6 +17091,458 @@ var EditorJSBundle = (() => {
     }
   };
   window.TextImageBlock = TextImageBlock2;
+
+  // src/blocks/image.js
+  var ImageBlock2 = class {
+    static get toolbox() {
+      return {
+        title: "Bild",
+        icon: '<svg width="17" height="15" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21 3H3C1.9 3 1 3.9 1 5v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM5 17l3.5-4.5 2.5 3.01L14.5 11l4.5 6H5z"/></svg>'
+      };
+    }
+    static get isReadOnlySupported() {
+      return true;
+    }
+    constructor({ data, config, api, readOnly }) {
+      this.api = api;
+      this.readOnly = readOnly;
+      this.config = config || {};
+      this.mediaTool = new REXMediaTool({
+        api: this.api,
+        config: {
+          types: ["jpg", "jpeg", "png", "gif", "svg", "webp"],
+          // Nur Bilder
+          context: "editorjs_image"
+        }
+      });
+      this.CSS = {
+        baseClass: this.api.styles.block,
+        wrapper: "cdx-image",
+        imageWrapper: "cdx-image__wrapper",
+        image: "cdx-image__image",
+        caption: "cdx-image__caption",
+        altText: "cdx-image__alt-text",
+        button: "cdx-image__button",
+        settingsButton: "cdx-image__settings-button",
+        settingsButtonActive: "cdx-image__settings-button--active"
+      };
+      this.nodes = {
+        holder: null,
+        wrapper: null,
+        image: null,
+        caption: null,
+        selectButton: null
+      };
+      this.data = {
+        imageFile: data.imageFile || "",
+        imageUrl: data.imageUrl || "",
+        imageAlt: data.imageAlt || "",
+        caption: data.caption || "",
+        stretched: data.stretched || false,
+        withBorder: data.withBorder || false,
+        withBackground: data.withBackground || false,
+        aspectRatio: data.aspectRatio || "auto",
+        // auto, 16-9, 4-3, 1-1, 3-2, 21-9
+        cropMode: data.cropMode || "cover"
+        // cover, contain, fill
+      };
+      this.aspectRatios = {
+        "auto": { title: "Automatisch", icon: '<i class="fa-solid fa-expand-arrows-alt"></i>' },
+        "16-9": { title: "16:9 (Widescreen)", icon: '<i class="fa-solid fa-tv"></i>' },
+        "4-3": { title: "4:3 (Standard)", icon: '<i class="fa-solid fa-image"></i>' },
+        "1-1": { title: "1:1 (Quadrat)", icon: '<i class="fa-solid fa-square"></i>' },
+        "3-2": { title: "3:2 (Foto)", icon: '<i class="fa-solid fa-camera"></i>' },
+        "21-9": { title: "21:9 (Ultrawide)", icon: '<i class="fa-solid fa-panorama"></i>' }
+      };
+      this.cropModes = {
+        "cover": { title: "Ausf\xFCllen", icon: '<i class="fa-solid fa-expand"></i>' },
+        "contain": { title: "Einpassen", icon: '<i class="fa-solid fa-compress"></i>' },
+        "fill": { title: "Strecken", icon: '<i class="fa-solid fa-arrows-alt"></i>' }
+      };
+    }
+    render() {
+      const wrapper = this._make("div", [this.CSS.baseClass, this.CSS.wrapper]);
+      const imageWrapper = this._make("div", [this.CSS.imageWrapper]);
+      if (this.data.imageUrl) {
+        this._createImage();
+        imageWrapper.appendChild(this.nodes.image);
+        if (this.data.caption) {
+          const caption = this._make("div", [this.CSS.caption], {
+            innerHTML: this.data.caption
+          });
+          imageWrapper.appendChild(caption);
+          this.nodes.caption = caption;
+        }
+      } else {
+        this._createSelectButton();
+        imageWrapper.appendChild(this.nodes.selectButton);
+      }
+      wrapper.appendChild(imageWrapper);
+      this.nodes.holder = wrapper;
+      this.nodes.wrapper = imageWrapper;
+      if (this.data.imageUrl) {
+        this._updateWrapperClasses();
+      }
+      return wrapper;
+    }
+    renderSettings() {
+      const wrapper = this._make("div", ["cdx-image-settings"]);
+      const stretchButton = this._make("span", [this.CSS.settingsButton], {
+        innerHTML: '<i class="fa-solid fa-arrows-alt-h"></i>',
+        title: "Bild auf volle Breite strecken"
+      });
+      stretchButton.addEventListener("click", () => {
+        this._toggleTune("stretched");
+        stretchButton.classList.toggle(this.CSS.settingsButtonActive, this.data.stretched);
+      });
+      if (this.data.stretched) {
+        stretchButton.classList.add(this.CSS.settingsButtonActive);
+      }
+      const aspectRatioDropdown = this._createDropdown(
+        "Seitenverh\xE4ltnis",
+        '<i class="fa-solid fa-crop"></i>',
+        this.aspectRatios,
+        this.data.aspectRatio,
+        (value) => this._setAspectRatio(value)
+      );
+      const cropModeDropdown = this._createDropdown(
+        "Anpassung",
+        '<i class="fa-solid fa-object-group"></i>',
+        this.cropModes,
+        this.data.cropMode,
+        (value) => this._setCropMode(value)
+      );
+      const borderButton = this._make("span", [this.CSS.settingsButton], {
+        innerHTML: '<i class="fa-solid fa-border-style"></i>',
+        title: "Rahmen hinzuf\xFCgen"
+      });
+      borderButton.addEventListener("click", () => {
+        this._toggleTune("withBorder");
+        borderButton.classList.toggle(this.CSS.settingsButtonActive, this.data.withBorder);
+      });
+      if (this.data.withBorder) {
+        borderButton.classList.add(this.CSS.settingsButtonActive);
+      }
+      const backgroundButton = this._make("span", [this.CSS.settingsButton], {
+        innerHTML: '<i class="fa-solid fa-fill-drip"></i>',
+        title: "Hintergrund hinzuf\xFCgen"
+      });
+      backgroundButton.addEventListener("click", () => {
+        this._toggleTune("withBackground");
+        backgroundButton.classList.toggle(this.CSS.settingsButtonActive, this.data.withBackground);
+      });
+      if (this.data.withBackground) {
+        backgroundButton.classList.add(this.CSS.settingsButtonActive);
+      }
+      const changeImageButton = this._make("span", [this.CSS.settingsButton], {
+        innerHTML: '<i class="fa-solid fa-image"></i>',
+        title: "Bild aus Medienpool w\xE4hlen"
+      });
+      changeImageButton.addEventListener("click", () => {
+        this._openMediapool();
+      });
+      const altTextButton = this._make("span", [this.CSS.settingsButton], {
+        innerHTML: '<i class="fa-solid fa-universal-access"></i>',
+        title: "Alt-Text f\xFCr Barrierefreiheit bearbeiten"
+      });
+      altTextButton.addEventListener("click", () => {
+        this._editAltText();
+      });
+      const captionButton = this._make("span", [this.CSS.settingsButton], {
+        innerHTML: '<i class="fa-solid fa-closed-captioning"></i>',
+        title: "Bildunterschrift bearbeiten"
+      });
+      if (this.data.caption) {
+        captionButton.classList.add(this.CSS.settingsButtonActive);
+      }
+      captionButton.addEventListener("click", () => {
+        this._editCaption();
+      });
+      wrapper.appendChild(stretchButton);
+      wrapper.appendChild(aspectRatioDropdown.element);
+      wrapper.appendChild(cropModeDropdown.element);
+      wrapper.appendChild(borderButton);
+      wrapper.appendChild(backgroundButton);
+      wrapper.appendChild(changeImageButton);
+      wrapper.appendChild(altTextButton);
+      wrapper.appendChild(captionButton);
+      this._updateCropModeVisibility(cropModeDropdown.element);
+      this.cropModeDropdown = cropModeDropdown;
+      return wrapper;
+    }
+    save(blockContent) {
+      return {
+        imageFile: this.data.imageFile,
+        imageUrl: this.data.imageUrl,
+        imageAlt: this.data.imageAlt,
+        caption: this.data.caption,
+        stretched: this.data.stretched,
+        withBorder: this.data.withBorder,
+        withBackground: this.data.withBackground,
+        aspectRatio: this.data.aspectRatio,
+        cropMode: this.data.cropMode
+      };
+    }
+    static get sanitize() {
+      return {
+        caption: {
+          br: true,
+          strong: true,
+          em: true
+        },
+        imageFile: {},
+        imageUrl: {},
+        imageAlt: {},
+        stretched: {},
+        withBorder: {},
+        withBackground: {},
+        aspectRatio: {},
+        cropMode: {}
+      };
+    }
+    _createImage() {
+      const image = this._make("img", [this.CSS.image], {
+        src: this.data.imageUrl,
+        alt: this.data.imageAlt || this.data.imageFile
+      });
+      if (this.data.stretched) {
+        image.classList.add("stretched");
+      }
+      if (this.data.withBorder) {
+        image.classList.add("with-border");
+      }
+      if (this.data.withBackground) {
+        image.classList.add("with-background");
+      }
+      if (this.nodes.wrapper) {
+        this._updateWrapperClasses();
+      } else {
+        setTimeout(() => {
+          if (this.nodes.wrapper) {
+            this._updateWrapperClasses();
+          }
+        }, 0);
+      }
+      image.addEventListener("click", () => {
+        if (!this.readOnly) {
+          this._openMediapool();
+        }
+      });
+      this.nodes.image = image;
+    }
+    _createSelectButton() {
+      const button = this._make("div", [this.CSS.button], {
+        innerHTML: '<i class="fa-solid fa-image"></i> Bild aus Medienpool w\xE4hlen'
+      });
+      button.addEventListener("click", () => {
+        this._openMediapool();
+      });
+      this.nodes.selectButton = button;
+    }
+    _openMediapool() {
+      this.mediaTool.selectImage((mediaData) => {
+        this._setImage(mediaData);
+      }).catch((error) => {
+        console.error("Fehler bei der Medienauswahl:", error);
+        alert("Fehler beim \xD6ffnen des Medienpools: " + error.message);
+      });
+    }
+    _setImage(mediaData) {
+      this.data.imageFile = mediaData.filename;
+      this.data.imageUrl = mediaData.url;
+      this.data.imageAlt = mediaData.alt;
+      if (this.nodes.selectButton) {
+        this.nodes.selectButton.remove();
+        this.nodes.selectButton = null;
+      }
+      if (this.nodes.image) {
+        this.nodes.image.remove();
+        this.nodes.image = null;
+      }
+      this._createImage();
+      this.nodes.wrapper.insertBefore(this.nodes.image, this.nodes.wrapper.firstChild);
+      this._updateCaption();
+    }
+    _toggleTune(tune) {
+      this.data[tune] = !this.data[tune];
+      if (this.nodes.image) {
+        if (tune === "stretched") {
+          this.nodes.image.classList.toggle("stretched", this.data.stretched);
+          if (this.nodes.wrapper) {
+            this.nodes.wrapper.classList.toggle("stretched", this.data.stretched);
+          }
+        } else if (tune === "withBorder") {
+          this.nodes.image.classList.toggle("with-border", this.data.withBorder);
+        } else if (tune === "withBackground") {
+          this.nodes.image.classList.toggle("with-background", this.data.withBackground);
+        }
+      }
+    }
+    _setAspectRatio(ratio) {
+      Object.keys(this.aspectRatios).forEach((r2) => {
+        if (r2 !== "auto") {
+          this.nodes.wrapper.classList.remove("aspect-" + r2);
+        }
+      });
+      this.data.aspectRatio = ratio;
+      if (ratio !== "auto") {
+        this.nodes.wrapper.classList.add("aspect-" + ratio);
+        this._applyCropMode();
+      } else {
+        Object.keys(this.cropModes).forEach((mode) => {
+          this.nodes.wrapper.classList.remove("crop-" + mode);
+        });
+      }
+      this._updateCropModeVisibility();
+      this._updateCropPositionVisibility();
+    }
+    _setCropMode(mode) {
+      Object.keys(this.cropModes).forEach((m3) => {
+        this.nodes.wrapper.classList.remove("crop-" + m3);
+      });
+      this.data.cropMode = mode;
+      if (this.data.aspectRatio !== "auto") {
+        this._applyCropMode();
+      }
+    }
+    _applyCropMode() {
+      if (this.data.aspectRatio !== "auto") {
+        this.nodes.wrapper.classList.add("crop-" + this.data.cropMode);
+      }
+    }
+    _updateCropModeVisibility(cropModeElement = null) {
+      if (!cropModeElement && this.cropModeDropdown) {
+        cropModeElement = this.cropModeDropdown.element;
+      }
+      if (cropModeElement) {
+        cropModeElement.style.display = this.data.aspectRatio === "auto" ? "none" : "inline-block";
+      }
+    }
+    _updateWrapperClasses() {
+      if (!this.nodes.wrapper) return;
+      Object.keys(this.aspectRatios).forEach((ratio) => {
+        if (ratio !== "auto") {
+          this.nodes.wrapper.classList.remove("aspect-" + ratio);
+        }
+      });
+      if (this.data.aspectRatio !== "auto") {
+        this.nodes.wrapper.classList.add("aspect-" + this.data.aspectRatio);
+      }
+      Object.keys(this.cropModes).forEach((mode) => {
+        this.nodes.wrapper.classList.remove("crop-" + mode);
+      });
+      if (this.data.aspectRatio !== "auto") {
+        this.nodes.wrapper.classList.add("crop-" + this.data.cropMode);
+      }
+      this.nodes.wrapper.classList.toggle("stretched", this.data.stretched);
+    }
+    _make(tagName, classNames = null, attributes = {}) {
+      const el = document.createElement(tagName);
+      if (Array.isArray(classNames)) {
+        el.classList.add(...classNames);
+      } else if (classNames) {
+        el.classList.add(classNames);
+      }
+      for (let attrName in attributes) {
+        el[attrName] = attributes[attrName];
+      }
+      return el;
+    }
+    _createDropdown(label, icon, options, currentValue, onChange) {
+      const dropdown = this._make("div", ["cdx-image-dropdown"]);
+      const button = this._make("span", [this.CSS.settingsButton, "cdx-image-dropdown__button"], {
+        innerHTML: icon + " " + options[currentValue].title,
+        title: label
+      });
+      const menu = this._make("div", ["cdx-image-dropdown__menu"]);
+      Object.entries(options).forEach(([value, config]) => {
+        const item = this._make("div", ["cdx-image-dropdown__item"], {
+          innerHTML: config.icon + " " + config.title
+        });
+        if (value === currentValue) {
+          item.classList.add("cdx-image-dropdown__item--active");
+        }
+        item.addEventListener("click", () => {
+          menu.querySelectorAll(".cdx-image-dropdown__item").forEach((i) => {
+            i.classList.remove("cdx-image-dropdown__item--active");
+          });
+          item.classList.add("cdx-image-dropdown__item--active");
+          button.innerHTML = icon + " " + config.title;
+          dropdown.classList.remove("cdx-image-dropdown--open");
+          onChange(value);
+        });
+        menu.appendChild(item);
+      });
+      dropdown.appendChild(button);
+      dropdown.appendChild(menu);
+      button.addEventListener("click", (e) => {
+        e.stopPropagation();
+        document.querySelectorAll(".cdx-image-dropdown--open").forEach((d4) => {
+          if (d4 !== dropdown) {
+            d4.classList.remove("cdx-image-dropdown--open");
+          }
+        });
+        dropdown.classList.toggle("cdx-image-dropdown--open");
+      });
+      document.addEventListener("click", () => {
+        dropdown.classList.remove("cdx-image-dropdown--open");
+      });
+      return {
+        element: dropdown,
+        updateValue: (value) => {
+          const config = options[value];
+          button.innerHTML = icon + " " + config.title;
+          menu.querySelectorAll(".cdx-image-dropdown__item").forEach((i) => {
+            i.classList.remove("cdx-image-dropdown__item--active");
+          });
+          const activeItem = menu.querySelector(`[data-value="${value}"]`);
+          if (activeItem) {
+            activeItem.classList.add("cdx-image-dropdown__item--active");
+          }
+        }
+      };
+    }
+    _editAltText() {
+      const currentAlt = this.data.imageAlt || "";
+      const newAlt = prompt("Alt-Text f\xFCr Barrierefreiheit eingeben:\n(Beschreibt das Bild f\xFCr Screenreader)", currentAlt);
+      if (newAlt !== null) {
+        this.data.imageAlt = newAlt;
+        if (this.nodes.image) {
+          this.nodes.image.alt = this.data.imageAlt;
+        }
+      }
+    }
+    _editCaption() {
+      const currentCaption = this.data.caption || "";
+      const newCaption = prompt("Bildunterschrift eingeben:\n(Wird unter dem Bild angezeigt)", currentCaption);
+      if (newCaption !== null) {
+        this.data.caption = newCaption;
+        this._updateCaption();
+      }
+    }
+    _updateCaption() {
+      if (this.nodes.caption) {
+        this.nodes.caption.remove();
+        this.nodes.caption = null;
+      }
+      if (this.data.caption && this.data.caption.trim()) {
+        const caption = this._make("div", [this.CSS.caption], {
+          innerHTML: this.data.caption
+        });
+        this.nodes.wrapper.appendChild(caption);
+        this.nodes.caption = caption;
+      }
+      const captionButton = document.querySelector('.cdx-image__settings-button[title="Bildunterschrift bearbeiten"]');
+      if (captionButton) {
+        if (this.data.caption && this.data.caption.trim()) {
+          captionButton.classList.add(this.CSS.settingsButtonActive);
+        } else {
+          captionButton.classList.remove(this.CSS.settingsButtonActive);
+        }
+      }
+    }
+  };
+  window.ImageBlock = ImageBlock2;
 
   // src/blocks/rexlink.js
   var REXLinkTool2 = class _REXLinkTool {
@@ -17316,6 +17805,233 @@ var EditorJSBundle = (() => {
   };
   window.REXLinkTool = REXLinkTool2;
 
+  // src/blocks/rexmedia.js
+  var REXMediaTool2 = class {
+    static get title() {
+      return "REDAXO Media";
+    }
+    static get icon() {
+      return '<svg width="17" height="15" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21 3H3C1.9 3 1 3.9 1 5v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM5 17l3.5-4.5 2.5 3.01L14.5 11l4.5 6H5z"/></svg>';
+    }
+    static get isInline() {
+      return false;
+    }
+    constructor({ api, config }) {
+      this.api = api;
+      this.config = config || {};
+      this.defaultConfig = {
+        types: null,
+        // null = alle Dateitypen, sonst Array mit erlaubten Typen
+        multiple: false,
+        // Mehrfachauswahl erlauben
+        category: "",
+        // Kategorie-ID für Filter
+        context: "editorjs_media"
+        // Kontext für den Medienpool
+      };
+      this.settings = { ...this.defaultConfig, ...this.config };
+    }
+    /**
+     * Öffnet den Medienpool mit konfigurierbaren Optionen
+     * @param {Object} options - Optionen für die Medienauswahl
+     * @param {Function} callback - Callback-Funktion, die bei Auswahl aufgerufen wird
+     * @returns {Promise} Promise mit den ausgewählten Medien
+     */
+    openMediaPool(options = {}, callback = null) {
+      return new Promise((resolve, reject) => {
+        if (typeof openMediaPool === "undefined") {
+          const error = "Medienpool ist nicht verf\xFCgbar";
+          alert(error);
+          reject(new Error(error));
+          return;
+        }
+        const config = { ...this.settings, ...options };
+        let params = config.context;
+        if (config.types && Array.isArray(config.types) && config.types.length > 0) {
+          params += "&args[types]=" + config.types.join(",");
+        } else if (typeof rex !== "undefined" && rex.editorjs_rex_media_getImageTypes) {
+          params += "&args[types]=" + rex.editorjs_rex_media_getImageTypes.join(",");
+        }
+        if (config.category) {
+          params += "&args[category]=" + encodeURIComponent(config.category);
+        }
+        if (config.multiple) {
+          params += "&args[multiple]=1";
+        }
+        const mediaPool = openMediaPool(params);
+        const handleMediaSelect = (event, filename, additionalData = {}) => {
+          event.preventDefault();
+          mediaPool.close();
+          const mediaData = this._createMediaData(filename, additionalData, config);
+          if (callback && typeof callback === "function") {
+            callback(mediaData);
+          }
+          resolve(mediaData);
+        };
+        if (typeof $ !== "undefined") {
+          $(mediaPool).on("rex:selectMedia", handleMediaSelect);
+        } else {
+          mediaPool.addEventListener("rex:selectMedia", function(event) {
+            const filename = event.detail?.filename || event.filename;
+            const additionalData = event.detail || {};
+            handleMediaSelect(event, filename, additionalData);
+          });
+        }
+        mediaPool.addEventListener("error", function(event) {
+          reject(new Error("Fehler beim \xD6ffnen des Medienpools: " + event.message));
+        });
+      });
+    }
+    /**
+     * Erstellt Medien-Daten-Objekt mit allen relevanten Informationen
+     * @param {string} filename - Dateiname
+     * @param {Object} additionalData - Zusätzliche Daten vom Medienpool
+     * @param {Object} config - Aktuelle Konfiguration
+     * @returns {Object} Medien-Daten-Objekt
+     */
+    _createMediaData(filename, additionalData = {}, config = {}) {
+      let url = "/media/" + filename;
+      if (typeof rex !== "undefined" && rex.editorjs_imageUrlPath) {
+        url = rex.editorjs_imageUrlPath + filename;
+      }
+      const extension = filename.split(".").pop().toLowerCase();
+      const isImage = this._isImageFile(extension);
+      return {
+        filename,
+        url,
+        alt: additionalData.alt || filename,
+        title: additionalData.title || "",
+        caption: additionalData.caption || "",
+        extension,
+        isImage,
+        type: this._getFileType(extension),
+        size: additionalData.size || null,
+        width: additionalData.width || null,
+        height: additionalData.height || null,
+        category: additionalData.category || "",
+        // Rohdaten für spezielle Verwendung
+        raw: additionalData
+      };
+    }
+    /**
+     * Prüft ob eine Datei ein Bild ist
+     * @param {string} extension - Dateierweiterung
+     * @returns {boolean}
+     */
+    _isImageFile(extension) {
+      const imageExtensions = ["jpg", "jpeg", "png", "gif", "svg", "webp", "bmp", "ico"];
+      return imageExtensions.includes(extension);
+    }
+    /**
+     * Ermittelt den Dateityp basierend auf der Erweiterung
+     * @param {string} extension - Dateierweiterung
+     * @returns {string}
+     */
+    _getFileType(extension) {
+      const typeMap = {
+        // Bilder
+        "jpg": "image",
+        "jpeg": "image",
+        "png": "image",
+        "gif": "image",
+        "svg": "image",
+        "webp": "image",
+        "bmp": "image",
+        "ico": "image",
+        // Videos
+        "mp4": "video",
+        "avi": "video",
+        "mov": "video",
+        "wmv": "video",
+        "flv": "video",
+        "webm": "video",
+        "mkv": "video",
+        // Audio
+        "mp3": "audio",
+        "wav": "audio",
+        "ogg": "audio",
+        "flac": "audio",
+        "aac": "audio",
+        "m4a": "audio",
+        // Dokumente
+        "pdf": "document",
+        "doc": "document",
+        "docx": "document",
+        "xls": "document",
+        "xlsx": "document",
+        "ppt": "document",
+        "pptx": "document",
+        "txt": "document",
+        "rtf": "document",
+        // Archive
+        "zip": "archive",
+        "rar": "archive",
+        "7z": "archive",
+        "tar": "archive",
+        "gz": "archive"
+      };
+      return typeMap[extension] || "file";
+    }
+    /**
+     * Erstellt eine Vorschau-URL für Medien
+     * @param {string} filename - Dateiname
+     * @param {Object} options - Optionen für die Vorschau (Größe, etc.)
+     * @returns {string} Vorschau-URL
+     */
+    getPreviewUrl(filename, options = {}) {
+      const { width = null, height = null, crop = false } = options;
+      let url = "/media/" + filename;
+      if (typeof rex !== "undefined" && rex.editorjs_imageUrlPath) {
+        url = rex.editorjs_imageUrlPath + filename;
+      }
+      if (width || height) {
+      }
+      return url;
+    }
+    /**
+     * Validiert eine Mediendatei gegen die aktuelle Konfiguration
+     * @param {Object} mediaData - Medien-Daten-Objekt
+     * @returns {boolean} True wenn valide
+     */
+    validateMedia(mediaData) {
+      if (this.settings.types && Array.isArray(this.settings.types)) {
+        if (!this.settings.types.includes(mediaData.extension)) {
+          return false;
+        }
+      }
+      return true;
+    }
+    /**
+     * Hilfsmethode für einfache Bildauswahl (am häufigsten verwendet)
+     * @param {Function} callback - Callback-Funktion
+     * @param {Object} options - Optionale Einstellungen
+     */
+    selectImage(callback, options = {}) {
+      const imageOptions = {
+        types: ["jpg", "jpeg", "png", "gif", "svg", "webp"],
+        ...options
+      };
+      return this.openMediaPool(imageOptions, callback);
+    }
+    /**
+     * Hilfsmethode für Datei-Upload (falls implementiert)
+     * @param {File} file - Datei-Objekt
+     * @returns {Promise} Promise mit Upload-Ergebnis
+     */
+    uploadFile(file) {
+      return Promise.reject(new Error("Upload-Funktionalit\xE4t noch nicht implementiert"));
+    }
+  };
+  REXMediaTool2.openMediaPool = function(options = {}) {
+    const tool = new REXMediaTool2({ api: null, config: options });
+    return tool.openMediaPool(options);
+  };
+  REXMediaTool2.selectImage = function(callback, options = {}) {
+    const tool = new REXMediaTool2({ api: null, config: options });
+    return tool.selectImage(callback, options);
+  };
+  window.REXMediaTool = REXMediaTool2;
+
   // src/editorjs.js
   window.EditorJS = Aa;
   window.Header = v;
@@ -17379,6 +18095,16 @@ var EditorJSBundle = (() => {
             inlineToolbar: true,
             config: {
               defaultLayout: "left"
+            }
+          },
+          image: {
+            class: ImageBlock,
+            config: {
+              stretched: false,
+              withBorder: false,
+              withBackground: false,
+              aspectRatio: "auto",
+              cropMode: "cover"
             }
           },
           // Inline-Tools für Rich-Text-Formatierung

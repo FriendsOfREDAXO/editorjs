@@ -41,19 +41,19 @@ class AlertBlock {
 
         this.types = {
             info: {
-                icon: '💡',
+                icon: '<i class="fa-solid fa-info-circle"></i>',
                 title: 'Info'
             },
             warning: {
-                icon: '⚠️',
+                icon: '<i class="fa-solid fa-exclamation-triangle"></i>',
                 title: 'Warnung'
             },
             error: {
-                icon: '❌',
+                icon: '<i class="fa-solid fa-times-circle"></i>',
                 title: 'Fehler'
             },
             success: {
-                icon: '✅',
+                icon: '<i class="fa-solid fa-check-circle"></i>',
                 title: 'Erfolg'
             }
         };

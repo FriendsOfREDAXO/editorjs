@@ -16,7 +16,10 @@ import './blocks/alert.js';
 import './blocks/alert.css';
 import './blocks/textimage.js';
 import './blocks/textimage.css';
+import './blocks/image.js';
+import './blocks/image.css';
 import './blocks/rexlink.js';
+import './blocks/rexmedia.js';
 
 // Globale Variablen für REDAXO Backend
 window.EditorJS = EditorJS;
@@ -86,6 +89,16 @@ window.EditorJSUtils = {
                     inlineToolbar: true,
                     config: {
                         defaultLayout: 'left'
+                    }
+                },
+                image: {
+                    class: ImageBlock,
+                    config: {
+                        stretched: false,
+                        withBorder: false,
+                        withBackground: false,
+                        aspectRatio: 'auto',
+                        cropMode: 'cover'
                     }
                 },
                 // Inline-Tools für Rich-Text-Formatierung

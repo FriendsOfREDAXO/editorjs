@@ -184,6 +184,16 @@ function initEditor() {
                         defaultLayout: 'left'
                     }
                 },
+                image: {
+                    class: ImageBlock,
+                    config: {
+                        stretched: false,
+                        withBorder: false,
+                        withBackground: false,
+                        aspectRatio: 'auto',
+                        cropMode: 'cover'
+                    }
+                },
                 // Inline-Tools für Rich-Text-Formatierung
                 Marker: {
                     class: Marker,

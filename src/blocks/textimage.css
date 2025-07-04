@@ -88,6 +88,11 @@
     transition: all 0.2s ease;
 }
 
+.cdx-textimage__button i {
+    margin-right: 8px;
+    font-size: 18px;
+}
+
 .cdx-textimage__button:hover {
     border-color: #007bff;
     background-color: #e3f2fd;
@@ -204,6 +209,10 @@
     transition: all 0.2s ease;
 }
 
+.cdx-textimage__settings-button i {
+    margin-right: 6px;
+}
+
 .cdx-textimage__settings-button:hover {
     background-color: #f8f9fa;
     border-color: #dee2e6;
@@ -218,6 +227,37 @@
 .cdx-textimage__settings-button--active:hover {
     background-color: #0056b3;
     border-color: #0056b3;
+}
+
+/* Alt-Text Eingabefeld für TextImage */
+.cdx-textimage__alt-text {
+    margin-top: 6px;
+    padding: 5px 10px;
+    color: #495057;
+    font-size: 12px;
+    text-align: center;
+    outline: none;
+    border: 1px solid #e0e0e0;
+    border-radius: 3px;
+    transition: border-color 0.3s ease;
+    background-color: #f8f9fa;
+    min-height: 18px;
+}
+
+.cdx-textimage__alt-text:focus {
+    border-color: #007bff;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.cdx-textimage__alt-text:empty:before {
+    content: "Alt-Text eingeben...";
+    color: #999;
+    font-style: italic;
+}
+
+.cdx-textimage__alt-text:not(:empty) {
+    font-style: normal;
 }
 
 /* Responsive */

@@ -69,6 +69,10 @@
     transition: all 0.2s ease;
 }
 
+.cdx-alert__settings-button i {
+    margin-right: 6px;
+}
+
 .cdx-alert__settings-button:hover {
     background-color: #f8f9fa;
     border-color: #dee2e6;
