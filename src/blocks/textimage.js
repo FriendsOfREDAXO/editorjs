@@ -137,6 +137,11 @@ class TextImageBlock {
             innerHTML: this.data.text || 'Geben Sie hier Ihren Text ein...'
         });
         
+        // Enter-Verhalten anpassen für Text-Bereich
+        if (!this.readOnly) {
+            text.addEventListener('keydown', this._handleEnter.bind(this));
+        }
+        
         textWrapper.appendChild(text);
 
         // Immer die gleiche DOM-Reihenfolge: Image zuerst, dann Text
@@ -393,6 +398,34 @@ class TextImageBlock {
             this.nodes.imageWrapper.appendChild(caption);
             this.nodes.caption = caption;
         }
+    }
+
+    _handleEnter(event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            // Enter ohne Shift: Zeilenumbruch einfügen
+            event.preventDefault();
+            event.stopPropagation();
+            
+            // BR-Element an Cursor-Position einfügen
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                
+                const br = document.createElement('br');
+                range.deleteContents();
+                range.insertNode(br);
+                
+                // Cursor nach dem BR positionieren
+                range.setStartAfter(br);
+                range.setEndAfter(br);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
+            
+            return false;
+        }
+        // Shift+Enter: Standard-Verhalten (neuer Block)
+        return true;
     }
 
     _make(tagName, classNames = null, attributes = {}) {

@@ -54,10 +54,12 @@ class REXMediaTool {
             // Dateitypen filtern (falls konfiguriert)
             if (config.types && Array.isArray(config.types) && config.types.length > 0) {
                 params += '&args[types]=' + config.types.join(',');
-            } else if (typeof rex !== 'undefined' && rex.editorjs_rex_media_getImageTypes) {
-                // Fallback: nur Bildtypen wenn verfügbar
-                params += '&args[types]=' + rex.editorjs_rex_media_getImageTypes.join(',');
             }
+            // NICHT automatisch auf Bildtypen beschränken - Downloads sollen alle Dateitypen erlauben
+            // else if (typeof rex !== 'undefined' && rex.editorjs_rex_media_getImageTypes) {
+            //     // Fallback: nur Bildtypen wenn verfügbar
+            //     params += '&args[types]=' + rex.editorjs_rex_media_getImageTypes.join(',');
+            // }
             
             // Kategorie-Filter
             if (config.category) {
@@ -69,39 +71,114 @@ class REXMediaTool {
                 params += '&args[multiple]=1';
             }
 
+            console.log('Opening media pool with params:', params);
             const mediaPool = openMediaPool(params);
+            console.log('Media pool opened:', mediaPool);
             
             // Event Listener für die Medienauswahl
-            const handleMediaSelect = (event, filename, additionalData = {}) => {
-                event.preventDefault();
-                mediaPool.close();
+            const handleMediaSelect = (filename, additionalData = {}) => {
+                console.log('Media select handler called:', { filename, additionalData });
+                
+                try {
+                    mediaPool.close();
+                } catch (e) {
+                    console.warn('Error closing media pool:', e);
+                }
                 
                 const mediaData = this._createMediaData(filename, additionalData, config);
+                console.log('Created media data:', mediaData);
                 
                 // Callback aufrufen falls vorhanden
                 if (callback && typeof callback === 'function') {
+                    console.log('Calling callback with:', mediaData);
                     callback(mediaData);
+                } else {
+                    console.warn('No callback function provided or invalid');
                 }
                 
                 resolve(mediaData);
             };
 
+            // Globale Callback-Funktion für REDAXO
+            const globalCallbackName = 'rex_selectMedia_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            
+            window[globalCallbackName] = function(filename) {
+                console.log('Global callback triggered with filename:', filename);
+                handleMediaSelect(filename);
+                // Cleanup
+                delete window[globalCallbackName];
+            };
+
+            // Verschiedene Event-Listener registrieren
             if (typeof $ !== 'undefined') {
                 // jQuery Version (falls verfügbar)
-                $(mediaPool).on('rex:selectMedia', handleMediaSelect);
-            } else {
-                // Vanilla JS Fallback
-                mediaPool.addEventListener('rex:selectMedia', function(event) {
-                    const filename = event.detail?.filename || event.filename;
-                    const additionalData = event.detail || {};
-                    handleMediaSelect(event, filename, additionalData);
+                console.log('Setting up jQuery event listeners');
+                $(mediaPool).on('rex:selectMedia', function(event, filename, additionalData) {
+                    console.log('jQuery rex:selectMedia event:', { event, filename, additionalData });
+                    handleMediaSelect(filename, additionalData);
+                });
+                
+                // Auch auf den globalen Event-Bus hören
+                $(document).on('rex:selectMedia', function(event, filename, additionalData) {
+                    console.log('Document jQuery rex:selectMedia event:', { event, filename, additionalData });
+                    handleMediaSelect(filename, additionalData);
+                });
+            }
+            
+            // Vanilla JS Event Listeners
+            console.log('Setting up vanilla JS event listeners');
+            const vanillaHandler = function(event) {
+                console.log('Vanilla rex:selectMedia event:', event);
+                const filename = event.detail?.filename || event.filename || event.detail;
+                const additionalData = event.detail || {};
+                if (filename) {
+                    handleMediaSelect(filename, additionalData);
+                }
+            };
+
+            if (mediaPool && mediaPool.addEventListener) {
+                mediaPool.addEventListener('rex:selectMedia', vanillaHandler);
+            }
+            
+            // Auf Document-Level für globale Events
+            document.addEventListener('rex:selectMedia', vanillaHandler);
+            
+            // Spezielle REDAXO-Events
+            document.addEventListener('media:selected', vanillaHandler);
+            document.addEventListener('mediapool:select', vanillaHandler);
+
+            // Error handling
+            if (mediaPool && mediaPool.addEventListener) {
+                mediaPool.addEventListener('error', function(event) {
+                    reject(new Error('Fehler beim Öffnen des Medienpools: ' + event.message));
                 });
             }
 
-            // Error handling
-            mediaPool.addEventListener('error', function(event) {
-                reject(new Error('Fehler beim Öffnen des Medienpools: ' + event.message));
-            });
+            // Fallback: Prüfen ob das mediaPool Objekt spezielle Eigenschaften hat
+            if (mediaPool && typeof mediaPool.onSelect === 'function') {
+                console.log('Using mediaPool.onSelect method');
+                mediaPool.onSelect = function(filename) {
+                    console.log('mediaPool.onSelect called with:', filename);
+                    handleMediaSelect(filename);
+                };
+            }
+
+            // Weiterer Fallback: Polling für Änderungen am Media Pool
+            let pollCount = 0;
+            const pollInterval = setInterval(() => {
+                pollCount++;
+                if (pollCount > 100) { // Max 10 Sekunden
+                    clearInterval(pollInterval);
+                    return;
+                }
+
+                // Prüfen ob das Popup geschlossen wurde
+                if (mediaPool && mediaPool.closed) {
+                    clearInterval(pollInterval);
+                    console.log('Media pool closed without selection');
+                    reject(new Error('Media pool closed without selection'));
+                }
+            }, 100);
         });
     }
 
@@ -252,15 +329,34 @@ class REXMediaTool {
 }
 
 // Static-Methode für globale Verwendung
-REXMediaTool.openMediaPool = function(options = {}) {
+REXMediaTool.openMediaPool = function(callbackOrOptions, callback = null) {
+    // Unterscheiden zwischen (callback) und (options, callback)
+    let options = {};
+    let finalCallback = null;
+    
+    if (typeof callbackOrOptions === 'function') {
+        // Nur Callback übergeben: openMediaPool(callback)
+        finalCallback = callbackOrOptions;
+    } else if (typeof callbackOrOptions === 'object') {
+        // Options + Callback: openMediaPool(options, callback)
+        options = callbackOrOptions;
+        finalCallback = callback;
+    }
+    
     const tool = new REXMediaTool({ api: null, config: options });
-    return tool.openMediaPool(options);
+    return tool.openMediaPool(options, finalCallback);
 };
 
 // Static-Methode für einfache Bildauswahl
 REXMediaTool.selectImage = function(callback, options = {}) {
     const tool = new REXMediaTool({ api: null, config: options });
     return tool.selectImage(callback, options);
+};
+
+// Kompatibilität: Methode mit kleinem 'p'
+REXMediaTool.openMediapool = function(callback) {
+    const tool = new REXMediaTool({});
+    return tool.openMediaPool({}, callback);
 };
 
 // Export für das Bundle

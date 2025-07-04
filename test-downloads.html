@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Downloads Test</title>
+    <link rel="stylesheet" href="../assets/js/editorjs.bundle.css">
+</head>
+<body>
+<div id="editorjs"></div>
+
+<script src="../assets/js/editorjs.bundle.js"></script>
+<script>
+console.log('Bundle loaded:', typeof EditorJSBundle);
+console.log('DownloadsBlock available:', typeof DownloadsBlock);
+
+const editor = EditorJSBundle.EditorJSUtils.createEditor({
+    holder: 'editorjs',
+    data: {
+        blocks: [
+            {
+                type: 'downloads',
+                data: {
+                    title: 'Test Downloads',
+                    showTitle: true,
+                    layout: 'list',
+                    items: [
+                        {
+                            file: 'test.pdf',
+                            title: 'Test PDF',
+                            description: 'Test Beschreibung',
+                            customIcon: ''
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+});
+</script>
+</body>
+</html>

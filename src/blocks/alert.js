@@ -70,6 +70,12 @@ class AlertBlock {
             innerHTML: this.data.message || 'Geben Sie hier Ihre Nachricht ein...'
         });
 
+        // Enter-Verhalten anpassen: Enter = Zeilenumbruch, nicht neuer Block
+        if (!this.readOnly) {
+            title.addEventListener('keydown', this._handleEnter.bind(this));
+            message.addEventListener('keydown', this._handleEnter.bind(this));
+        }
+
         holder.dataset.type = this.data.type;
         holder.appendChild(title);
         holder.appendChild(message);
@@ -147,6 +153,34 @@ class AlertBlock {
         if (this.nodes.title.innerHTML === '' || Object.values(this.types).some(t => this.nodes.title.innerHTML === t.title)) {
             this.nodes.title.innerHTML = this.types[type].title;
         }
+    }
+
+    _handleEnter(event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            // Enter ohne Shift: Zeilenumbruch einfügen
+            event.preventDefault();
+            event.stopPropagation();
+            
+            // BR-Element an Cursor-Position einfügen
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                
+                const br = document.createElement('br');
+                range.deleteContents();
+                range.insertNode(br);
+                
+                // Cursor nach dem BR positionieren
+                range.setStartAfter(br);
+                range.setEndAfter(br);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
+            
+            return false;
+        }
+        // Shift+Enter: Standard-Verhalten (neuer Block)
+        return true;
     }
 
     _make(tagName, classNames = null, attributes = {}) {

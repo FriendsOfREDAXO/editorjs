@@ -20,6 +20,8 @@ import './blocks/image.js';
 import './blocks/image.css';
 import './blocks/rexlink.js';
 import './blocks/rexmedia.js';
+import './blocks/downloads.js';
+import './blocks/downloads.css';
 
 // Globale Variablen für REDAXO Backend
 window.EditorJS = EditorJS;
@@ -34,7 +36,10 @@ window.Marker = Marker;
 window.LinkTool = LinkTool;
 window.REXLinkTool = REXLinkTool;
 // Alert und TextImage Blocks sind bereits über die JS-Dateien verfügbar
-// als window.AlertBlock und window.TextImageBlock
+// als window.AlertBlock, window.TextImageBlock, window.ImageBlock und window.DownloadsBlock
+
+// Debug: Prüfe ob DownloadsBlock verfügbar ist
+console.log('DownloadsBlock available?', typeof window.DownloadsBlock);
 
 // EditorJS Utilities für REDAXO
 window.EditorJSUtils = {
@@ -43,84 +48,107 @@ window.EditorJSUtils = {
      * Erstellt einen neuen EditorJS mit Standard-Konfiguration
      */
     createEditor: function(options) {
-        const defaultOptions = {
-            tools: {
-                header: {
-                    class: Header,
-                    config: {
-                        placeholder: 'Überschrift eingeben...',
-                        levels: [2, 3, 4],
-                        defaultLevel: 2
-                    }
-                },
-                paragraph: {
-                    class: Paragraph,
-                    inlineToolbar: true
-                },
-                list: {
-                    class: List,
-                    inlineToolbar: true
-                },
-                quote: {
-                    class: Quote,
-                    inlineToolbar: true,
-                    config: {
-                        quotePlaceholder: 'Zitat eingeben...',
-                        captionPlaceholder: 'Autor'
-                    }
-                },
-                delimiter: {
-                    class: Delimiter
-                },
-                code: {
-                    class: CodeTool,
-                    config: {
-                        placeholder: 'Code eingeben...'
-                    }
-                },
-                alert: {
-                    class: AlertBlock,
-                    config: {
-                        defaultType: 'info'
-                    }
-                },
-                textimage: {
-                    class: TextImageBlock,
-                    inlineToolbar: true,
-                    config: {
-                        defaultLayout: 'left'
-                    }
-                },
-                image: {
-                    class: ImageBlock,
-                    config: {
-                        stretched: false,
-                        withBorder: false,
-                        withBackground: false,
-                        aspectRatio: 'auto',
-                        cropMode: 'cover'
-                    }
-                },
-                // Inline-Tools für Rich-Text-Formatierung
-                Marker: {
-                    class: Marker,
-                    shortcut: 'CMD+SHIFT+M'
-                },
-                inlineCode: {
-                    class: InlineCode,
-                    shortcut: 'CMD+SHIFT+C'
-                },
-                linkTool: {
-                    class: LinkTool,
-                    config: {
-                        endpoint: 'http://localhost:8008/fetchUrl' // Optional: für automatische Metadaten
-                    }
-                },
-                rexLink: {
-                    class: REXLinkTool,
-                    shortcut: 'CMD+K'
+        // Tools dynamisch zusammenstellen
+        const tools = {
+            header: {
+                class: Header,
+                config: {
+                    placeholder: 'Überschrift eingeben...',
+                    levels: [2, 3, 4],
+                    defaultLevel: 2
                 }
+            },
+            paragraph: {
+                class: Paragraph,
+                inlineToolbar: true,
+                config: {
+                    placeholder: 'Text eingeben...',
+                    preserveBlank: true
+                }
+            },
+            list: {
+                class: List,
+                inlineToolbar: true
+            },
+            quote: {
+                class: Quote,
+                inlineToolbar: true,
+                config: {
+                    quotePlaceholder: 'Zitat eingeben...',
+                    captionPlaceholder: 'Autor'
+                }
+            },
+            delimiter: {
+                class: Delimiter
+            },
+            code: {
+                class: CodeTool,
+                config: {
+                    placeholder: 'Code eingeben...'
+                }
+            },
+            alert: {
+                class: window.AlertBlock,
+                config: {
+                    defaultType: 'info'
+                }
+            },
+            textimage: {
+                class: window.TextImageBlock,
+                inlineToolbar: true,
+                config: {
+                    defaultLayout: 'left'
+                }
+            },
+            image: {
+                class: window.ImageBlock,
+                config: {
+                    stretched: false,
+                    withBorder: false,
+                    withBackground: false,
+                    aspectRatio: 'auto',
+                    cropMode: 'cover'
+                }
+            },
+            // Inline-Tools für Rich-Text-Formatierung
+            Marker: {
+                class: Marker,
+                shortcut: 'CMD+SHIFT+M'
+            },
+            inlineCode: {
+                class: InlineCode,
+                shortcut: 'CMD+SHIFT+C'
+            },
+            linkTool: {
+                class: LinkTool,
+                config: {
+                    endpoint: 'http://localhost:8008/fetchUrl' // Optional: für automatische Metadaten
+                }
+            },
+            rexLink: {
+                class: REXLinkTool,
+                shortcut: 'CMD+K'
             }
+        };
+
+        // Downloads-Tool hinzufügen, falls verfügbar
+        if (typeof window.DownloadsBlock !== 'undefined') {
+            tools.downloads = {
+                class: window.DownloadsBlock,
+                config: {
+                    defaultLayout: 'list',
+                    showTitle: true
+                }
+            };
+        }
+
+        const defaultOptions = {
+            onReady: function() {
+                console.log('EditorJS is ready!');
+                // Custom Enter-Handling für alle Blöcke
+                EditorJSUtils.setupEnterHandling();
+            },
+            tools: tools
         };
         
         // Merge user options with defaults
@@ -139,6 +167,54 @@ window.EditorJSUtils = {
             console.error('JSON Parse Error:', e);
             return null;
         }
+    },
+    
+    /**
+     * Setup für verbessertes Enter-Verhalten
+     */
+    setupEnterHandling: function() {
+        // Globaler Event Listener für alle contentEditable Elemente
+        document.addEventListener('keydown', function(event) {
+            const target = event.target;
+            
+            // Nur bei contentEditable Elementen in EditorJS
+            if (target.contentEditable === 'true' && 
+                target.closest('.codex-editor')) {
+                
+                // Prüfen ob das Element bereits eigene Enter-Handler hat
+                // oder ein spezielles Verhalten benötigt
+                const hasCustomHandler = target.closest('.cdx-alert') || 
+                                        target.closest('.cdx-textimage') ||
+                                        target.closest('.cdx-list') ||
+                                        target.closest('.ce-block--selected .cdx-list') ||
+                                        target.closest('[data-tool="list"]');
+                
+                // Nur für Standard-Paragraph-Blöcke ohne eigene Handler
+                if (!hasCustomHandler && event.key === 'Enter' && !event.shiftKey) {
+                    // Enter ohne Shift: Zeilenumbruch im aktuellen Block
+                    event.preventDefault();
+                    
+                    const selection = window.getSelection();
+                    if (selection.rangeCount > 0) {
+                        const range = selection.getRangeAt(0);
+                        const br = document.createElement('br');
+                        
+                        range.deleteContents();
+                        range.insertNode(br);
+                        
+                        // Cursor nach dem BR positionieren
+                        range.setStartAfter(br);
+                        range.setEndAfter(br);
+                        selection.removeAllRanges();
+                        selection.addRange(range);
+                    }
+                    
+                    return false;
+                }
+                // Shift+Enter: Standard-Verhalten (neuer Block)
+                // Listen: Standard EditorJS-Verhalten beibehalten
+            }
+        }, true);
     }
 };
 

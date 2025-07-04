@@ -28,7 +28,8 @@ class EditorJsRenderer
                 
                 // Unsere benutzerdefinierten Blöcke
                 'alert' => [$this, 'renderAlert'],
-                'textimage' => [$this, 'renderTextImage']
+                'textimage' => [$this, 'renderTextImage'],
+                'downloads' => [$this, 'renderDownloads']
             ]
         ];
     }
@@ -250,6 +251,149 @@ class EditorJsRenderer
         $html .= "</div>\n";
         
         return $html;
+    }
+
+    /**
+     * Rendert unseren benutzerdefinierten Downloads-Block
+     */
+    public function renderDownloads(array $data): string
+    {
+        $title = $data['title'] ?? 'Downloads';
+        $items = $data['items'] ?? [];
+        $showTitle = $data['showTitle'] ?? true;
+        $layout = $data['layout'] ?? 'list';
+        
+        if (empty($items)) {
+            return '';
+        }
+        
+        $html = "<div class=\"cdx-downloads\" data-layout=\"{$layout}\">\n";
+        
+        // Titel anzeigen falls aktiviert
+        if ($showTitle && !empty($title)) {
+            $html .= "<h3 class=\"cdx-downloads__title\">" . htmlspecialchars($title) . "</h3>\n";
+        }
+        
+        $html .= "<div class=\"cdx-downloads__container\">\n";
+        
+        foreach ($items as $item) {
+            $file = $item['file'] ?? '';
+            $itemTitle = $item['title'] ?? '';
+            $description = $item['description'] ?? '';
+            
+            if (empty($file)) {
+                continue;
+            }
+            
+            // Media-URL für REDAXO generieren
+            $fileUrl = \rex_url::media($file);
+            $extension = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+            
+            $html .= "<div class=\"cdx-downloads__item\">\n";
+            $html .= "<a href=\"{$fileUrl}\" class=\"cdx-downloads__link\" target=\"_blank\" rel=\"noopener\">\n";
+            
+            // Icon Container
+            $html .= "<div class=\"cdx-downloads__icon\">\n";
+            
+            // Prüfen ob es ein Bild ist für Thumbnail
+            if ($this->isImageFile($extension)) {
+                $html .= "<img src=\"{$fileUrl}\" alt=\"" . htmlspecialchars($itemTitle ?: $file) . "\" class=\"cdx-downloads__thumb\" />\n";
+            } else {
+                $html .= $this->getFileIcon($extension) . "\n";
+            }
+            
+            $html .= "</div>\n";
+            
+            // File Info
+            $html .= "<div class=\"cdx-downloads__info\">\n";
+            
+            if (!empty($itemTitle)) {
+                $html .= "<h4 class=\"cdx-downloads__file-title\">" . htmlspecialchars($itemTitle) . "</h4>\n";
+            }
+            
+            $html .= "<div class=\"cdx-downloads__file-name\">" . htmlspecialchars($file) . "</div>\n";
+            
+            if (!empty($description)) {
+                $html .= "<div class=\"cdx-downloads__description\">" . htmlspecialchars($description) . "</div>\n";
+            }
+            
+            // Dateigröße falls verfügbar
+            $filePath = \rex_path::media($file);
+            if (file_exists($filePath)) {
+                $fileSize = $this->formatFileSize(filesize($filePath));
+                $html .= "<div class=\"cdx-downloads__file-size\">{$fileSize}</div>\n";
+            }
+            
+            $html .= "</div>\n";
+            $html .= "</a>\n";
+            $html .= "</div>\n";
+        }
+        
+        $html .= "</div>\n";
+        $html .= "</div>\n";
+        
+        return $html;
+    }
+    
+    /**
+     * Prüft ob eine Datei ein Bild ist
+     */
+    private function isImageFile(string $extension): bool
+    {
+        $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'];
+        return in_array($extension, $imageExtensions);
+    }
+    
+    /**
+     * Gibt das passende Icon für einen Dateityp zurück
+     */
+    private function getFileIcon(string $extension): string
+    {
+        $iconMap = [
+            // PDF
+            'pdf' => '<i class="fa-solid fa-file-pdf" style="color: #dc3545;"></i>',
+            
+            // Documents
+            'doc' => '<i class="fa-solid fa-file-word" style="color: #2c5aa0;"></i>',
+            'docx' => '<i class="fa-solid fa-file-word" style="color: #2c5aa0;"></i>',
+            'xls' => '<i class="fa-solid fa-file-excel" style="color: #1d6f42;"></i>',
+            'xlsx' => '<i class="fa-solid fa-file-excel" style="color: #1d6f42;"></i>',
+            'ppt' => '<i class="fa-solid fa-file-powerpoint" style="color: #d04423;"></i>',
+            'pptx' => '<i class="fa-solid fa-file-powerpoint" style="color: #d04423;"></i>',
+            
+            // Archive
+            'zip' => '<i class="fa-solid fa-file-zipper" style="color: #6c757d;"></i>',
+            'rar' => '<i class="fa-solid fa-file-zipper" style="color: #6c757d;"></i>',
+            '7z' => '<i class="fa-solid fa-file-zipper" style="color: #6c757d;"></i>',
+            
+            // Text
+            'txt' => '<i class="fa-solid fa-file-lines" style="color: #6c757d;"></i>',
+            'rtf' => '<i class="fa-solid fa-file-lines" style="color: #6c757d;"></i>',
+            
+            // Audio/Video
+            'mp3' => '<i class="fa-solid fa-file-audio" style="color: #ff6b35;"></i>',
+            'wav' => '<i class="fa-solid fa-file-audio" style="color: #ff6b35;"></i>',
+            'mp4' => '<i class="fa-solid fa-file-video" style="color: #ff6b35;"></i>',
+            'avi' => '<i class="fa-solid fa-file-video" style="color: #ff6b35;"></i>'
+        ];
+        
+        return $iconMap[$extension] ?? '<i class="fa-solid fa-file" style="color: #6c757d;"></i>';
+    }
+    
+    /**
+     * Formatiert eine Dateigröße
+     */
+    private function formatFileSize(int $bytes): string
+    {
+        $units = ['B', 'KB', 'MB', 'GB'];
+        $i = 0;
+        
+        while ($bytes >= 1024 && $i < count($units) - 1) {
+            $bytes /= 1024;
+            $i++;
+        }
+        
+        return round($bytes, 2) . ' ' . $units[$i];
     }
 
     /**

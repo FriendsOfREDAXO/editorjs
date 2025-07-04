@@ -376,3 +376,178 @@ pre, code {
     line-height: 1.4;
     overflow-x: auto;
 }
+
+/* === Downloads Block === */
+/* Frontend CSS für Downloads Block */
+.cdx-downloads {
+    margin: 20px 0;
+}
+
+.cdx-downloads__title {
+    font-size: 1.5em;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.cdx-downloads__container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Grid Layout */
+.cdx-downloads[data-layout="grid"] .cdx-downloads__container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+/* Download Items */
+.cdx-downloads__item {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    background: #fff;
+}
+
+.cdx-downloads__item:hover {
+    border-color: #007bff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transform: translateY(-1px);
+}
+
+.cdx-downloads__link {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    text-decoration: none;
+    color: inherit;
+    gap: 15px;
+}
+
+.cdx-downloads__link:hover {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Icon und Thumbnail */
+.cdx-downloads__icon {
+    flex-shrink: 0;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    border-radius: 6px;
+    font-size: 24px;
+}
+
+.cdx-downloads__thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+/* File Info */
+.cdx-downloads__info {
+    flex: 1;
+    min-width: 0;
+}
+
+.cdx-downloads__file-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #212529;
+    margin: 0 0 5px 0;
+    word-break: break-word;
+}
+
+.cdx-downloads__file-name {
+    font-size: 13px;
+    color: #6c757d;
+    word-break: break-all;
+    margin-bottom: 3px;
+}
+
+.cdx-downloads__description {
+    font-size: 14px;
+    color: #495057;
+    margin-bottom: 3px;
+}
+
+.cdx-downloads__file-size {
+    font-size: 12px;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+/* Compact Layout */
+.cdx-downloads[data-layout="compact"] .cdx-downloads__link {
+    padding: 10px;
+    gap: 10px;
+}
+
+.cdx-downloads[data-layout="compact"] .cdx-downloads__icon {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+}
+
+.cdx-downloads[data-layout="compact"] .cdx-downloads__file-title {
+    font-size: 14px;
+}
+
+.cdx-downloads[data-layout="compact"] .cdx-downloads__description {
+    font-size: 13px;
+}
+
+/* Grid Layout Anpassungen */
+.cdx-downloads[data-layout="grid"] .cdx-downloads__link {
+    flex-direction: column;
+    text-align: center;
+    padding: 20px;
+}
+
+.cdx-downloads[data-layout="grid"] .cdx-downloads__icon {
+    width: 80px;
+    height: 80px;
+    font-size: 32px;
+    margin-bottom: 10px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .cdx-downloads[data-layout="grid"] .cdx-downloads__container {
+        grid-template-columns: 1fr;
+    }
+    
+    .cdx-downloads__link {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+    
+    .cdx-downloads__icon {
+        align-self: center;
+    }
+}
+
+/* Download-Indikator */
+.cdx-downloads__link::after {
+    content: '\f019';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    font-size: 12px;
+    color: #007bff;
+    margin-left: 8px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.cdx-downloads__link:hover::after {
+    opacity: 1;
+}

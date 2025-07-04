@@ -49,7 +49,30 @@ $demoData = [
                     $this->i18n('features_blocks'),
                     $this->i18n('features_json'),
                     'Benutzerdefinierte Blöcke (Alert-Block)',
-                    'Text-Bild-Block mit Medienpool'
+                    'Text-Bild-Block mit Medienpool',
+                    'Downloads-Repeater mit Medienpool-Integration'
+                ]
+            ]
+        ],
+        [
+            'type' => 'downloads',
+            'data' => [
+                'title' => 'Beispiel Downloads',
+                'showTitle' => true,
+                'layout' => 'list',
+                'items' => [
+                    [
+                        'file' => 'beispiel.pdf',
+                        'title' => 'Produktkatalog 2024',
+                        'description' => 'Unser aktueller Produktkatalog mit allen Neuheiten und Innovationen.',
+                        'customIcon' => ''
+                    ],
+                    [
+                        'file' => 'bild-beispiel.jpg',
+                        'title' => 'Hochauflösendes Produktbild',
+                        'description' => 'Professionelle Produktfotografie in bester Qualität.',
+                        'customIcon' => ''
+                    ]
                 ]
             ]
         ]
@@ -88,6 +111,29 @@ $demoData = [
             </div>
         </div>
     </div>
+</div>
+
+<div class="alert alert-info">
+    <h4><i class="fa fa-info-circle"></i> Tastaturkürzel</h4>
+    <ul class="list-unstyled">
+        <li><strong>Enter:</strong> 
+            <ul>
+                <li>In Text-Blöcken: Neue Zeile (Zeilenumbruch)</li>
+                <li>In Listen: Neuer Listenpunkt</li>
+            </ul>
+        </li>
+        <li><strong>Shift + Enter:</strong> 
+            <ul>
+                <li>In Text-Blöcken: Neuen Block erstellen</li>
+                <li>In Listen: Zeilenumbruch im aktuellen Listenpunkt</li>
+            </ul>
+        </li>
+        <li><strong>Tab:</strong> Einrücken in Listen</li>
+        <li><strong>Cmd/Ctrl + B:</strong> Fett</li>
+        <li><strong>Cmd/Ctrl + I:</strong> Kursiv</li>
+        <li><strong>Cmd/Ctrl + K:</strong> REDAXO Link einfügen</li>
+    </ul>
+    <p><small><strong>Hinweis:</strong> Das Enter-Verhalten passt sich automatisch an den Block-Typ an. In normalen Text-Bereichen erstellt <kbd>Enter</kbd> Zeilenumbrüche, in Listen neue Listenpunkte.</small></p>
 </div>
 
 <script>
@@ -133,84 +179,98 @@ function initEditor() {
             throw new Error('Fehlende Tools: ' + missingTools.join(', '));
         }
         
+        // Tools-Objekt dynamisch aufbauen
+        var tools = {
+            header: {
+                class: Header,
+                config: {
+                    placeholder: '<?= $this->i18n('header_placeholder') ?>',
+                    levels: [2, 3, 4],
+                    defaultLevel: 2
+                }
+            },
+            paragraph: {
+                class: Paragraph,
+                inlineToolbar: true
+            },
+            list: {
+                class: List,
+                inlineToolbar: true
+            },
+            quote: {
+                class: Quote,
+                inlineToolbar: true,
+                config: {
+                    quotePlaceholder: '<?= $this->i18n('quote_placeholder') ?>',
+                    captionPlaceholder: '<?= $this->i18n('author_placeholder') ?>'
+                }
+            },
+            delimiter: {
+                class: Delimiter
+            },
+            code: {
+                class: CodeTool,
+                config: {
+                    placeholder: '<?= $this->i18n('code_placeholder') ?>'
+                }
+            },
+            alert: {
+                class: AlertBlock,
+                config: {
+                    defaultType: 'info'
+                }
+            },
+            textimage: {
+                class: TextImageBlock,
+                inlineToolbar: true,
+                config: {
+                    defaultLayout: 'left'
+                }
+            },
+            image: {
+                class: ImageBlock,
+                config: {
+                    stretched: false,
+                    withBorder: false,
+                    withBackground: false,
+                    aspectRatio: 'auto',
+                    cropMode: 'cover'
+                }
+            },
+            // Inline-Tools für Rich-Text-Formatierung
+            Marker: {
+                class: Marker,
+                shortcut: 'CMD+SHIFT+M'
+            },
+            inlineCode: {
+                class: InlineCode,
+                shortcut: 'CMD+SHIFT+C'
+            },
+            linkTool: {
+                class: LinkTool
+            },
+            rexLink: {
+                class: REXLinkTool,
+                shortcut: 'CMD+K'
+            }
+        };
+
+        // Downloads-Tool hinzufügen wenn verfügbar
+        if (typeof DownloadsBlock !== 'undefined') {
+            tools.downloads = {
+                class: DownloadsBlock,
+                config: {
+                    defaultLayout: 'list',
+                    showTitle: true
+                }
+            };
+        }
+
         editor = new EditorJS({
             holder: 'editorjs-demo',
             placeholder: '<?= $this->i18n('placeholder') ?>',
             data: demoData,
-            tools: {
-                header: {
-                    class: Header,
-                    config: {
-                        placeholder: '<?= $this->i18n('header_placeholder') ?>',
-                        levels: [2, 3, 4],
-                        defaultLevel: 2
-                    }
-                },
-                paragraph: {
-                    class: Paragraph,
-                    inlineToolbar: true
-                },
-                list: {
-                    class: List,
-                    inlineToolbar: true
-                },
-                quote: {
-                    class: Quote,
-                    inlineToolbar: true,
-                    config: {
-                        quotePlaceholder: '<?= $this->i18n('quote_placeholder') ?>',
-                        captionPlaceholder: '<?= $this->i18n('author_placeholder') ?>'
-                    }
-                },
-                delimiter: {
-                    class: Delimiter
-                },
-                code: {
-                    class: CodeTool,
-                    config: {
-                        placeholder: '<?= $this->i18n('code_placeholder') ?>'
-                    }
-                },
-                alert: {
-                    class: AlertBlock,
-                    config: {
-                        defaultType: 'info'
-                    }
-                },
-                textimage: {
-                    class: TextImageBlock,
-                    inlineToolbar: true,
-                    config: {
-                        defaultLayout: 'left'
-                    }
-                },
-                image: {
-                    class: ImageBlock,
-                    config: {
-                        stretched: false,
-                        withBorder: false,
-                        withBackground: false,
-                        aspectRatio: 'auto',
-                        cropMode: 'cover'
-                    }
-                },
-                // Inline-Tools für Rich-Text-Formatierung
-                Marker: {
-                    class: Marker,
-                    shortcut: 'CMD+SHIFT+M'
-                },
-                inlineCode: {
-                    class: InlineCode,
-                    shortcut: 'CMD+SHIFT+C'
-                },
-                linkTool: {
-                    class: LinkTool
-                },
-                rexLink: {
-                    class: REXLinkTool,
-                    shortcut: 'CMD+K'
-                }
-            },
+            tools: tools,
             onChange: function() {
                 updateJSON();
             },

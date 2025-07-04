@@ -388,7 +388,6 @@ class ImageBlock {
         
         // Settings UI aktualisieren
         this._updateCropModeVisibility();
-        this._updateCropPositionVisibility();
     }
 
     _setCropMode(mode) {

@@ -16626,7 +16626,7 @@ var EditorJSBundle = (() => {
   };
 
   // src/blocks/alert.js
-  var AlertBlock2 = class {
+  var AlertBlock = class {
     static get toolbox() {
       return {
         title: "Alert",
@@ -16686,6 +16686,10 @@ var EditorJSBundle = (() => {
         contentEditable: !this.readOnly,
         innerHTML: this.data.message || "Geben Sie hier Ihre Nachricht ein..."
       });
+      if (!this.readOnly) {
+        title.addEventListener("keydown", this._handleEnter.bind(this));
+        message.addEventListener("keydown", this._handleEnter.bind(this));
+      }
       holder.dataset.type = this.data.type;
       holder.appendChild(title);
       holder.appendChild(message);
@@ -16749,6 +16753,25 @@ var EditorJSBundle = (() => {
         this.nodes.title.innerHTML = this.types[type].title;
       }
     }
+    _handleEnter(event) {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        event.stopPropagation();
+        const selection = window.getSelection();
+        if (selection.rangeCount > 0) {
+          const range = selection.getRangeAt(0);
+          const br2 = document.createElement("br");
+          range.deleteContents();
+          range.insertNode(br2);
+          range.setStartAfter(br2);
+          range.setEndAfter(br2);
+          selection.removeAllRanges();
+          selection.addRange(range);
+        }
+        return false;
+      }
+      return true;
+    }
     _make(tagName, classNames = null, attributes = {}) {
       const el = document.createElement(tagName);
       if (Array.isArray(classNames)) {
@@ -16762,10 +16785,10 @@ var EditorJSBundle = (() => {
       return el;
     }
   };
-  window.AlertBlock = AlertBlock2;
+  window.AlertBlock = AlertBlock;
 
   // src/blocks/textimage.js
-  var TextImageBlock2 = class {
+  var TextImageBlock = class {
     static get toolbox() {
       return {
         title: "Text & Bild",
@@ -16882,6 +16905,9 @@ var EditorJSBundle = (() => {
         contentEditable: !this.readOnly,
         innerHTML: this.data.text || "Geben Sie hier Ihren Text ein..."
       });
+      if (!this.readOnly) {
+        text.addEventListener("keydown", this._handleEnter.bind(this));
+      }
       textWrapper.appendChild(text);
       container.appendChild(imageWrapper);
       container.appendChild(textWrapper);
@@ -17077,6 +17103,25 @@ var EditorJSBundle = (() => {
         this.nodes.caption = caption;
       }
     }
+    _handleEnter(event) {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        event.stopPropagation();
+        const selection = window.getSelection();
+        if (selection.rangeCount > 0) {
+          const range = selection.getRangeAt(0);
+          const br2 = document.createElement("br");
+          range.deleteContents();
+          range.insertNode(br2);
+          range.setStartAfter(br2);
+          range.setEndAfter(br2);
+          selection.removeAllRanges();
+          selection.addRange(range);
+        }
+        return false;
+      }
+      return true;
+    }
     _make(tagName, classNames = null, attributes = {}) {
       const el = document.createElement(tagName);
       if (Array.isArray(classNames)) {
@@ -17090,10 +17135,10 @@ var EditorJSBundle = (() => {
       return el;
     }
   };
-  window.TextImageBlock = TextImageBlock2;
+  window.TextImageBlock = TextImageBlock;
 
   // src/blocks/image.js
-  var ImageBlock2 = class {
+  var ImageBlock = class {
     static get toolbox() {
       return {
         title: "Bild",
@@ -17394,7 +17439,6 @@ var EditorJSBundle = (() => {
         });
       }
       this._updateCropModeVisibility();
-      this._updateCropPositionVisibility();
     }
     _setCropMode(mode) {
       Object.keys(this.cropModes).forEach((m3) => {
@@ -17542,7 +17586,7 @@ var EditorJSBundle = (() => {
       }
     }
   };
-  window.ImageBlock = ImageBlock2;
+  window.ImageBlock = ImageBlock;
 
   // src/blocks/rexlink.js
   var REXLinkTool2 = class _REXLinkTool {
@@ -17849,8 +17893,6 @@ var EditorJSBundle = (() => {
         let params = config.context;
         if (config.types && Array.isArray(config.types) && config.types.length > 0) {
           params += "&args[types]=" + config.types.join(",");
-        } else if (typeof rex !== "undefined" && rex.editorjs_rex_media_getImageTypes) {
-          params += "&args[types]=" + rex.editorjs_rex_media_getImageTypes.join(",");
         }
         if (config.category) {
           params += "&args[category]=" + encodeURIComponent(config.category);
@@ -17858,28 +17900,83 @@ var EditorJSBundle = (() => {
         if (config.multiple) {
           params += "&args[multiple]=1";
         }
+        console.log("Opening media pool with params:", params);
         const mediaPool = openMediaPool(params);
-        const handleMediaSelect = (event, filename, additionalData = {}) => {
-          event.preventDefault();
-          mediaPool.close();
+        console.log("Media pool opened:", mediaPool);
+        const handleMediaSelect = (filename, additionalData = {}) => {
+          console.log("Media select handler called:", { filename, additionalData });
+          try {
+            mediaPool.close();
+          } catch (e) {
+            console.warn("Error closing media pool:", e);
+          }
           const mediaData = this._createMediaData(filename, additionalData, config);
+          console.log("Created media data:", mediaData);
           if (callback && typeof callback === "function") {
+            console.log("Calling callback with:", mediaData);
             callback(mediaData);
+          } else {
+            console.warn("No callback function provided or invalid");
           }
           resolve(mediaData);
         };
+        const globalCallbackName = "rex_selectMedia_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
+        window[globalCallbackName] = function(filename) {
+          console.log("Global callback triggered with filename:", filename);
+          handleMediaSelect(filename);
+          delete window[globalCallbackName];
+        };
         if (typeof $ !== "undefined") {
-          $(mediaPool).on("rex:selectMedia", handleMediaSelect);
-        } else {
-          mediaPool.addEventListener("rex:selectMedia", function(event) {
-            const filename = event.detail?.filename || event.filename;
-            const additionalData = event.detail || {};
-            handleMediaSelect(event, filename, additionalData);
+          console.log("Setting up jQuery event listeners");
+          $(mediaPool).on("rex:selectMedia", function(event, filename, additionalData) {
+            console.log("jQuery rex:selectMedia event:", { event, filename, additionalData });
+            handleMediaSelect(filename, additionalData);
+          });
+          $(document).on("rex:selectMedia", function(event, filename, additionalData) {
+            console.log("Document jQuery rex:selectMedia event:", { event, filename, additionalData });
+            handleMediaSelect(filename, additionalData);
           });
         }
-        mediaPool.addEventListener("error", function(event) {
-          reject(new Error("Fehler beim \xD6ffnen des Medienpools: " + event.message));
-        });
+        console.log("Setting up vanilla JS event listeners");
+        const vanillaHandler = function(event) {
+          console.log("Vanilla rex:selectMedia event:", event);
+          const filename = event.detail?.filename || event.filename || event.detail;
+          const additionalData = event.detail || {};
+          if (filename) {
+            handleMediaSelect(filename, additionalData);
+          }
+        };
+        if (mediaPool && mediaPool.addEventListener) {
+          mediaPool.addEventListener("rex:selectMedia", vanillaHandler);
+        }
+        document.addEventListener("rex:selectMedia", vanillaHandler);
+        document.addEventListener("media:selected", vanillaHandler);
+        document.addEventListener("mediapool:select", vanillaHandler);
+        if (mediaPool && mediaPool.addEventListener) {
+          mediaPool.addEventListener("error", function(event) {
+            reject(new Error("Fehler beim \xD6ffnen des Medienpools: " + event.message));
+          });
+        }
+        if (mediaPool && typeof mediaPool.onSelect === "function") {
+          console.log("Using mediaPool.onSelect method");
+          mediaPool.onSelect = function(filename) {
+            console.log("mediaPool.onSelect called with:", filename);
+            handleMediaSelect(filename);
+          };
+        }
+        let pollCount = 0;
+        const pollInterval = setInterval(() => {
+          pollCount++;
+          if (pollCount > 100) {
+            clearInterval(pollInterval);
+            return;
+          }
+          if (mediaPool && mediaPool.closed) {
+            clearInterval(pollInterval);
+            console.log("Media pool closed without selection");
+            reject(new Error("Media pool closed without selection"));
+          }
+        }, 100);
       });
     }
     /**
@@ -18022,15 +18119,428 @@ var EditorJSBundle = (() => {
       return Promise.reject(new Error("Upload-Funktionalit\xE4t noch nicht implementiert"));
     }
   };
-  REXMediaTool2.openMediaPool = function(options = {}) {
+  REXMediaTool2.openMediaPool = function(callbackOrOptions, callback = null) {
+    let options = {};
+    let finalCallback = null;
+    if (typeof callbackOrOptions === "function") {
+      finalCallback = callbackOrOptions;
+    } else if (typeof callbackOrOptions === "object") {
+      options = callbackOrOptions;
+      finalCallback = callback;
+    }
     const tool = new REXMediaTool2({ api: null, config: options });
-    return tool.openMediaPool(options);
+    return tool.openMediaPool(options, finalCallback);
   };
   REXMediaTool2.selectImage = function(callback, options = {}) {
     const tool = new REXMediaTool2({ api: null, config: options });
     return tool.selectImage(callback, options);
   };
+  REXMediaTool2.openMediapool = function(callback) {
+    const tool = new REXMediaTool2({});
+    return tool.openMediaPool({}, callback);
+  };
   window.REXMediaTool = REXMediaTool2;
+
+  // src/blocks/downloads.js
+  var DownloadsBlock = class {
+    static get toolbox() {
+      return {
+        title: "Downloads",
+        icon: '<svg width="17" height="15" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M288 32c0-17.7-14.3-32-32-32s-32 14.3-32 32V274.7l-73.4-73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l128 128c12.5 12.5 32.8 12.5 45.3 0l128-128c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L288 274.7V32zM64 352c-35.3 0-64 28.7-64 64v32c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V416c0-35.3-28.7-64-64-64H346.5l-45.3 45.3c-25 25-65.5 25-90.5 0L165.5 352H64zm368 56a24 24 0 1 1 0 48 24 24 0 1 1 0-48z"/></svg>'
+      };
+    }
+    static get isReadOnlySupported() {
+      return true;
+    }
+    constructor({ data, config, api, readOnly }) {
+      this.api = api;
+      this.readOnly = readOnly;
+      this.CSS = {
+        wrapper: "cdx-downloads",
+        container: "cdx-downloads__container",
+        item: "cdx-downloads__item",
+        itemHeader: "cdx-downloads__item-header",
+        itemContent: "cdx-downloads__item-content",
+        itemActions: "cdx-downloads__item-actions",
+        fileSelect: "cdx-downloads__file-select",
+        filePreview: "cdx-downloads__file-preview",
+        fileIcon: "cdx-downloads__file-icon",
+        fileInfo: "cdx-downloads__file-info",
+        fileName: "cdx-downloads__file-name",
+        fileSize: "cdx-downloads__file-size",
+        titleInput: "cdx-downloads__title-input",
+        descriptionInput: "cdx-downloads__description-input",
+        addButton: "cdx-downloads__add-button",
+        removeButton: "cdx-downloads__remove-button",
+        dragHandle: "cdx-downloads__drag-handle",
+        settingsButton: "cdx-downloads__settings-button",
+        settingsButtonActive: "cdx-downloads__settings-button--active",
+        thumb: "cdx-downloads__thumb"
+      };
+      this.nodes = {
+        wrapper: null,
+        container: null
+      };
+      this.data = {
+        title: data.title || "Downloads",
+        items: data.items || [this._createEmptyItem()],
+        showTitle: data.showTitle !== false,
+        layout: data.layout || "list"
+        // list, grid, compact
+      };
+      this.layouts = {
+        list: {
+          icon: '<i class="fa-solid fa-list"></i>',
+          title: "Liste"
+        },
+        grid: {
+          icon: '<i class="fa-solid fa-th-large"></i>',
+          title: "Raster"
+        },
+        compact: {
+          icon: '<i class="fa-solid fa-bars"></i>',
+          title: "Kompakt"
+        }
+      };
+    }
+    render() {
+      this.nodes.wrapper = this._make("div", [this.CSS.wrapper]);
+      this.nodes.wrapper.dataset.layout = this.data.layout;
+      if (this.data.showTitle) {
+        const titleContainer = this._make("div", "cdx-downloads__title-container");
+        const titleInput = this._make("input", [this.CSS.titleInput], {
+          type: "text",
+          placeholder: "Downloads Titel...",
+          value: this.data.title
+        });
+        titleInput.addEventListener("input", (e) => {
+          this.data.title = e.target.value;
+        });
+        titleContainer.appendChild(titleInput);
+        this.nodes.wrapper.appendChild(titleContainer);
+      }
+      this.nodes.container = this._make("div", [this.CSS.container]);
+      this.nodes.wrapper.appendChild(this.nodes.container);
+      this._renderItems();
+      const addButton = this._make("button", [this.CSS.addButton], {
+        innerHTML: '<i class="fa-solid fa-plus"></i> Download hinzuf\xFCgen',
+        type: "button"
+      });
+      addButton.addEventListener("click", () => {
+        this._addItem();
+      });
+      this.nodes.wrapper.appendChild(addButton);
+      return this.nodes.wrapper;
+    }
+    renderSettings() {
+      const wrapper = this._make("div");
+      const layoutLabel = this._make("div", null, {
+        innerHTML: "<strong>Layout:</strong>",
+        style: "margin-bottom: 8px;"
+      });
+      wrapper.appendChild(layoutLabel);
+      Object.entries(this.layouts).forEach(([layout, config]) => {
+        const button = this._make("span", [this.CSS.settingsButton], {
+          innerHTML: config.icon + " " + config.title
+        });
+        button.addEventListener("click", () => {
+          this.data.layout = layout;
+          this.nodes.wrapper.dataset.layout = layout;
+          wrapper.querySelectorAll("." + this.CSS.settingsButton).forEach((btn) => {
+            btn.classList.remove(this.CSS.settingsButtonActive);
+          });
+          button.classList.add(this.CSS.settingsButtonActive);
+        });
+        if (layout === this.data.layout) {
+          button.classList.add(this.CSS.settingsButtonActive);
+        }
+        wrapper.appendChild(button);
+      });
+      const titleToggle = this._make("div", null, {
+        style: "margin-top: 15px; padding-top: 15px; border-top: 1px solid #e9ecef;"
+      });
+      const titleLabel = this._make("label", null, {
+        innerHTML: '<input type="checkbox" style="margin-right: 8px;"> Titel anzeigen',
+        style: "cursor: pointer; font-weight: normal;"
+      });
+      const checkbox = titleLabel.querySelector("input");
+      checkbox.checked = this.data.showTitle;
+      checkbox.addEventListener("change", (e) => {
+        this.data.showTitle = e.target.checked;
+        this.nodes.wrapper.remove();
+        this.nodes.wrapper = this.render();
+        this.api.blocks.getBlockByIndex(this.api.blocks.getCurrentBlockIndex()).holder.appendChild(this.nodes.wrapper);
+      });
+      titleToggle.appendChild(titleLabel);
+      wrapper.appendChild(titleToggle);
+      return wrapper;
+    }
+    save(blockContent) {
+      const titleInput = blockContent.querySelector("." + this.CSS.titleInput);
+      return {
+        title: titleInput ? titleInput.value : this.data.title,
+        items: this.data.items,
+        showTitle: this.data.showTitle,
+        layout: this.data.layout
+      };
+    }
+    static get sanitize() {
+      return {
+        title: {},
+        items: {},
+        showTitle: {},
+        layout: {}
+      };
+    }
+    _createEmptyItem() {
+      return {
+        file: "",
+        title: "",
+        description: "",
+        customIcon: ""
+      };
+    }
+    _renderItems() {
+      this.nodes.container.innerHTML = "";
+      this.data.items.forEach((item, index) => {
+        const itemElement = this._createItemElement(item, index);
+        this.nodes.container.appendChild(itemElement);
+      });
+    }
+    _createItemElement(item, index) {
+      const itemWrapper = this._make("div", [this.CSS.item]);
+      itemWrapper.dataset.index = index;
+      const header = this._make("div", [this.CSS.itemHeader]);
+      const dragHandle = this._make("span", [this.CSS.dragHandle], {
+        innerHTML: '<i class="fa-solid fa-grip-vertical"></i>',
+        title: "Zum Sortieren ziehen"
+      });
+      const removeButton = this._make("button", [this.CSS.removeButton], {
+        innerHTML: '<i class="fa-solid fa-trash"></i>',
+        title: "Download entfernen",
+        type: "button"
+      });
+      removeButton.addEventListener("click", () => {
+        this._removeItem(index);
+      });
+      header.appendChild(dragHandle);
+      header.appendChild(removeButton);
+      const content = this._make("div", [this.CSS.itemContent]);
+      const fileSelect = this._createFileSelectArea(item, index);
+      content.appendChild(fileSelect);
+      const titleInput = this._make("input", [this.CSS.titleInput], {
+        type: "text",
+        placeholder: "Download Titel (optional)",
+        value: item.title
+      });
+      titleInput.addEventListener("input", (e) => {
+        this.data.items[index].title = e.target.value;
+      });
+      content.appendChild(titleInput);
+      const descriptionInput = this._make("textarea", [this.CSS.descriptionInput], {
+        placeholder: "Beschreibung (optional)",
+        value: item.description,
+        rows: 2
+      });
+      descriptionInput.addEventListener("input", (e) => {
+        this.data.items[index].description = e.target.value;
+      });
+      content.appendChild(descriptionInput);
+      itemWrapper.appendChild(header);
+      itemWrapper.appendChild(content);
+      return itemWrapper;
+    }
+    _createFileSelectArea(item, index) {
+      const fileSelect = this._make("div", [this.CSS.fileSelect]);
+      if (item.file) {
+        const preview = this._createFilePreview(item);
+        fileSelect.appendChild(preview);
+      } else {
+        const selectButton = this._make("button", "cdx-downloads__select-button", {
+          innerHTML: '<i class="fa-solid fa-folder-open"></i> Datei aus Medienpool w\xE4hlen',
+          type: "button"
+        });
+        selectButton.addEventListener("click", () => {
+          this._openMediaPool(index);
+        });
+        fileSelect.appendChild(selectButton);
+      }
+      return fileSelect;
+    }
+    _createFilePreview(item) {
+      const preview = this._make("div", [this.CSS.filePreview]);
+      const iconContainer = this._make("div", [this.CSS.fileIcon]);
+      if (this._isImage(item.file)) {
+        const thumb = this._make("img", [this.CSS.thumb], {
+          src: `/media/${item.file}`,
+          alt: item.title || item.file
+        });
+        iconContainer.appendChild(thumb);
+      } else {
+        const icon = this._getFileIcon(item.file);
+        iconContainer.innerHTML = icon;
+      }
+      const fileInfo = this._make("div", [this.CSS.fileInfo]);
+      const fileName = this._make("div", [this.CSS.fileName], {
+        textContent: item.file
+      });
+      const fileSize = this._make("div", [this.CSS.fileSize], {
+        textContent: this._getFileSize(item.file)
+      });
+      fileInfo.appendChild(fileName);
+      fileInfo.appendChild(fileSize);
+      const actions = this._make("div", [this.CSS.itemActions]);
+      const changeButton = this._make("button", "cdx-downloads__change-button", {
+        innerHTML: '<i class="fa-solid fa-sync"></i>',
+        title: "Datei \xE4ndern",
+        type: "button"
+      });
+      changeButton.addEventListener("click", () => {
+        this._openMediaPool(this._getItemIndex(preview));
+      });
+      actions.appendChild(changeButton);
+      preview.appendChild(iconContainer);
+      preview.appendChild(fileInfo);
+      preview.appendChild(actions);
+      return preview;
+    }
+    _openMediaPool(index) {
+      console.log("Opening media pool for index:", index);
+      const callbackName = "downloadsBlockCallback_" + Date.now() + "_" + index;
+      window[callbackName] = (filename) => {
+        console.log("Global callback triggered for index", index, "with filename:", filename);
+        if (filename) {
+          this.data.items[index].file = filename;
+          console.log("Updated item data:", this.data.items[index]);
+          this._renderItems();
+        }
+        delete window[callbackName];
+      };
+      if (typeof rex_selectMedia !== "undefined") {
+        console.log("Using rex_selectMedia function");
+        rex_selectMedia(callbackName, "");
+      } else if (typeof window.REXMediaTool !== "undefined") {
+        console.log("REXMediaTool available, calling openMediaPool...");
+        const downloadOptions = {
+          types: null,
+          // null = alle Dateitypen erlauben
+          context: "editorjs_downloads"
+        };
+        window.REXMediaTool.openMediaPool(downloadOptions, (mediaData) => {
+          console.log("Media selected:", mediaData);
+          let filename = "";
+          if (typeof mediaData === "string") {
+            filename = mediaData;
+          } else if (mediaData && mediaData.filename) {
+            filename = mediaData.filename;
+          } else if (mediaData && mediaData.file) {
+            filename = mediaData.file;
+          }
+          console.log("Extracted filename:", filename);
+          if (filename) {
+            this.data.items[index].file = filename;
+            console.log("Updated item data:", this.data.items[index]);
+            this._renderItems();
+          } else {
+            console.warn("No filename found in media data:", mediaData);
+          }
+        });
+      } else if (typeof openMediaPool !== "undefined") {
+        console.log("Using direct openMediaPool function");
+        const params = "editorjs_downloads&callback=" + callbackName;
+        const mediaPoolWindow = openMediaPool(params);
+        console.log("Media pool opened with params:", params);
+      } else {
+        console.log("Trying REDAXO popup approach");
+        const baseUrl = window.location.pathname.replace(/\/[^\/]*$/, "");
+        const mediapoolUrl = baseUrl + "/index.php?page=mediapool/media&opener_input_field=" + callbackName;
+        console.log("Opening mediapool URL:", mediapoolUrl);
+        const popup = window.open(
+          mediapoolUrl,
+          "mediapool",
+          "width=800,height=600,scrollbars=yes,resizable=yes"
+        );
+        if (!popup) {
+          console.warn("Popup blocked, using fallback");
+          const filename = prompt("Dateiname aus Medienpool:");
+          if (filename) {
+            this.data.items[index].file = filename;
+            this._renderItems();
+          }
+          delete window[callbackName];
+        }
+      }
+    }
+    _getFileIcon(filename) {
+      const extension = filename.split(".").pop().toLowerCase();
+      const iconMap = {
+        // PDF
+        "pdf": '<i class="fa-solid fa-file-pdf" style="color: #dc3545;"></i>',
+        // Images
+        "jpg": '<i class="fa-solid fa-file-image" style="color: #17a2b8;"></i>',
+        "jpeg": '<i class="fa-solid fa-file-image" style="color: #17a2b8;"></i>',
+        "png": '<i class="fa-solid fa-file-image" style="color: #17a2b8;"></i>',
+        "gif": '<i class="fa-solid fa-file-image" style="color: #17a2b8;"></i>',
+        "svg": '<i class="fa-solid fa-file-image" style="color: #17a2b8;"></i>',
+        "webp": '<i class="fa-solid fa-file-image" style="color: #17a2b8;"></i>',
+        // Documents
+        "doc": '<i class="fa-solid fa-file-word" style="color: #2c5aa0;"></i>',
+        "docx": '<i class="fa-solid fa-file-word" style="color: #2c5aa0;"></i>',
+        "xls": '<i class="fa-solid fa-file-excel" style="color: #1d6f42;"></i>',
+        "xlsx": '<i class="fa-solid fa-file-excel" style="color: #1d6f42;"></i>',
+        "ppt": '<i class="fa-solid fa-file-powerpoint" style="color: #d04423;"></i>',
+        "pptx": '<i class="fa-solid fa-file-powerpoint" style="color: #d04423;"></i>',
+        // Archive
+        "zip": '<i class="fa-solid fa-file-zipper" style="color: #6c757d;"></i>',
+        "rar": '<i class="fa-solid fa-file-zipper" style="color: #6c757d;"></i>',
+        "7z": '<i class="fa-solid fa-file-zipper" style="color: #6c757d;"></i>',
+        // Text
+        "txt": '<i class="fa-solid fa-file-lines" style="color: #6c757d;"></i>',
+        "rtf": '<i class="fa-solid fa-file-lines" style="color: #6c757d;"></i>',
+        // Audio/Video
+        "mp3": '<i class="fa-solid fa-file-audio" style="color: #ff6b35;"></i>',
+        "wav": '<i class="fa-solid fa-file-audio" style="color: #ff6b35;"></i>',
+        "mp4": '<i class="fa-solid fa-file-video" style="color: #ff6b35;"></i>',
+        "avi": '<i class="fa-solid fa-file-video" style="color: #ff6b35;"></i>'
+      };
+      return iconMap[extension] || '<i class="fa-solid fa-file" style="color: #6c757d;"></i>';
+    }
+    _isImage(filename) {
+      const extension = filename.split(".").pop().toLowerCase();
+      const imageExtensions = ["jpg", "jpeg", "png", "gif", "svg", "webp"];
+      return imageExtensions.includes(extension);
+    }
+    _getFileSize(filename) {
+      return "Dateigr\xF6\xDFe unbekannt";
+    }
+    _getItemIndex(element) {
+      const item = element.closest("." + this.CSS.item);
+      return parseInt(item.dataset.index);
+    }
+    _addItem() {
+      this.data.items.push(this._createEmptyItem());
+      this._renderItems();
+    }
+    _removeItem(index) {
+      if (this.data.items.length > 1) {
+        this.data.items.splice(index, 1);
+        this._renderItems();
+      }
+    }
+    _make(tagName, classNames = null, attributes = {}) {
+      const el = document.createElement(tagName);
+      if (Array.isArray(classNames)) {
+        el.classList.add(...classNames);
+      } else if (classNames) {
+        el.classList.add(classNames);
+      }
+      for (let attrName in attributes) {
+        el[attrName] = attributes[attrName];
+      }
+      return el;
+    }
+  };
+  window.DownloadsBlock = DownloadsBlock;
 
   // src/editorjs.js
   window.EditorJS = Aa;
@@ -18044,90 +18554,109 @@ var EditorJSBundle = (() => {
   window.Marker = s2;
   window.LinkTool = I3;
   window.REXLinkTool = REXLinkTool;
+  console.log("DownloadsBlock available?", typeof window.DownloadsBlock);
   window.EditorJSUtils = {
     /**
      * Erstellt einen neuen EditorJS mit Standard-Konfiguration
      */
     createEditor: function(options) {
-      const defaultOptions = {
-        tools: {
-          header: {
-            class: v,
-            config: {
-              placeholder: "\xDCberschrift eingeben...",
-              levels: [2, 3, 4],
-              defaultLevel: 2
-            }
-          },
-          paragraph: {
-            class: n,
-            inlineToolbar: true
-          },
-          list: {
-            class: G2,
-            inlineToolbar: true
-          },
-          quote: {
-            class: m2,
-            inlineToolbar: true,
-            config: {
-              quotePlaceholder: "Zitat eingeben...",
-              captionPlaceholder: "Autor"
-            }
-          },
-          delimiter: {
-            class: n2
-          },
-          code: {
-            class: d3,
-            config: {
-              placeholder: "Code eingeben..."
-            }
-          },
-          alert: {
-            class: AlertBlock,
-            config: {
-              defaultType: "info"
-            }
-          },
-          textimage: {
-            class: TextImageBlock,
-            inlineToolbar: true,
-            config: {
-              defaultLayout: "left"
-            }
-          },
-          image: {
-            class: ImageBlock,
-            config: {
-              stretched: false,
-              withBorder: false,
-              withBackground: false,
-              aspectRatio: "auto",
-              cropMode: "cover"
-            }
-          },
-          // Inline-Tools für Rich-Text-Formatierung
-          Marker: {
-            class: s2,
-            shortcut: "CMD+SHIFT+M"
-          },
-          inlineCode: {
-            class: s,
-            shortcut: "CMD+SHIFT+C"
-          },
-          linkTool: {
-            class: I3,
-            config: {
-              endpoint: "http://localhost:8008/fetchUrl"
-              // Optional: für automatische Metadaten
-            }
-          },
-          rexLink: {
-            class: REXLinkTool,
-            shortcut: "CMD+K"
+      const tools = {
+        header: {
+          class: v,
+          config: {
+            placeholder: "\xDCberschrift eingeben...",
+            levels: [2, 3, 4],
+            defaultLevel: 2
           }
+        },
+        paragraph: {
+          class: n,
+          inlineToolbar: true,
+          config: {
+            placeholder: "Text eingeben...",
+            preserveBlank: true
+          }
+        },
+        list: {
+          class: G2,
+          inlineToolbar: true
+        },
+        quote: {
+          class: m2,
+          inlineToolbar: true,
+          config: {
+            quotePlaceholder: "Zitat eingeben...",
+            captionPlaceholder: "Autor"
+          }
+        },
+        delimiter: {
+          class: n2
+        },
+        code: {
+          class: d3,
+          config: {
+            placeholder: "Code eingeben..."
+          }
+        },
+        alert: {
+          class: window.AlertBlock,
+          config: {
+            defaultType: "info"
+          }
+        },
+        textimage: {
+          class: window.TextImageBlock,
+          inlineToolbar: true,
+          config: {
+            defaultLayout: "left"
+          }
+        },
+        image: {
+          class: window.ImageBlock,
+          config: {
+            stretched: false,
+            withBorder: false,
+            withBackground: false,
+            aspectRatio: "auto",
+            cropMode: "cover"
+          }
+        },
+        // Inline-Tools für Rich-Text-Formatierung
+        Marker: {
+          class: s2,
+          shortcut: "CMD+SHIFT+M"
+        },
+        inlineCode: {
+          class: s,
+          shortcut: "CMD+SHIFT+C"
+        },
+        linkTool: {
+          class: I3,
+          config: {
+            endpoint: "http://localhost:8008/fetchUrl"
+            // Optional: für automatische Metadaten
+          }
+        },
+        rexLink: {
+          class: REXLinkTool,
+          shortcut: "CMD+K"
         }
+      };
+      if (typeof window.DownloadsBlock !== "undefined") {
+        tools.downloads = {
+          class: window.DownloadsBlock,
+          config: {
+            defaultLayout: "list",
+            showTitle: true
+          }
+        };
+      }
+      const defaultOptions = {
+        onReady: function() {
+          console.log("EditorJS is ready!");
+          EditorJSUtils.setupEnterHandling();
+        },
+        tools
       };
       const config = Object.assign({}, defaultOptions, options);
       return new Aa(config);
@@ -18142,6 +18671,32 @@ var EditorJSBundle = (() => {
         console.error("JSON Parse Error:", e);
         return null;
       }
+    },
+    /**
+     * Setup für verbessertes Enter-Verhalten
+     */
+    setupEnterHandling: function() {
+      document.addEventListener("keydown", function(event) {
+        const target = event.target;
+        if (target.contentEditable === "true" && target.closest(".codex-editor")) {
+          const hasCustomHandler = target.closest(".cdx-alert") || target.closest(".cdx-textimage") || target.closest(".cdx-list") || target.closest(".ce-block--selected .cdx-list") || target.closest('[data-tool="list"]');
+          if (!hasCustomHandler && event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+              const range = selection.getRangeAt(0);
+              const br2 = document.createElement("br");
+              range.deleteContents();
+              range.insertNode(br2);
+              range.setStartAfter(br2);
+              range.setEndAfter(br2);
+              selection.removeAllRanges();
+              selection.addRange(range);
+            }
+            return false;
+          }
+        }
+      }, true);
     }
   };
   console.log("EditorJS Bundle loaded successfully");
