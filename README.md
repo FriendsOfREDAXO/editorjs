@@ -250,36 +250,32 @@ document.getElementById('my-editor').addEventListener('editorjs:changed', functi
 
 **Für:** Erweiterte Funktionalität und eigene Event-Handler.
 
-#### 6. Modul-Ausgabe (Output) - Unverändert perfekt
+#### 6. Modul-Ausgabe (Output) - Korrekte Verwendung ✅
 
 ```php
-<?php
+<?php 
 use FriendsOfRedaxo\EditorJs\EditorJsRenderer;
 
 // Frontend-CSS einbinden
 rex_view::addCssFile($this->getAssetsUrl('css/editorjs-frontend.css', 'editorjs'));
 
-// Wert aus der Datenbank holen (HTML-gerendert für Ausgabe)
-$content = 'REX_VALUE[id=1 output=html]';
+// JSON-Daten aus der Datenbank holen
+$jsonContent = 'REX_VALUE[1]';
 
-// Direkte HTML-Ausgabe (bereits gerendert)
-if (!empty($content)) {
-    echo $content;
-} else {
-    echo '<p>Kein Inhalt vorhanden.</p>';
-}
+// Mit EditorJS-Renderer zu HTML konvertieren
+echo EditorJsRenderer::renderJSON($jsonContent);
 ?>
 ```
 
 **⚠️ Wichtiger Hinweis: REX_VALUE Verwendung**
 
 - **Für Editor-Input (Eingabe)**: `REX_VALUE[1]` - Gibt rohe JSON-Daten zurück, die der Editor benötigt
-- **Für HTML-Output (Ausgabe)**: `REX_VALUE[id=1 output=html]` - Gibt bereits gerenderte HTML-Ausgabe zurück
+- **Für HTML-Output (Ausgabe)**: `REX_VALUE[1]` + `EditorJsRenderer::renderJSON()` - JSON-Daten werden mit dem Renderer zu HTML konvertiert
 
-**Warum dieser Unterschied?**
-- Der EditorJS-Editor benötigt die rohen JSON-Daten im Input-Feld
-- Für die Frontend-Ausgabe verwenden wir den REDAXO-Renderer, der automatisch HTML generiert
-- `REX_VALUE[id=1 output=html]` nutzt den integrierten EditorJS-Renderer von REDAXO
+**Warum muss gerendert werden?**
+- EditorJS speichert Inhalte als JSON-Struktur in der Datenbank
+- Für die Frontend-Ausgabe muss diese JSON-Struktur zu HTML konvertiert werden
+- Der `EditorJsRenderer::renderJSON()` übernimmt diese Konvertierung und erstellt semantisches HTML
 
 #### 7. Alternative: Manuell (nur bei Bedarf)
 
@@ -340,13 +336,16 @@ $yform->setValueField('editorjs', array('content', 'Inhalt'));
 
 ```php
 <?php
-// Artikel-Metafeld
-$content = rex_article::getCurrent()->getValue('art_editorjs');
-if ($content) {
-    rex_view::addCssFile(rex_addon::get('editorjs')->getAssetsUrl('css/editorjs-frontend.css'));
-    require_once rex_addon::get('editorjs')->getPath('lib/EditorJSRenderer.php');
-    echo FriendsOfRedaxo\EditorJs\EditorJSRenderer::renderJSON($content);
-}
+use FriendsOfRedaxo\EditorJs\EditorJsRenderer;
+
+// Frontend-CSS einbinden
+rex_view::addCssFile(rex_addon::get('editorjs')->getAssetsUrl('css/editorjs-frontend.css'));
+
+// JSON-Inhalt aus Artikel-Metafeld holen
+$jsonContent = rex_article::getCurrent()->getValue('art_editorjs');
+
+// Mit EditorJS-Renderer zu HTML konvertieren
+echo EditorJsRenderer::renderJSON($jsonContent);
 ?>
 ```
 
@@ -355,16 +354,19 @@ Besuchen Sie `Addons > EditorJS > Demo` für eine interaktive Demonstration.
 
 ### Frontend-Renderer
 ```php
-// JSON zu HTML konvertieren
-$html = EditorJsRenderer::renderJSON($jsonData);
-echo $html;
+<?php
+use FriendsOfRedaxo\EditorJs\EditorJsRenderer;
 
-// In Templates/Modulen
-$content = rex_article::getCurrent()->getValue('editorjs_field');
-if ($content) {
-    echo EditorJsRenderer::renderJSON($content);
-}
+// JSON zu HTML konvertieren
+echo EditorJsRenderer::renderJSON($jsonData);
+
+// In Templates/Modulen - Beispiel
+$jsonContent = rex_article::getCurrent()->getValue('editorjs_field');
+echo EditorJsRenderer::renderJSON($jsonContent);
+?>
 ```
+
+**💡 Einfache Verwendung**: `EditorJsRenderer::renderJSON($jsonContent)` konvertiert EditorJS-JSON automatisch zu HTML.
 
 Siehe `Addons > EditorJS > Frontend Renderer` für ausführliche Beispiele.
 
