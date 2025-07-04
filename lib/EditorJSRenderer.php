@@ -1,0 +1,278 @@
+<?php
+
+namespace FriendsOfRedaxo\EditorJs;
+
+/**
+ * EditorJS Renderer für REDAXO
+ * 
+ * Konvertiert EditorJS JSON-Daten zu HTML für die Frontend-Ausgabe.
+ * Unterstützt Standard-Blöcke und benutzerdefinierte Blöcke (Alert, TextImage).
+ */
+
+class EditorJsRenderer
+{
+    /** @var array */
+    private $config;
+
+    public function __construct()
+    {
+        $this->config = [
+            'tools' => [
+                // Standard EditorJS Tools
+                'header' => [$this, 'renderHeader'],
+                'paragraph' => [$this, 'renderParagraph'],
+                'list' => [$this, 'renderList'],
+                'quote' => [$this, 'renderQuote'],
+                'delimiter' => [$this, 'renderDelimiter'],
+                'code' => [$this, 'renderCode'],
+                
+                // Unsere benutzerdefinierten Blöcke
+                'alert' => [$this, 'renderAlert'],
+                'textimage' => [$this, 'renderTextImage']
+            ]
+        ];
+    }
+
+    /**
+     * Hauptmethode: Konvertiert EditorJS JSON zu HTML
+     * 
+     * @param string|array $data EditorJS JSON-String oder Array
+     * @return string HTML-Output
+     */
+    public function render($data): string
+    {
+        if (is_string($data)) {
+            $data = json_decode($data, true);
+        }
+
+        if (!is_array($data) || !isset($data['blocks'])) {
+            return '';
+        }
+
+        $html = '';
+        foreach ($data['blocks'] as $block) {
+            $html .= $this->renderBlock($block);
+        }
+
+        return $html;
+    }
+
+    /**
+     * Rendert einen einzelnen Block
+     */
+    private function renderBlock(array $block): string
+    {
+        $type = $block['type'] ?? '';
+        $data = $block['data'] ?? [];
+
+        if (isset($this->config['tools'][$type]) && is_callable($this->config['tools'][$type])) {
+            return call_user_func($this->config['tools'][$type], $data);
+        }
+
+        // Fallback für unbekannte Blöcke
+        return '<!-- Unbekannter Block-Typ: ' . htmlspecialchars($type) . ' -->';
+    }
+
+    /**
+     * Rendert Header-Block
+     */
+    public function renderHeader(array $data): string
+    {
+        $level = (int) ($data['level'] ?? 2);
+        $text = $data['text'] ?? '';
+        
+        if ($level < 1 || $level > 6) {
+            $level = 2;
+        }
+
+        return "<h{$level}>" . htmlspecialchars($text) . "</h{$level}>\n";
+    }
+
+    /**
+     * Rendert Paragraph-Block
+     */
+    public function renderParagraph(array $data): string
+    {
+        $text = $data['text'] ?? '';
+        
+        // Einfache HTML-Tags erlauben (strong, em, u, s, a)
+        $allowedTags = '<strong><em><u><s><a>';
+        $cleanText = strip_tags($text, $allowedTags);
+        
+        return "<p>{$cleanText}</p>\n";
+    }
+
+    /**
+     * Rendert List-Block
+     */
+    public function renderList(array $data): string
+    {
+        $style = $data['style'] ?? 'unordered';
+        $items = $data['items'] ?? [];
+        
+        $tag = $style === 'ordered' ? 'ol' : 'ul';
+        $html = "<{$tag}>\n";
+        
+        foreach ($items as $item) {
+            $cleanItem = strip_tags($item, '<strong><em><u><s><a>');
+            $html .= "<li>{$cleanItem}</li>\n";
+        }
+        
+        $html .= "</{$tag}>\n";
+        
+        return $html;
+    }
+
+    /**
+     * Rendert Quote-Block
+     */
+    public function renderQuote(array $data): string
+    {
+        $text = $data['text'] ?? '';
+        $caption = $data['caption'] ?? '';
+        
+        $cleanText = strip_tags($text, '<strong><em><u><s><a>');
+        
+        $html = "<blockquote>\n";
+        $html .= "<p>{$cleanText}</p>\n";
+        
+        if ($caption) {
+            $cleanCaption = strip_tags($caption, '<strong><em><u><s><a>');
+            $html .= "<cite>{$cleanCaption}</cite>\n";
+        }
+        
+        $html .= "</blockquote>\n";
+        
+        return $html;
+    }
+
+    /**
+     * Rendert Delimiter-Block
+     */
+    public function renderDelimiter(array $data): string
+    {
+        return "<hr class=\"editorjs-delimiter\">\n";
+    }
+
+    /**
+     * Rendert Code-Block
+     */
+    public function renderCode(array $data): string
+    {
+        $code = $data['code'] ?? '';
+        
+        return "<pre><code>" . htmlspecialchars($code) . "</code></pre>\n";
+    }
+
+    /**
+     * Rendert unseren benutzerdefinierten Alert-Block
+     */
+    public function renderAlert(array $data): string
+    {
+        $type = $data['type'] ?? 'info';
+        $title = $data['title'] ?? '';
+        $message = $data['message'] ?? '';
+        
+        $html = "<div class=\"cdx-alert\" data-type=\"{$type}\">\n";
+        
+        if ($title) {
+            $html .= "<div class=\"cdx-alert__title\">" . htmlspecialchars($title) . "</div>\n";
+        }
+        
+        if ($message) {
+            $html .= "<div class=\"cdx-alert__message\">" . htmlspecialchars($message) . "</div>\n";
+        }
+        
+        $html .= "</div>\n";
+        
+        return $html;
+    }
+
+    /**
+     * Rendert unseren benutzerdefinierten TextImage-Block
+     */
+    public function renderTextImage(array $data): string
+    {
+        $text = $data['text'] ?? '';
+        $imageFile = $data['imageFile'] ?? '';
+        $imageUrl = $data['imageUrl'] ?? '';
+        $caption = $data['caption'] ?? '';
+        $layout = $data['layout'] ?? 'left';
+        
+        // Bild-URL erstellen
+        if ($imageFile && !$imageUrl) {
+            if (function_exists('rex_url')) {
+                $imageUrl = \rex_url::media($imageFile);
+            } else {
+                // Fallback für Demo: Placehold.co verwenden
+                $imageUrl = "https://placehold.co/300x200/007bff/ffffff?text=" . urlencode($imageFile);
+            }
+        }
+        
+        // Fallback für Demo ohne Bild - spezifische Farben je Layout
+        if (!$imageUrl) {
+            $layouts = [
+                'left' => 'https://placehold.co/300x200/007bff/ffffff?text=Bild+Links',
+                'right' => 'https://placehold.co/300x200/28a745/ffffff?text=Bild+Rechts', 
+                'top' => 'https://placehold.co/600x200/dc3545/ffffff?text=Bild+Oben'
+            ];
+            $imageUrl = $layouts[$layout] ?? $layouts['left'];
+        }
+        
+        $html = "<div class=\"cdx-textimage\" data-layout=\"{$layout}\">\n";
+        $html .= "<div class=\"cdx-textimage__container layout-{$layout} layout-{$layout}\">\n";
+        
+        // Bild-Wrapper (immer anzeigen)
+        $html .= "<div class=\"cdx-textimage__image-wrapper\">\n";
+        $html .= "<img src=\"{$imageUrl}\" alt=\"" . htmlspecialchars($imageFile ?: 'Demo Bild') . "\" class=\"cdx-textimage__image\">\n";
+        
+        if ($caption) {
+            $html .= "<div class=\"cdx-textimage__caption\">" . htmlspecialchars($caption) . "</div>\n";
+        }
+        
+        $html .= "</div>\n";
+        
+        // Text-Wrapper
+        if ($text) {
+            $html .= "<div class=\"cdx-textimage__text-wrapper\">\n";
+            $html .= "<div class=\"cdx-textimage__text\">\n";
+            
+            // Text mit erlaubten HTML-Tags
+            $allowedTags = '<p><h1><h2><h3><h4><h5><h6><strong><em><u><s><a><ul><ol><li><br>';
+            $cleanText = strip_tags($text, $allowedTags);
+            
+            $html .= $cleanText;
+            $html .= "</div>\n";
+            $html .= "</div>\n";
+        }
+        
+        $html .= "</div>\n";
+        $html .= "</div>\n";
+        
+        return $html;
+    }
+
+    /**
+     * Statische Hilfsmethode für einfache Verwendung
+     */
+    public static function renderJSON(string $json): string
+    {
+        $renderer = new self();
+        return $renderer->render($json);
+    }
+
+    /**
+     * CSS für Frontend einbinden
+     */
+    public static function addFrontendCSS(): void
+    {
+        if (class_exists('\rex_addon')) {
+            $addon = \rex_addon::get('editorjs');
+            $cssFile = $addon->getAssetsUrl('css/editorjs-frontend.css');
+            
+            if (class_exists('\rex_view')) {
+                \rex_view::addCssFile($cssFile);
+            }
+        }
+    }
+}

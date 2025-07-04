@@ -1,0 +1,15 @@
+{
+    "name": "redaxo/editorjs-addon",
+    "description": "EditorJS integration for REDAXO CMS",
+    "type": "redaxo-addon",
+    "license": "MIT",
+    "require": {
+        "php": ">=8.0",
+        "codex-team/editor.js": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "EditorJS\\": "lib/"
+        }
+    }
+}

@@ -1,0 +1,20 @@
+package: editorjs
+version: '1.0.0'
+author: 'REDAXO Team'
+supportpage: https://github.com/redaxo/editorjs
+
+page:
+    title: 'EditorJS'
+    perm: editorjs[]
+    subpages:
+        demo:
+            title: 'Demo'
+            perm: editorjs[]
+        renderer:
+            title: 'Frontend Renderer'
+            perm: editorjs[]
+            
+requires:
+    redaxo: '>=5.16.0'
+    php:
+        version: '>=8.0.0'

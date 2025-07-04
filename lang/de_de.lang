@@ -1,0 +1,25 @@
+title = EditorJS
+demo = Demo
+renderer = Frontend Renderer
+
+# Demo Seite
+editor = Editor
+json_output = JSON Output
+demo_data_load = Demo-Daten laden
+clear = Leeren
+show_json = JSON anzeigen
+placeholder = Schreiben Sie hier...
+header_placeholder = Überschrift eingeben...
+quote_placeholder = Zitat eingeben...
+author_placeholder = Autor
+code_placeholder = Code eingeben...
+welcome_title = EditorJS Demo
+welcome_text = Willkommen zur EditorJS Demo! Hier können Sie den Editor testen.
+features_simple = Einfache Bedienung
+features_blocks = Block-basiertes Design
+features_json = JSON-Output
+modern_ui = Moderne UI out of the box
+clean_json = Saubere JSON-Ausgabe
+api_design = Gut durchdachte API
+various_tools = Verschiedene Tools verfügbar
+free_opensource = Kostenlos und Open Source

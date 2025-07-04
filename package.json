@@ -1,0 +1,30 @@
+{
+  "name": "editorjs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "esbuild src/editorjs.js --bundle --outfile=assets/js/editorjs.bundle.js --format=iife --global-name=EditorJSBundle",
+    "dev": "esbuild src/editorjs.js --bundle --outfile=assets/js/editorjs.bundle.js --format=iife --global-name=EditorJSBundle --watch",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@editorjs/code": "^2.9.3",
+    "@editorjs/delimiter": "^1.4.2",
+    "@editorjs/editorjs": "^2.30.8",
+    "@editorjs/header": "^2.8.8",
+    "@editorjs/inline-code": "^1.5.2",
+    "@editorjs/link": "^2.6.2",
+    "@editorjs/list": "^2.0.8",
+    "@editorjs/marker": "^1.4.0",
+    "@editorjs/paragraph": "^2.11.7",
+    "@editorjs/quote": "^2.7.6"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.5"
+  }
+}

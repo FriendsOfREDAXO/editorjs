@@ -1,0 +1,66 @@
+/* EditorJS Basic CSS */
+
+/* Grundlegende Styling für EditorJS */
+.editorjs-field {
+    border-radius: 4px;
+    background: #fff;
+}
+
+.editorjs-field .codex-editor {
+    border: none !important;
+}
+
+.editorjs-field .codex-editor__redactor {
+    padding: 20px;
+}
+
+/* REDAXO Backend Integration */
+.rex-page-editorjs .editorjs-field {
+    margin-bottom: 15px;
+}
+
+/* JSON Output Styling */
+#json-output {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* Demo Buttons */
+.editorjs-demo-buttons {
+    margin-top: 15px;
+}
+
+.editorjs-demo-buttons .btn {
+    margin-right: 10px;
+}
+
+/* EditorJS Custom Styling */
+.codex-editor--narrow .codex-editor__redactor {
+    margin-right: 0 !important;
+}
+
+.ce-block__content {
+    max-width: 100% !important;
+}
+
+/* Override EditorJS defaults für REDAXO */
+.codex-editor {
+    font-family: inherit !important;
+}
+
+.codex-editor h1,
+.codex-editor h2, 
+.codex-editor h3,
+.codex-editor h4 {
+    font-family: inherit !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .editorjs-field .codex-editor__redactor {
+        padding: 10px;
+    }
+}

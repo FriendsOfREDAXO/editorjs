@@ -1,0 +1,86 @@
+/* Alert Block Styles */
+.cdx-alert {
+    border-radius: 6px;
+    border-left: 4px solid;
+    padding: 15px;
+    margin: 15px 0;
+    background-color: #f8f9fa;
+    position: relative;
+}
+
+.cdx-alert[data-type="info"] {
+    border-left-color: #17a2b8;
+    background-color: #d1ecf1;
+    color: #0c5460;
+}
+
+.cdx-alert[data-type="warning"] {
+    border-left-color: #ffc107;
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.cdx-alert[data-type="error"] {
+    border-left-color: #dc3545;
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.cdx-alert[data-type="success"] {
+    border-left-color: #28a745;
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.cdx-alert__title {
+    font-weight: bold;
+    font-size: 16px;
+    margin-bottom: 8px;
+    outline: none;
+}
+
+.cdx-alert__title:empty:before {
+    content: "Alert Titel...";
+    color: #999;
+    font-style: italic;
+}
+
+.cdx-alert__message {
+    line-height: 1.5;
+    outline: none;
+}
+
+.cdx-alert__message:empty:before {
+    content: "Geben Sie hier Ihre Nachricht ein...";
+    color: #999;
+    font-style: italic;
+}
+
+/* Settings Styles */
+.cdx-alert__settings-button {
+    display: inline-block;
+    padding: 5px 10px;
+    margin: 2px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid #e9ecef;
+    background: #fff;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.cdx-alert__settings-button:hover {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+}
+
+.cdx-alert__settings-button--active {
+    background-color: #007bff;
+    color: #fff;
+    border-color: #007bff;
+}
+
+.cdx-alert__settings-button--active:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+}

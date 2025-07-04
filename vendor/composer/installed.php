@@ -1,0 +1,41 @@
+<?php return array(
+    'root' => array(
+        'name' => 'redaxo/editorjs-addon',
+        'pretty_version' => 'dev-main',
+        'version' => 'dev-main',
+        'reference' => 'dc4971e1e231f6ba2832a0fad568d881cfe36671',
+        'type' => 'redaxo-addon',
+        'install_path' => __DIR__ . '/../../',
+        'aliases' => array(),
+        'dev' => true,
+    ),
+    'versions' => array(
+        'codex-team/editor.js' => array(
+            'pretty_version' => 'v2.0.7',
+            'version' => '2.0.7.0',
+            'reference' => 'b2c6586c948ed30683718184f0156b0b1fd9593f',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../codex-team/editor.js',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'ezyang/htmlpurifier' => array(
+            'pretty_version' => 'v4.18.0',
+            'version' => '4.18.0.0',
+            'reference' => 'cb56001e54359df7ae76dc522d08845dc741621b',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../ezyang/htmlpurifier',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'redaxo/editorjs-addon' => array(
+            'pretty_version' => 'dev-main',
+            'version' => 'dev-main',
+            'reference' => 'dc4971e1e231f6ba2832a0fad568d881cfe36671',
+            'type' => 'redaxo-addon',
+            'install_path' => __DIR__ . '/../../',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+    ),
+);
