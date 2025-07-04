@@ -156,7 +156,7 @@ document.getElementById('my-editor').addEventListener('editorjs:changed', functi
 ```php
 <?php
 // Aktueller Wert aus der Datenbank (RAW JSON für Editor)
-$value = 'REX_VALUE[1]';
+$value = 'REX_VALUE[id=1 output=html]';
 ?>
 
 <div class="form-group">
@@ -165,7 +165,7 @@ $value = 'REX_VALUE[1]';
          data-placeholder="Inhalt hier eingeben..."
          style="border: 1px solid #ddd; min-height: 400px; padding: 10px;">
     </div>
-    <textarea name="REX_INPUT_VALUE[1]" style="display: none;"><?= htmlspecialchars($value) ?></textarea>
+    <textarea name="REX_INPUT_VALUE[1]" style="display: none;"><?= $value ?></textarea>
 </div>
 ```
 
@@ -181,7 +181,7 @@ $value = 'REX_VALUE[1]';
 <?php
 // Aktueller Wert aus der Datenbank (RAW JSON für Editor)
 $value = 'REX_VALUE[1]';
-$valueId = 'REX_INPUT_VALUE[1]';
+$valueId = 'REX_INPUT_VALUE[id=1 output=html]';
 ?>
 
 <div class="form-group">
@@ -193,7 +193,7 @@ $valueId = 'REX_INPUT_VALUE[1]';
     </div>
     <textarea id="<?= $valueId ?>" 
               name="<?= $valueId ?>" 
-              style="display: none;"><?= htmlspecialchars($value) ?></textarea>
+              style="display: none;"><?= $value ?></textarea>
 </div>
 ```
 
@@ -224,7 +224,7 @@ $valueId = 'REX_INPUT_VALUE[1]';
 ```php
 <?php
 $valueId = 'REX_INPUT_VALUE[1]';
-$value = 'REX_VALUE[1]'; // RAW JSON für Editor
+$value = 'REX_VALUE[id=1 output=html]'; // RAW JSON für Editor
 ?>
 
 <div class="editorjs" 
@@ -256,11 +256,8 @@ document.getElementById('my-editor').addEventListener('editorjs:changed', functi
 <?php 
 use FriendsOfRedaxo\EditorJs\EditorJsRenderer;
 
-// Frontend-CSS einbinden
-rex_view::addCssFile($this->getAssetsUrl('css/editorjs-frontend.css', 'editorjs'));
-
 // JSON-Daten aus der Datenbank holen
-$jsonContent = 'REX_VALUE[1]';
+$jsonContent = 'REX_VALUE[id=1 output=html]';
 
 // Mit EditorJS-Renderer zu HTML konvertieren
 echo EditorJsRenderer::renderJSON($jsonContent);
@@ -269,8 +266,8 @@ echo EditorJsRenderer::renderJSON($jsonContent);
 
 **⚠️ Wichtiger Hinweis: REX_VALUE Verwendung**
 
-- **Für Editor-Input (Eingabe)**: `REX_VALUE[1]` - Gibt rohe JSON-Daten zurück, die der Editor benötigt
-- **Für HTML-Output (Ausgabe)**: `REX_VALUE[1]` + `EditorJsRenderer::renderJSON()` - JSON-Daten werden mit dem Renderer zu HTML konvertiert
+- **Für Editor-Input (Eingabe)**: `REX_VALUE[id=1 output=html]` - Gibt rohe JSON-Daten zurück, die der Editor benötigt
+- **Für HTML-Output (Ausgabe)**: `REX_VALUE[id=1 output=html]` + `EditorJsRenderer::renderJSON()` - JSON-Daten werden mit dem Renderer zu HTML konvertiert
 
 **Warum muss gerendert werden?**
 - EditorJS speichert Inhalte als JSON-Struktur in der Datenbank
