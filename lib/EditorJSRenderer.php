@@ -4,43 +4,17 @@ namespace FriendsOfRedaxo\EditorJs;
 
 /**
  * EditorJS Renderer für REDAXO
- * 
+ *
  * Konvertiert EditorJS JSON-Daten zu HTML für die Frontend-Ausgabe.
- * Unterstützt Standard-Blöcke und benutzerdefinierte Blöcke (Alert, TextImage).
+ * Unterstützt Standard-Blöcke und dynamisch gerenderte benutzerdefinierte Blöcke über Fragmente.
  */
-
 class EditorJsRenderer
 {
-    /** @var array */
-    private $config;
-
-    public function __construct()
-    {
-        $this->config = [
-            'tools' => [
-                // Standard EditorJS Tools
-                'header' => [$this, 'renderHeader'],
-                'paragraph' => [$this, 'renderParagraph'],
-                'list' => [$this, 'renderList'],
-                'quote' => [$this, 'renderQuote'],
-                'delimiter' => [$this, 'renderDelimiter'],
-                'code' => [$this, 'renderCode'],
-                
-                // Unsere benutzerdefinierten Blöcke
-                'alert' => [$this, 'renderAlert'],
-                'textimage' => [$this, 'renderTextImage'],
-                'image' => [$this, 'renderImage'],
-                'video' => [$this, 'renderVideo'],
-                'downloads' => [$this, 'renderDownloads']
-            ]
-        ];
-    }
-
     /**
      * Hauptmethode: Konvertiert EditorJS JSON zu HTML
-     * 
+     *
      * @param string|array $data EditorJS JSON-String oder Array
-     * @return string HTML-Output
+     * @return string HTML-Ausgabe
      */
     public function render($data): string
     {
@@ -68,8 +42,30 @@ class EditorJsRenderer
         $type = $block['type'] ?? '';
         $data = $block['data'] ?? [];
 
-        if (isset($this->config['tools'][$type]) && is_callable($this->config['tools'][$type])) {
-            return call_user_func($this->config['tools'][$type], $data);
+        // Standard-Blöcke mit dedizierten Methoden behandeln
+        switch ($type) {
+            case 'header':
+                return $this->renderHeader($data);
+            case 'paragraph':
+                return $this->renderParagraph($data);
+            case 'list':
+                return $this->renderList($data);
+            case 'quote':
+                return $this->renderQuote($data);
+            case 'delimiter':
+                return $this->renderDelimiter($data);
+            case 'code':
+                return $this->renderCode($data);
+        }
+
+        // Benutzerdefinierte Blöcke dynamisch über Fragmente rendern
+        $fragmentPath = \rex_path::addon('editorjs', 'fragments/' . $type . '.fragment.php');
+
+        if (file_exists($fragmentPath)) {
+            $fragment = new \rex_fragment();
+            $fragment->setVar('mode', 'output'); // Modus für Frontend-Rendering setzen
+            $fragment->setVar('data', $data);     // Block-Daten an das Fragment übergeben
+            return $fragment->parse($type . '.fragment.php');
         }
 
         // Fallback für unbekannte Blöcke
@@ -83,7 +79,7 @@ class EditorJsRenderer
     {
         $level = (int) ($data['level'] ?? 2);
         $text = $data['text'] ?? '';
-        
+
         if ($level < 1 || $level > 6) {
             $level = 2;
         }
@@ -97,11 +93,8 @@ class EditorJsRenderer
     public function renderParagraph(array $data): string
     {
         $text = $data['text'] ?? '';
-        
-        // Einfache HTML-Tags erlauben (strong, em, u, s, a)
         $allowedTags = '<strong><em><u><s><a>';
         $cleanText = strip_tags($text, $allowedTags);
-        
         return "<p>{$cleanText}</p>\n";
     }
 
@@ -112,17 +105,13 @@ class EditorJsRenderer
     {
         $style = $data['style'] ?? 'unordered';
         $items = $data['items'] ?? [];
-        
         $tag = $style === 'ordered' ? 'ol' : 'ul';
         $html = "<{$tag}>\n";
-        
         foreach ($items as $item) {
             $cleanItem = strip_tags($item, '<strong><em><u><s><a>');
             $html .= "<li>{$cleanItem}</li>\n";
         }
-        
         $html .= "</{$tag}>\n";
-        
         return $html;
     }
 
@@ -133,19 +122,13 @@ class EditorJsRenderer
     {
         $text = $data['text'] ?? '';
         $caption = $data['caption'] ?? '';
-        
         $cleanText = strip_tags($text, '<strong><em><u><s><a>');
-        
-        $html = "<blockquote>\n";
-        $html .= "<p>{$cleanText}</p>\n";
-        
+        $html = "<blockquote>\n<p>{$cleanText}</p>\n";
         if ($caption) {
             $cleanCaption = strip_tags($caption, '<strong><em><u><s><a>');
             $html .= "<cite>{$cleanCaption}</cite>\n";
         }
-        
         $html .= "</blockquote>\n";
-        
         return $html;
     }
 
@@ -154,7 +137,7 @@ class EditorJsRenderer
      */
     public function renderDelimiter(array $data): string
     {
-        return "<hr class=\"editorjs-delimiter\">\n";
+        return '<hr class="editorjs-delimiter">\n';
     }
 
     /**
@@ -163,422 +146,7 @@ class EditorJsRenderer
     public function renderCode(array $data): string
     {
         $code = $data['code'] ?? '';
-        
         return "<pre><code>" . htmlspecialchars($code) . "</code></pre>\n";
-    }
-
-    /**
-     * Rendert unseren benutzerdefinierten Image-Block
-     */
-    public function renderImage(array $data): string
-    {
-        // Debug: Datenstruktur ausgeben
-        // error_log('Image Block Data: ' . print_r($data, true));
-        
-        // Datenstruktur aus dem JavaScript Image-Block
-        $imageFile = $data['imageFile'] ?? '';
-        $imageUrl = $data['imageUrl'] ?? '';
-        $imageAlt = $data['imageAlt'] ?? '';
-        $caption = $data['caption'] ?? '';
-        $withBorder = $data['withBorder'] ?? false;
-        $withBackground = $data['withBackground'] ?? false;
-        $stretched = $data['stretched'] ?? false;
-        $aspectRatio = $data['aspectRatio'] ?? 'auto';
-        $cropMode = $data['cropMode'] ?? 'cover';
-        
-        // Bild-URL bestimmen
-        $finalImageUrl = '';
-        
-        // Zuerst imageUrl prüfen (kann direkte URL sein)
-        if ($imageUrl) {
-            $finalImageUrl = $imageUrl;
-        } 
-        // Dann imageFile für REDAXO Media
-        elseif ($imageFile) {
-            if (function_exists('rex_url')) {
-                $finalImageUrl = \rex_url::media($imageFile);
-            } else {
-                // Fallback für Demo - zeigt tatsächlichen Dateinamen
-                $finalImageUrl = "https://placehold.co/600x400/007bff/ffffff?text=" . urlencode($imageFile);
-            }
-        }
-        
-        // Wenn immer noch keine URL vorhanden, prüfe auf alternative Datenstrukturen
-        if (!$finalImageUrl) {
-            // Fallback für Standard EditorJS Image Tool Struktur
-            $file = $data['file'] ?? '';
-            $url = $data['url'] ?? '';
-            
-            if ($url) {
-                $finalImageUrl = $url;
-            } elseif ($file) {
-                if (function_exists('rex_url')) {
-                    $finalImageUrl = \rex_url::media($file);
-                } else {
-                    $finalImageUrl = "https://placehold.co/600x400/28a745/ffffff?text=" . urlencode($file);
-                }
-            }
-        }
-        
-        if (!$finalImageUrl) {
-            return '<!-- Image Block: Keine Bild-URL verfügbar. Data: ' . htmlspecialchars(json_encode($data)) . ' -->';
-        }
-        
-        // CSS-Klassen für das Wrapper-Div zusammenstellen
-        $wrapperClasses = ['cdx-image'];
-        
-        // Aspect Ratio Klassen
-        if ($aspectRatio !== 'auto') {
-            $wrapperClasses[] = 'aspect-' . $aspectRatio;
-            $wrapperClasses[] = 'crop-' . $cropMode;
-        }
-        
-        if ($stretched) {
-            $wrapperClasses[] = 'stretched';
-        }
-        
-        // CSS-Klassen für das Bild zusammenstellen
-        $imageClasses = ['cdx-image__image'];
-        if ($withBorder) {
-            $imageClasses[] = 'with-border';
-        }
-        if ($withBackground) {
-            $imageClasses[] = 'with-background';
-        }
-        if ($stretched) {
-            $imageClasses[] = 'stretched';
-        }
-        
-        $html = "<div class=\"" . implode(' ', $wrapperClasses) . "\">\n";
-        $html .= "<div class=\"cdx-image__wrapper\">\n";
-        $html .= "<img src=\"{$finalImageUrl}\" alt=\"" . htmlspecialchars($imageAlt ?: $imageFile ?: 'Bild') . "\" class=\"" . implode(' ', $imageClasses) . "\">\n";
-        
-        if ($caption) {
-            $html .= "<div class=\"cdx-image__caption\">" . htmlspecialchars($caption) . "</div>\n";
-        }
-        
-        $html .= "</div>\n";
-        $html .= "</div>\n";
-        
-        return $html;
-    }
-
-    /**
-     * Rendert unseren benutzerdefinierten Alert-Block
-     */
-    public function renderAlert(array $data): string
-    {
-        $type = $data['type'] ?? 'info';
-        $title = $data['title'] ?? '';
-        $message = $data['message'] ?? '';
-        
-        $html = "<div class=\"cdx-alert\" data-type=\"{$type}\">\n";
-        
-        if ($title) {
-            $html .= "<div class=\"cdx-alert__title\">" . htmlspecialchars($title) . "</div>\n";
-        }
-        
-        if ($message) {
-            $html .= "<div class=\"cdx-alert__message\">" . htmlspecialchars($message) . "</div>\n";
-        }
-        
-        $html .= "</div>\n";
-        
-        return $html;
-    }
-
-    /**
-     * Rendert unseren benutzerdefinierten TextImage-Block
-     */
-    public function renderTextImage(array $data): string
-    {
-        $text = $data['text'] ?? '';
-        $imageFile = $data['imageFile'] ?? '';
-        $imageUrl = $data['imageUrl'] ?? '';
-        $caption = $data['caption'] ?? '';
-        $layout = $data['layout'] ?? 'left';
-        
-        // Bild-URL erstellen
-        if ($imageFile && !$imageUrl) {
-            if (function_exists('rex_url')) {
-                $imageUrl = \rex_url::media($imageFile);
-            } else {
-                // Fallback für Demo: Placehold.co verwenden
-                $imageUrl = "https://placehold.co/300x200/007bff/ffffff?text=" . urlencode($imageFile);
-            }
-        }
-        
-        // Fallback für Demo ohne Bild - spezifische Farben je Layout
-        if (!$imageUrl) {
-            $layouts = [
-                'left' => 'https://placehold.co/300x200/007bff/ffffff?text=Bild+Links',
-                'right' => 'https://placehold.co/300x200/28a745/ffffff?text=Bild+Rechts', 
-                'top' => 'https://placehold.co/600x200/dc3545/ffffff?text=Bild+Oben'
-            ];
-            $imageUrl = $layouts[$layout] ?? $layouts['left'];
-        }
-        
-        $html = "<div class=\"cdx-textimage\" data-layout=\"{$layout}\">\n";
-        $html .= "<div class=\"cdx-textimage__container layout-{$layout} layout-{$layout}\">\n";
-        
-        // Bild-Wrapper (immer anzeigen)
-        $html .= "<div class=\"cdx-textimage__image-wrapper\">\n";
-        $html .= "<img src=\"{$imageUrl}\" alt=\"" . htmlspecialchars($imageFile ?: 'Demo Bild') . "\" class=\"cdx-textimage__image\">\n";
-        
-        if ($caption) {
-            $html .= "<div class=\"cdx-textimage__caption\">" . htmlspecialchars($caption) . "</div>\n";
-        }
-        
-        $html .= "</div>\n";
-        
-        // Text-Wrapper
-        if ($text) {
-            $html .= "<div class=\"cdx-textimage__text-wrapper\">\n";
-            $html .= "<div class=\"cdx-textimage__text\">\n";
-            
-            // Text mit erlaubten HTML-Tags
-            $allowedTags = '<p><h1><h2><h3><h4><h5><h6><strong><em><u><s><a><ul><ol><li><br>';
-            $cleanText = strip_tags($text, $allowedTags);
-            
-            $html .= $cleanText;
-            $html .= "</div>\n";
-            $html .= "</div>\n";
-        }
-        
-        $html .= "</div>\n";
-        $html .= "</div>\n";
-        
-        return $html;
-    }
-
-    /**
-     * Rendert unseren benutzerdefinierten Downloads-Block
-     */
-    public function renderDownloads(array $data): string
-    {
-        $title = $data['title'] ?? 'Downloads';
-        $items = $data['items'] ?? [];
-        $showTitle = $data['showTitle'] ?? true;
-        $layout = $data['layout'] ?? 'list';
-        
-        if (empty($items)) {
-            return '';
-        }
-        
-        $html = "<div class=\"cdx-downloads\" data-layout=\"{$layout}\">\n";
-        
-        // Titel anzeigen falls aktiviert
-        if ($showTitle && !empty($title)) {
-            $html .= "<h3 class=\"cdx-downloads__title\">" . htmlspecialchars($title) . "</h3>\n";
-        }
-        
-        $html .= "<div class=\"cdx-downloads__container\">\n";
-        
-        foreach ($items as $item) {
-            $file = $item['file'] ?? '';
-            $itemTitle = $item['title'] ?? '';
-            $description = $item['description'] ?? '';
-            
-            if (empty($file)) {
-                continue;
-            }
-            
-            // Media-URL für REDAXO generieren
-            $fileUrl = \rex_url::media($file);
-            $extension = strtolower(pathinfo($file, PATHINFO_EXTENSION));
-            
-            $html .= "<div class=\"cdx-downloads__item\">\n";
-            $html .= "<a href=\"{$fileUrl}\" class=\"cdx-downloads__link\" target=\"_blank\" rel=\"noopener\">\n";
-            
-            // Icon Container
-            $html .= "<div class=\"cdx-downloads__icon\">\n";
-            
-            // Prüfen ob es ein Bild ist für Thumbnail
-            if ($this->isImageFile($extension)) {
-                $html .= "<img src=\"{$fileUrl}\" alt=\"" . htmlspecialchars($itemTitle ?: $file) . "\" class=\"cdx-downloads__thumb\" />\n";
-            } else {
-                $html .= $this->getFileIcon($extension) . "\n";
-            }
-            
-            $html .= "</div>\n";
-            
-            // File Info
-            $html .= "<div class=\"cdx-downloads__info\">\n";
-            
-            if (!empty($itemTitle)) {
-                $html .= "<h4 class=\"cdx-downloads__file-title\">" . htmlspecialchars($itemTitle) . "</h4>\n";
-            }
-            
-            $html .= "<div class=\"cdx-downloads__file-name\">" . htmlspecialchars($file) . "</div>\n";
-            
-            if (!empty($description)) {
-                $html .= "<div class=\"cdx-downloads__description\">" . htmlspecialchars($description) . "</div>\n";
-            }
-            
-            // Dateigröße falls verfügbar
-            $filePath = \rex_path::media($file);
-            if (file_exists($filePath)) {
-                $fileSize = $this->formatFileSize(filesize($filePath));
-                $html .= "<div class=\"cdx-downloads__file-size\">{$fileSize}</div>\n";
-            }
-            
-            $html .= "</div>\n";
-            $html .= "</a>\n";
-            $html .= "</div>\n";
-        }
-        
-        $html .= "</div>\n";
-        $html .= "</div>\n";
-        
-        return $html;
-    }
-
-    /**
-     * Rendert unseren benutzerdefinierten Video-Block
-     */
-    public function renderVideo(array $data): string
-    {
-        // error_log('Video Block Data: ' . print_r($data, true));
-
-        $videoFile = $data['videoFile'] ?? '';
-        $videoUrl = $data['videoUrl'] ?? '';
-        $posterFile = $data['posterFile'] ?? '';
-        $posterUrl = $data['posterUrl'] ?? '';
-        $subtitleFile = $data['subtitleFile'] ?? '';
-        $subtitleUrl = $data['subtitleUrl'] ?? '';
-        $caption = $data['caption'] ?? '';
-        
-        $stretched = $data['stretched'] ?? false;
-        $autoplay = $data['autoplay'] ?? false;
-        $loop = $data['loop'] ?? false;
-        $muted = $data['muted'] ?? false;
-        $controls = $data['controls'] ?? true;
-        $aspectRatio = $data['aspectRatio'] ?? 'auto';
-
-        // URLs auflösen, falls nur Dateinamen vorhanden sind
-        if (function_exists('rex_url')) {
-            if (empty($videoUrl) && !empty($videoFile)) {
-                $videoUrl = rex_url::media($videoFile);
-            }
-            if (empty($posterUrl) && !empty($posterFile)) {
-                $posterUrl = rex_url::media($posterFile);
-            }
-            if (empty($subtitleUrl) && !empty($subtitleFile)) {
-                $subtitleUrl = rex_url::media($subtitleFile);
-            }
-        }
-
-        if (empty($videoUrl)) {
-            return '<!-- Video Block: Keine Video-URL verfügbar. Data: ' . htmlspecialchars(json_encode($data)) . ' -->';
-        }
-
-        // CSS-Klassen für den Wrapper
-        $wrapperClasses = ['cdx-video__wrapper'];
-        if ($stretched) {
-            $wrapperClasses[] = 'stretched';
-        }
-        if ($aspectRatio !== 'auto') {
-            $wrapperClasses[] = 'aspect-' . $aspectRatio;
-        }
-
-        // Attribute für das <video>-Tag
-        $videoAttributes = [];
-        $videoAttributes[] = 'src="' . htmlspecialchars($videoUrl) . '"';
-        if ($controls) {
-            $videoAttributes[] = 'controls';
-        }
-        if ($autoplay) {
-            $videoAttributes[] = 'autoplay';
-        }
-        if ($loop) {
-            $videoAttributes[] = 'loop';
-        }
-        if ($muted) {
-            $videoAttributes[] = 'muted';
-        }
-        if (!empty($posterUrl)) {
-            $videoAttributes[] = 'poster="' . htmlspecialchars($posterUrl) . '"';
-        }
-        $videoAttributes[] = 'playsinline'; // Wichtig für mobile Browser
-
-        $html = '<div class="' . implode(' ', $wrapperClasses) . '">';
-        $html .= '<video class="cdx-video__video" ' . implode(' ', $videoAttributes) . '>';
-
-        if (!empty($subtitleUrl)) {
-            $html .= '<track src="' . htmlspecialchars($subtitleUrl) . '" kind="subtitles" srclang="de" label="Deutsch" default>';
-        }
-
-        $html .= 'Ihr Browser unterstützt das Video-Tag nicht.';
-        $html .= '</video>';
-
-        if (!empty($caption)) {
-            $html .= '<div class="cdx-video__caption">' . htmlspecialchars($caption) . '</div>';
-        }
-
-        $html .= '</div>';
-
-        return $html;
-    }
-    
-    /**
-     * Prüft ob eine Datei ein Bild ist
-     */
-    private function isImageFile(string $extension): bool
-    {
-        $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'];
-        return in_array($extension, $imageExtensions);
-    }
-    
-    /**
-     * Gibt das passende Icon für einen Dateityp zurück
-     */
-    private function getFileIcon(string $extension): string
-    {
-        $iconMap = [
-            // PDF
-            'pdf' => '<i class="fa-solid fa-file-pdf" style="color: #dc3545;"></i>',
-            
-            // Documents
-            'doc' => '<i class="fa-solid fa-file-word" style="color: #2c5aa0;"></i>',
-            'docx' => '<i class="fa-solid fa-file-word" style="color: #2c5aa0;"></i>',
-            'xls' => '<i class="fa-solid fa-file-excel" style="color: #1d6f42;"></i>',
-            'xlsx' => '<i class="fa-solid fa-file-excel" style="color: #1d6f42;"></i>',
-            'ppt' => '<i class="fa-solid fa-file-powerpoint" style="color: #d04423;"></i>',
-            'pptx' => '<i class="fa-solid fa-file-powerpoint" style="color: #d04423;"></i>',
-            
-            // Archive
-            'zip' => '<i class="fa-solid fa-file-zipper" style="color: #6c757d;"></i>',
-            'rar' => '<i class="fa-solid fa-file-zipper" style="color: #6c757d;"></i>',
-            '7z' => '<i class="fa-solid fa-file-zipper" style="color: #6c757d;"></i>',
-            
-            // Text
-            'txt' => '<i class="fa-solid fa-file-lines" style="color: #6c757d;"></i>',
-            'rtf' => '<i class="fa-solid fa-file-lines" style="color: #6c757d;"></i>',
-            
-            // Audio/Video
-            'mp3' => '<i class="fa-solid fa-file-audio" style="color: #ff6b35;"></i>',
-            'wav' => '<i class="fa-solid fa-file-audio" style="color: #ff6b35;"></i>',
-            'mp4' => '<i class="fa-solid fa-file-video" style="color: #ff6b35;"></i>',
-            'avi' => '<i class="fa-solid fa-file-video" style="color: #ff6b35;"></i>'
-        ];
-        
-        return $iconMap[$extension] ?? '<i class="fa-solid fa-file" style="color: #6c757d;"></i>';
-    }
-    
-    /**
-     * Formatiert eine Dateigröße
-     */
-    private function formatFileSize(int $bytes): string
-    {
-        $units = ['B', 'KB', 'MB', 'GB'];
-        $i = 0;
-        
-        while ($bytes >= 1024 && $i < count($units) - 1) {
-            $bytes /= 1024;
-            $i++;
-        }
-        
-        return round($bytes, 2) . ' ' . $units[$i];
     }
 
     /**
@@ -598,7 +166,6 @@ class EditorJsRenderer
         if (class_exists('\rex_addon')) {
             $addon = \rex_addon::get('editorjs');
             $cssFile = $addon->getAssetsUrl('css/editorjs-frontend.css');
-            
             if (class_exists('\rex_view')) {
                 \rex_view::addCssFile($cssFile);
             }

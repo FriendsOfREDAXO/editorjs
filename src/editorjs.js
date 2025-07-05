@@ -44,20 +44,152 @@ window.DownloadsBlock = DownloadsBlock;
 window.VideoBlock = VideoBlock; // Make the new VideoBlock globally available as well
 window.REXMediaTool = REXMediaTool;
 
-// Debug: Prüfe ob Blöcke verfügbar sind
-console.log('ImageBlock available?', typeof window.ImageBlock);
-console.log('VideoBlock available?', typeof window.VideoBlock);
-console.log('DownloadsBlock available?', typeof window.DownloadsBlock);
+/**
+ * Dynamically creates an Editor.js block class from a configuration object.
+ * @param {string} blockName - The name of the block (e.g., 'headline').
+ * @param {object} blockInfo - The configuration object from the API.
+ * @returns {class} - A class that can be used by Editor.js.
+ */
+function createDynamicBlockClass(blockName, blockInfo) {
+    return class DynamicBlock {
+        static get toolbox() {
+            return {
+                title: blockInfo.config.title,
+                icon: blockInfo.config.icon,
+            };
+        }
+
+        static get inlineToolbar() {
+            return blockInfo.config.inlineToolbar || false;
+        }
+
+        constructor({ data, api, readOnly }) {
+            this.api = api;
+            this.readOnly = readOnly;
+            this.data = data || {};
+            this.nodes = {};
+            this.blockName = blockName; // Store blockName for debugging
+
+            // Initialize data fields from config
+            Object.keys(blockInfo.config.fields).forEach(fieldName => {
+                const fieldConfig = blockInfo.config.fields[fieldName];
+                if (this.data[fieldName] === undefined) {
+                    // Use default value if specified, otherwise empty string
+                    this.data[fieldName] = fieldConfig.default || '';
+                }
+            });
+        }
+
+        render() {
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = blockInfo.editor_view;
+            this.nodes.wrapper = wrapper;
+
+            // Make elements editable and link them to data
+            Object.keys(blockInfo.config.fields).forEach(fieldName => {
+                const fieldElement = wrapper.querySelector(`[data-field="${fieldName}"]`);
+                const fieldConfig = blockInfo.config.fields[fieldName];
+                if (fieldElement) {
+                    const fieldType = fieldConfig.type;
+                    if (fieldType === 'text') {
+                        fieldElement.contentEditable = !this.readOnly;
+                        fieldElement.innerHTML = this.data[fieldName] || '';
+                        fieldElement.addEventListener('blur', () => {
+                            this.data[fieldName] = fieldElement.innerHTML;
+                        });
+                    } else if (fieldType === 'select') {
+                        // Set the current value or default
+                        const currentValue = this.data[fieldName] || fieldConfig.default || '';
+                        fieldElement.value = currentValue;
+                        console.log(`Debug ${this.blockName} - Setting select ${fieldName} to: ${currentValue}, Element value: ${fieldElement.value}`);
+                        fieldElement.addEventListener('change', () => {
+                            console.log(`Debug ${this.blockName} - Select ${fieldName} changed from ${this.data[fieldName]} to ${fieldElement.value}`);
+                            this.data[fieldName] = fieldElement.value;
+                        });
+                    }
+                    // More field types (rex-media, etc.) can be handled here
+                }
+            });
+
+            return wrapper;
+        }
+
+        save() {
+            console.log(`Debug ${this.blockName} - Save called, current this.data:`, this.data);
+            const savedData = {};
+            Object.keys(blockInfo.config.fields).forEach(fieldName => {
+                const fieldElement = this.nodes.wrapper.querySelector(`[data-field="${fieldName}"]`);
+                const fieldConfig = blockInfo.config.fields[fieldName];
+                if (fieldElement) {
+                    const fieldType = fieldConfig.type;
+                     if (fieldType === 'text') {
+                        // For text fields, always read from DOM as they might have been edited
+                        savedData[fieldName] = fieldElement.innerHTML;
+                        console.log(`Debug ${this.blockName} - Save text field ${fieldName}: ${fieldElement.innerHTML}`);
+                    } else if (fieldType === 'select') {
+                        // For select fields, use this.data which is updated by change events
+                        // This avoids DOM sync issues
+                        savedData[fieldName] = this.data[fieldName];
+                        console.log(`Debug ${this.blockName} - Save select field ${fieldName}: Using this.data value = ${this.data[fieldName]}, DOM shows = ${fieldElement.value}`);
+                    }
+                    // Handle other field types for saving
+                }
+            });
+            // Update the internal data object with the fresh values
+            this.data = savedData;
+            console.log(`Debug ${this.blockName} - Final saved data:`, this.data);
+            return this.data;
+        }
+
+        static get sanitize() {
+            const rules = {};
+            Object.keys(blockInfo.config.fields).forEach(fieldName => {
+                // Basic sanitization, can be expanded
+                rules[fieldName] = {
+                    br: true,
+                    strong: true,
+                    em: true,
+                    a: { href: true }
+                };
+            });
+            return rules;
+        }
+    };
+}
 
 // EditorJS Utilities für REDAXO
 window.EditorJSUtils = {
     
     /**
      * Erstellt einen neuen EditorJS mit Standard-Konfiguration
+     * @param {Object} options - Editor-Konfiguration
+     * @param {string|Array} allowedTools - Optional: Liste der erlaubten Tools
      */
-    createEditor: function(options) {
+    createEditor: async function(options, allowedTools = null) {
+        // --- Start: Dynamic Block Loading ---
+        let dynamicTools = {};
+        try {
+            const response = await fetch('/index.php?rex-api-call=editorjs&call=get_block_configs');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const dynamicBlocks = await response.json();
+            
+            for (const blockName in dynamicBlocks) {
+                if (dynamicBlocks.hasOwnProperty(blockName)) {
+                    console.log(`Registering dynamic block: ${blockName}`);
+                    dynamicTools[blockName] = {
+                        class: createDynamicBlockClass(blockName, dynamicBlocks[blockName])
+                    };
+                }
+            }
+        } catch (error) {
+            console.error('Could not load dynamic EditorJS blocks:', error);
+        }
+        // --- End: Dynamic Block Loading ---
+
         // Tools dynamisch zusammenstellen
-        const tools = {
+        const staticTools = {
             header: {
                 class: Header,
                 config: {
@@ -156,13 +288,79 @@ window.EditorJSUtils = {
             }
         };
 
+        // Put dynamic tools first, then static tools
+        const allTools = { ...dynamicTools, ...staticTools };
+        
+        // Filter tools if allowedTools is specified
+        let tools = allTools;
+        let initialBlock = 'paragraph'; // Standard-Block
+        
+        if (allowedTools) {
+            console.log('=== TOOL FILTERING ACTIVE ===');
+            console.log('Original tools:', Object.keys(allTools));
+            console.log('Allowed tools string:', allowedTools);
+            
+            const allowedList = Array.isArray(allowedTools) ? allowedTools : allowedTools.split(',').map(s => s.trim());
+            console.log('Allowed tools array:', allowedList);
+            
+            tools = {};
+            allowedList.forEach(toolName => {
+                if (allTools[toolName]) {
+                    tools[toolName] = allTools[toolName];
+                    console.log(`✓ Adding tool: ${toolName}`);
+                } else {
+                    console.warn(`✗ Tool "${toolName}" not found in available tools:`, Object.keys(allTools));
+                }
+            });
+            
+            // Zusätzliche Tools aus bestehenden Daten hinzufügen
+            if (options.data && options.data.blocks && Array.isArray(options.data.blocks)) {
+                const usedTools = new Set();
+                options.data.blocks.forEach(block => {
+                    if (block.type && !allowedList.includes(block.type)) {
+                        if (allTools[block.type]) {
+                            console.log(`⚠ Adding tool "${block.type}" for existing data (not in allowed list)`);
+                            tools[block.type] = allTools[block.type];
+                            usedTools.add(block.type);
+                        } else {
+                            console.warn(`⚠ Block type "${block.type}" in data not found in available tools`);
+                        }
+                    }
+                });
+                
+                if (usedTools.size > 0) {
+                    console.log('Added tools for existing data:', Array.from(usedTools));
+                }
+            }
+            
+            // Paragraph als Standard-Block verwenden, außer es ist nicht erlaubt
+            if (!allowedList.includes('paragraph')) {
+                console.log('✗ Paragraph not in allowed list');
+                // Finde das erste verfügbare Tool als Fallback
+                const availableTools = Object.keys(tools);
+                initialBlock = availableTools.length > 0 ? availableTools[0] : 'header';
+                console.log(`Using ${initialBlock} as initial block instead of paragraph`);
+            } else {
+                console.log('✓ Paragraph allowed');
+            }
+            
+            console.log('Final filtered tools:', Object.keys(tools));
+            console.log('=== END TOOL FILTERING ===');
+        } else {
+            console.log('No tool filtering - using all tools');
+        }
+
         const defaultOptions = {
             onReady: function() {
                 console.log('EditorJS is ready!');
                 // Custom Enter-Handling für alle Blöcke
                 EditorJSUtils.setupEnterHandling();
             },
-            tools: tools
+            tools: tools,
+            // Initial Block basierend auf verfügbaren Tools setzen
+            defaultBlock: initialBlock,
+            // Placeholder setzen
+            placeholder: options.placeholder || 'Inhalt eingeben...'
         };
         
         // Merge user options with defaults

@@ -113,6 +113,83 @@ $demoData = [
     </div>
 </div>
 
+<!-- Standard-Editoren Demos -->
+<div class="row" style="margin-top: 20px;">
+    <div class="col-md-12">
+        <div class="panel panel-default">
+            <header class="panel-heading">
+                <h3 class="panel-title"><i class="fa fa-edit"></i> Standard-Editor Demos</h3>
+            </header>
+            <div class="panel-body">
+                <p>Verschiedene EditorJS-Instanzen mit allen verfügbaren Tools und dynamischen Blöcken.</p>
+                
+                <div class="row">
+                    <!-- Einfacher Editor -->
+                    <div class="col-md-4">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h4 class="panel-title">Einfacher Editor</h4>
+                                <small>Standard EditorJS</small>
+                            </div>
+                            <div class="panel-body">
+                                <textarea data-editorjs-direct 
+                                          placeholder="Einfachen Text eingeben..."
+                                          style="min-height: 150px;">{"blocks":[{"type":"paragraph","data":{"text":"Einfacher Editor mit allen verfügbaren Tools."}}]}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Blog-Editor -->
+                    <div class="col-md-4">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h4 class="panel-title">Blog-Editor</h4>
+                                <small>Mit dynamischen Blöcken</small>
+                            </div>
+                            <div class="panel-body">
+                                <textarea data-editorjs-direct 
+                                          placeholder="Blog-Artikel schreiben..."
+                                          style="min-height: 150px;">{"blocks":[{"type":"header","data":{"text":"Blog-Artikel","level":2}},{"type":"paragraph","data":{"text":"Dieser Editor hat alle Tools inklusive dynamischer Blöcke."}}]}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Media-Editor -->
+                    <div class="col-md-4">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h4 class="panel-title">Media-Editor</h4>
+                                <small>Mit Media-Integration</small>
+                            </div>
+                            <div class="panel-body">
+                                <textarea data-editorjs-direct 
+                                          placeholder="Media-reichen Inhalt erstellen..."
+                                          style="min-height: 150px;">{"blocks":[{"type":"header","data":{"text":"Media Content","level":2}},{"type":"paragraph","data":{"text":"Editor mit allen verfügbaren Tools und Media-Integration."}}]}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info" style="margin-top: 15px;">
+                    <strong><i class="fa fa-lightbulb-o"></i> Tipps:</strong>
+                    <ul>
+                        <li>Öffnen Sie die Browser-Entwicklertools (F12) und schauen Sie in die Konsole für Debug-Informationen</li>
+                        <li>Klicken Sie auf das "+" Symbol in den Editoren - Sie sehen alle verfügbaren Tools</li>
+                        <li>Alle Standard-Tools und dynamische Blöcke aus <code>/fragments/</code> sind verfügbar</li>
+                        <li>Die Auto-Initialisierung funktioniert auch bei PJAX-Navigation in REDAXO</li>
+                    </ul>
+                </div>
+                
+                <div class="alert alert-success">
+                    <h4><i class="fa fa-code"></i> Debug-Test</h4>
+                    <p>Klicken Sie auf den Button unten, um alle aktiven Editor-Instanzen in der Browser-Konsole anzuzeigen:</p>
+                    <button onclick="debugEditors()" class="btn btn-sm btn-success">Editoren in Konsole anzeigen</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="alert alert-info">
     <h4><i class="fa fa-info-circle"></i> Tastaturkürzel</h4>
     <ul class="list-unstyled">
@@ -266,6 +343,128 @@ function initEditor() {
             };
         }
 
+        // Dynamische Blöcke laden und hinzufügen
+        console.log('Loading dynamic blocks...');
+        fetch('/index.php?rex-api-call=editorjs&call=get_block_configs')
+            .then(response => response.json())
+            .then(dynamicBlocks => {
+                console.log('Dynamic blocks loaded:', dynamicBlocks);
+                
+                // Dynamische Blöcke zu den Tools hinzufügen
+                for (const blockName in dynamicBlocks) {
+                    if (dynamicBlocks.hasOwnProperty(blockName)) {
+                        console.log(`Adding dynamic block: ${blockName}`);
+                        tools[blockName] = {
+                            class: createDynamicBlockClass(blockName, dynamicBlocks[blockName])
+                        };
+                    }
+                }
+                
+                // Editor mit allen Tools (statisch + dynamisch) initialisieren
+                initEditorWithTools(tools);
+            })
+            .catch(error => {
+                console.warn('Could not load dynamic blocks, using static tools only:', error);
+                // Fallback: Editor nur mit statischen Tools initialisieren
+                initEditorWithTools(tools);
+            });
+    } catch (error) {
+        console.error('Editor initialization failed:', error);
+        document.getElementById('editorjs-demo').innerHTML = '<div class="alert alert-danger">Editor konnte nicht initialisiert werden: ' + error.message + '</div>';
+    }
+}
+
+// Hilfsfunktion für die dynamische Block-Klassen-Erstellung (aus editorjs.js übernommen)
+function createDynamicBlockClass(blockName, blockInfo) {
+    return class DynamicBlock {
+        static get toolbox() {
+            return {
+                title: blockInfo.config.title,
+                icon: blockInfo.config.icon,
+            };
+        }
+
+        static get inlineToolbar() {
+            return blockInfo.config.inlineToolbar || false;
+        }
+
+        constructor({ data, api, readOnly }) {
+            this.api = api;
+            this.readOnly = readOnly;
+            this.data = data || {};
+            this.nodes = {};
+
+            // Initialize data fields from config
+            Object.keys(blockInfo.config.fields).forEach(fieldName => {
+                if (this.data[fieldName] === undefined) {
+                    this.data[fieldName] = '';
+                }
+            });
+        }
+
+        render() {
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = blockInfo.editor_view;
+            this.nodes.wrapper = wrapper;
+
+            // Make elements editable and link them to data
+            Object.keys(blockInfo.config.fields).forEach(fieldName => {
+                const fieldElement = wrapper.querySelector(`[data-field="${fieldName}"]`);
+                if (fieldElement) {
+                    const fieldType = blockInfo.config.fields[fieldName].type;
+                    if (fieldType === 'text') {
+                        fieldElement.contentEditable = !this.readOnly;
+                        fieldElement.innerHTML = this.data[fieldName] || '';
+                        fieldElement.addEventListener('blur', () => {
+                            this.data[fieldName] = fieldElement.innerHTML;
+                        });
+                    } else if (fieldType === 'select') {
+                        fieldElement.value = this.data[fieldName] || '';
+                        fieldElement.addEventListener('change', () => {
+                            this.data[fieldName] = fieldElement.value;
+                        });
+                    }
+                }
+            });
+
+            return wrapper;
+        }
+
+        save() {
+            const savedData = {};
+            Object.keys(blockInfo.config.fields).forEach(fieldName => {
+                const fieldElement = this.nodes.wrapper.querySelector(`[data-field="${fieldName}"]`);
+                if (fieldElement) {
+                    const fieldType = blockInfo.config.fields[fieldName].type;
+                     if (fieldType === 'text') {
+                        savedData[fieldName] = fieldElement.innerHTML;
+                    } else if (fieldType === 'select') {
+                        savedData[fieldName] = fieldElement.value;
+                    }
+                }
+            });
+            this.data = savedData;
+            return this.data;
+        }
+
+        static get sanitize() {
+            const rules = {};
+            Object.keys(blockInfo.config.fields).forEach(fieldName => {
+                rules[fieldName] = {
+                    br: true,
+                    strong: true,
+                    em: true,
+                    a: { href: true }
+                };
+            });
+            return rules;
+        }
+    };
+}
+
+// Separate Funktion für die eigentliche Editor-Initialisierung
+function initEditorWithTools(tools) {
+    try {
         editor = new EditorJS({
             holder: 'editorjs-demo',
             placeholder: '<?= $this->i18n('placeholder') ?>',
@@ -275,7 +474,7 @@ function initEditor() {
                 updateJSON();
             },
             onReady: function() {
-                console.log('EditorJS ready!');
+                console.log('EditorJS ready with', Object.keys(tools).length, 'tools!');
             }
         });
     } catch (error) {
@@ -343,3 +542,58 @@ function updateJSON() {
     transform: translateZ(0);
 }
 </style>
+
+<script>
+// Debug-Funktion für Editor-Instanzen
+function debugEditors() {
+    console.log('=== Editor-Instanzen Debug ===');
+    
+    // Alle Editor-Instanzen durchgehen
+    if (window.editorInstances) {
+        Object.keys(window.editorInstances).forEach(function(editorId) {
+            const editor = window.editorInstances[editorId];
+            const container = document.getElementById(editorId);
+            
+            console.log(`Editor: ${editorId}`);
+            console.log(`  - Verfügbare Tools:`, Object.keys(editor.configuration.tools));
+            console.log(`  - Container Element:`, container);
+            console.log(`  - Editor Instance:`, editor);
+        });
+    } else {
+        console.log('Keine EditorJS-Instanzen gefunden.');
+    }
+    
+    console.log('=== Ende Debug ===');
+    alert('Editor-Debug ausgeführt. Schauen Sie in die Browser-Konsole für Details.');
+}
+</script>
+            const editor = window.editorInstances[editorId];
+            const container = document.getElementById(editorId);
+            
+            if (editor && editor.configuration && editor.configuration.tools) {
+                const toolNames = Object.keys(editor.configuration.tools);
+                const filterAttribute = container?.dataset?.editorjsTools || 
+                                       container?.querySelector('textarea')?.dataset?.editorjsTools || 
+                                       'keine Filterung';
+                
+                console.log(`Editor: ${editorId}`);
+                console.log(`Filter: ${filterAttribute}`);
+                console.log(`Verfügbare Tools: ${toolNames.join(', ')}`);
+                console.log(`Anzahl Tools: ${toolNames.length}`);
+                console.log('---');
+            }
+        });
+    }
+    
+    // Zusätzlich alle Editoren mit Tool-Filter finden
+    const filteredElements = document.querySelectorAll('[data-editorjs-tools]');
+    console.log(`\nGefundene Elemente mit data-editorjs-tools: ${filteredElements.length}`);
+    filteredElements.forEach(function(element) {
+        console.log(`Element: ${element.tagName}#${element.id || 'keine-id'}`);
+        console.log(`Filter: ${element.dataset.editorjsTools}`);
+    });
+    
+    console.log('\n=== Ende Debug ===');
+    alert('Debug-Informationen wurden in die Browser-Konsole ausgegeben. Öffnen Sie die Entwicklertools (F12) um sie zu sehen.');
+}
+</script>

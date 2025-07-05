@@ -18895,15 +18895,119 @@ var EditorJSBundle = (() => {
   window.DownloadsBlock = Downloads;
   window.VideoBlock = video_default;
   window.REXMediaTool = rexmedia_default;
-  console.log("ImageBlock available?", typeof window.ImageBlock);
-  console.log("VideoBlock available?", typeof window.VideoBlock);
-  console.log("DownloadsBlock available?", typeof window.DownloadsBlock);
+  function createDynamicBlockClass(blockName, blockInfo) {
+    return class DynamicBlock {
+      static get toolbox() {
+        return {
+          title: blockInfo.config.title,
+          icon: blockInfo.config.icon
+        };
+      }
+      static get inlineToolbar() {
+        return blockInfo.config.inlineToolbar || false;
+      }
+      constructor({ data, api, readOnly }) {
+        this.api = api;
+        this.readOnly = readOnly;
+        this.data = data || {};
+        this.nodes = {};
+        this.blockName = blockName;
+        Object.keys(blockInfo.config.fields).forEach((fieldName) => {
+          const fieldConfig = blockInfo.config.fields[fieldName];
+          if (this.data[fieldName] === void 0) {
+            this.data[fieldName] = fieldConfig.default || "";
+          }
+        });
+      }
+      render() {
+        const wrapper = document.createElement("div");
+        wrapper.innerHTML = blockInfo.editor_view;
+        this.nodes.wrapper = wrapper;
+        Object.keys(blockInfo.config.fields).forEach((fieldName) => {
+          const fieldElement = wrapper.querySelector(`[data-field="${fieldName}"]`);
+          const fieldConfig = blockInfo.config.fields[fieldName];
+          if (fieldElement) {
+            const fieldType = fieldConfig.type;
+            if (fieldType === "text") {
+              fieldElement.contentEditable = !this.readOnly;
+              fieldElement.innerHTML = this.data[fieldName] || "";
+              fieldElement.addEventListener("blur", () => {
+                this.data[fieldName] = fieldElement.innerHTML;
+              });
+            } else if (fieldType === "select") {
+              const currentValue = this.data[fieldName] || fieldConfig.default || "";
+              fieldElement.value = currentValue;
+              console.log(`Debug ${this.blockName} - Setting select ${fieldName} to: ${currentValue}, Element value: ${fieldElement.value}`);
+              fieldElement.addEventListener("change", () => {
+                console.log(`Debug ${this.blockName} - Select ${fieldName} changed from ${this.data[fieldName]} to ${fieldElement.value}`);
+                this.data[fieldName] = fieldElement.value;
+              });
+            }
+          }
+        });
+        return wrapper;
+      }
+      save() {
+        console.log(`Debug ${this.blockName} - Save called, current this.data:`, this.data);
+        const savedData = {};
+        Object.keys(blockInfo.config.fields).forEach((fieldName) => {
+          const fieldElement = this.nodes.wrapper.querySelector(`[data-field="${fieldName}"]`);
+          const fieldConfig = blockInfo.config.fields[fieldName];
+          if (fieldElement) {
+            const fieldType = fieldConfig.type;
+            if (fieldType === "text") {
+              savedData[fieldName] = fieldElement.innerHTML;
+              console.log(`Debug ${this.blockName} - Save text field ${fieldName}: ${fieldElement.innerHTML}`);
+            } else if (fieldType === "select") {
+              savedData[fieldName] = this.data[fieldName];
+              console.log(`Debug ${this.blockName} - Save select field ${fieldName}: Using this.data value = ${this.data[fieldName]}, DOM shows = ${fieldElement.value}`);
+            }
+          }
+        });
+        this.data = savedData;
+        console.log(`Debug ${this.blockName} - Final saved data:`, this.data);
+        return this.data;
+      }
+      static get sanitize() {
+        const rules = {};
+        Object.keys(blockInfo.config.fields).forEach((fieldName) => {
+          rules[fieldName] = {
+            br: true,
+            strong: true,
+            em: true,
+            a: { href: true }
+          };
+        });
+        return rules;
+      }
+    };
+  }
   window.EditorJSUtils = {
     /**
      * Erstellt einen neuen EditorJS mit Standard-Konfiguration
+     * @param {Object} options - Editor-Konfiguration
+     * @param {string|Array} allowedTools - Optional: Liste der erlaubten Tools
      */
-    createEditor: function(options) {
-      const tools = {
+    createEditor: async function(options, allowedTools = null) {
+      let dynamicTools = {};
+      try {
+        const response = await fetch("/index.php?rex-api-call=editorjs&call=get_block_configs");
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const dynamicBlocks = await response.json();
+        for (const blockName in dynamicBlocks) {
+          if (dynamicBlocks.hasOwnProperty(blockName)) {
+            console.log(`Registering dynamic block: ${blockName}`);
+            dynamicTools[blockName] = {
+              class: createDynamicBlockClass(blockName, dynamicBlocks[blockName])
+            };
+          }
+        }
+      } catch (error) {
+        console.error("Could not load dynamic EditorJS blocks:", error);
+      }
+      const staticTools = {
         header: {
           class: v,
           config: {
@@ -19002,12 +19106,64 @@ var EditorJSBundle = (() => {
           shortcut: "CMD+K"
         }
       };
+      const allTools = { ...dynamicTools, ...staticTools };
+      let tools = allTools;
+      let initialBlock = "paragraph";
+      if (allowedTools) {
+        console.log("=== TOOL FILTERING ACTIVE ===");
+        console.log("Original tools:", Object.keys(allTools));
+        console.log("Allowed tools string:", allowedTools);
+        const allowedList = Array.isArray(allowedTools) ? allowedTools : allowedTools.split(",").map((s3) => s3.trim());
+        console.log("Allowed tools array:", allowedList);
+        tools = {};
+        allowedList.forEach((toolName) => {
+          if (allTools[toolName]) {
+            tools[toolName] = allTools[toolName];
+            console.log(`\u2713 Adding tool: ${toolName}`);
+          } else {
+            console.warn(`\u2717 Tool "${toolName}" not found in available tools:`, Object.keys(allTools));
+          }
+        });
+        if (options.data && options.data.blocks && Array.isArray(options.data.blocks)) {
+          const usedTools = /* @__PURE__ */ new Set();
+          options.data.blocks.forEach((block) => {
+            if (block.type && !allowedList.includes(block.type)) {
+              if (allTools[block.type]) {
+                console.log(`\u26A0 Adding tool "${block.type}" for existing data (not in allowed list)`);
+                tools[block.type] = allTools[block.type];
+                usedTools.add(block.type);
+              } else {
+                console.warn(`\u26A0 Block type "${block.type}" in data not found in available tools`);
+              }
+            }
+          });
+          if (usedTools.size > 0) {
+            console.log("Added tools for existing data:", Array.from(usedTools));
+          }
+        }
+        if (!allowedList.includes("paragraph")) {
+          console.log("\u2717 Paragraph not in allowed list");
+          const availableTools = Object.keys(tools);
+          initialBlock = availableTools.length > 0 ? availableTools[0] : "header";
+          console.log(`Using ${initialBlock} as initial block instead of paragraph`);
+        } else {
+          console.log("\u2713 Paragraph allowed");
+        }
+        console.log("Final filtered tools:", Object.keys(tools));
+        console.log("=== END TOOL FILTERING ===");
+      } else {
+        console.log("No tool filtering - using all tools");
+      }
       const defaultOptions = {
         onReady: function() {
           console.log("EditorJS is ready!");
           EditorJSUtils.setupEnterHandling();
         },
-        tools
+        tools,
+        // Initial Block basierend auf verfügbaren Tools setzen
+        defaultBlock: initialBlock,
+        // Placeholder setzen
+        placeholder: options.placeholder || "Inhalt eingeben..."
       };
       const config = Object.assign({}, defaultOptions, options);
       return new Aa(config);

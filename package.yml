@@ -13,7 +13,10 @@ page:
         renderer:
             title: 'Frontend Renderer'
             perm: editorjs[]
-            
+        help:
+            title: 'Hilfe & Dokumentation'
+            perm: editorjs[]
+
 requires:
     redaxo: '>=5.16.0'
     php:

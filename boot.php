@@ -38,7 +38,12 @@ spl_autoload_register(function ($class) {
     if ($class === 'FriendsOfRedaxo\\EditorJs\\EditorJsRenderer') {
         require_once __DIR__ . '/lib/EditorJSRenderer.php';
     }
+    // Die rex_api_* Klassen werden von REDAXO automatisch geladen, 
+    // wenn sie im lib/ Ordner des Addons liegen.
+    // Ein expliziter require ist nicht mehr nötig, wenn die Benennung stimmt.
 });
+
+// Die API-Klasse rex_api_editorjs in lib/api.php wird automatisch von REDAXO registriert.
 
 // Extension Point für automatisches CSS im Frontend
 rex_extension::register('OUTPUT_FILTER', function (rex_extension_point $ep) {
