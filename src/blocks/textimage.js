@@ -2,7 +2,7 @@
  * TextImage Block für EditorJS
  * Ein Block mit Text und Bild aus dem REDAXO Medienpool
  */
-class TextImageBlock {
+export default class TextImage {
     static get toolbox() {
         return {
             title: 'Text & Bild',
@@ -444,6 +444,3 @@ class TextImageBlock {
         return el;
     }
 }
-
-// Export für das Bundle
-window.TextImageBlock = TextImageBlock;

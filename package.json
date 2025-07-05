@@ -4,8 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "esbuild src/editorjs.js --bundle --outfile=assets/js/editorjs.bundle.js --format=iife --global-name=EditorJSBundle",
-    "dev": "esbuild src/editorjs.js --bundle --outfile=assets/js/editorjs.bundle.js --format=iife --global-name=EditorJSBundle --watch",
+    "build": "npm run build:js && npm run build:css",
+    "build:js": "esbuild src/editorjs.js --bundle --outfile=assets/js/editorjs.bundle.js --format=iife --global-name=EditorJSBundle",
+    "build:css": "cat assets/css/editorjs-basic.css assets/css/editorjs-blocks.css assets/css/editorjs-frontend.css > assets/css/editorjs.bundle.css",
+    "dev": "npm run dev:js",
+    "dev:js": "esbuild src/editorjs.js --bundle --outfile=assets/js/editorjs.bundle.js --format=iife --global-name=EditorJSBundle --watch",
+    "dev:css": "cat assets/css/editorjs-basic.css assets/css/editorjs-blocks.css assets/css/editorjs-frontend.css > assets/css/editorjs.bundle.css",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

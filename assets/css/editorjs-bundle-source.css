@@ -1,0 +1,10 @@
+/* EditorJS Bundle CSS - Alle Styles in einer Datei */
+
+/* Basic EditorJS Styles */
+@import './editorjs-basic.css';
+
+/* Block-spezifische Styles */
+@import './editorjs-blocks.css';
+
+/* Frontend Styles */
+@import './editorjs-frontend.css';

@@ -2,7 +2,7 @@
  * Image Block für EditorJS mit REXMediaTool
  * Beispiel für die Verwendung der zentralen REXMediaTool-Komponente
  */
-class ImageBlock {
+export default class ImageBlock {
     static get toolbox() {
         return {
             title: 'Bild',
@@ -594,6 +594,3 @@ class ImageBlock {
         }
     }
 }
-
-// Export für das Bundle
-window.ImageBlock = ImageBlock;

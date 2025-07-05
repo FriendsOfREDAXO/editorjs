@@ -322,7 +322,7 @@ class REXMediaTool {
      * @returns {Promise} Promise mit Upload-Ergebnis
      */
     uploadFile(file) {
-        // Placeholder für Upload-Funktionalität
+        // Placeholder für Upload- Funktionalität
         // Dies würde eine Upload-API zu REDAXO benötigen
         return Promise.reject(new Error('Upload-Funktionalität noch nicht implementiert'));
     }
@@ -360,4 +360,4 @@ REXMediaTool.openMediapool = function(callback) {
 };
 
 // Export für das Bundle
-window.REXMediaTool = REXMediaTool;
+export default REXMediaTool;

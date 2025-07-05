@@ -2,7 +2,7 @@
  * Alert Block für EditorJS
  * Ein einfacher Alert-Block mit verschiedenen Typen (info, warning, error, success)
  */
-class AlertBlock {
+export default class Alert {
     static get toolbox() {
         return {
             title: 'Alert',
@@ -199,6 +199,3 @@ class AlertBlock {
         return el;
     }
 }
-
-// Export für das Bundle
-window.AlertBlock = AlertBlock;

@@ -2,7 +2,7 @@
  * Downloads Repeater Block für EditorJS
  * Ermöglicht das Hinzufügen mehrerer Downloads (PDFs, Bilder) aus dem REDAXO Medienpool
  */
-class DownloadsBlock {
+export default class Downloads {
     static get toolbox() {
         return {
             title: 'Downloads',
@@ -539,6 +539,3 @@ class DownloadsBlock {
         return el;
     }
 }
-
-// Export für das Bundle
-window.DownloadsBlock = DownloadsBlock;

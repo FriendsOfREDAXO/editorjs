@@ -29,6 +29,8 @@ class EditorJsRenderer
                 // Unsere benutzerdefinierten Blöcke
                 'alert' => [$this, 'renderAlert'],
                 'textimage' => [$this, 'renderTextImage'],
+                'image' => [$this, 'renderImage'],
+                'video' => [$this, 'renderVideo'],
                 'downloads' => [$this, 'renderDownloads']
             ]
         ];
@@ -163,6 +165,102 @@ class EditorJsRenderer
         $code = $data['code'] ?? '';
         
         return "<pre><code>" . htmlspecialchars($code) . "</code></pre>\n";
+    }
+
+    /**
+     * Rendert unseren benutzerdefinierten Image-Block
+     */
+    public function renderImage(array $data): string
+    {
+        // Debug: Datenstruktur ausgeben
+        // error_log('Image Block Data: ' . print_r($data, true));
+        
+        // Datenstruktur aus dem JavaScript Image-Block
+        $imageFile = $data['imageFile'] ?? '';
+        $imageUrl = $data['imageUrl'] ?? '';
+        $imageAlt = $data['imageAlt'] ?? '';
+        $caption = $data['caption'] ?? '';
+        $withBorder = $data['withBorder'] ?? false;
+        $withBackground = $data['withBackground'] ?? false;
+        $stretched = $data['stretched'] ?? false;
+        $aspectRatio = $data['aspectRatio'] ?? 'auto';
+        $cropMode = $data['cropMode'] ?? 'cover';
+        
+        // Bild-URL bestimmen
+        $finalImageUrl = '';
+        
+        // Zuerst imageUrl prüfen (kann direkte URL sein)
+        if ($imageUrl) {
+            $finalImageUrl = $imageUrl;
+        } 
+        // Dann imageFile für REDAXO Media
+        elseif ($imageFile) {
+            if (function_exists('rex_url')) {
+                $finalImageUrl = \rex_url::media($imageFile);
+            } else {
+                // Fallback für Demo - zeigt tatsächlichen Dateinamen
+                $finalImageUrl = "https://placehold.co/600x400/007bff/ffffff?text=" . urlencode($imageFile);
+            }
+        }
+        
+        // Wenn immer noch keine URL vorhanden, prüfe auf alternative Datenstrukturen
+        if (!$finalImageUrl) {
+            // Fallback für Standard EditorJS Image Tool Struktur
+            $file = $data['file'] ?? '';
+            $url = $data['url'] ?? '';
+            
+            if ($url) {
+                $finalImageUrl = $url;
+            } elseif ($file) {
+                if (function_exists('rex_url')) {
+                    $finalImageUrl = \rex_url::media($file);
+                } else {
+                    $finalImageUrl = "https://placehold.co/600x400/28a745/ffffff?text=" . urlencode($file);
+                }
+            }
+        }
+        
+        if (!$finalImageUrl) {
+            return '<!-- Image Block: Keine Bild-URL verfügbar. Data: ' . htmlspecialchars(json_encode($data)) . ' -->';
+        }
+        
+        // CSS-Klassen für das Wrapper-Div zusammenstellen
+        $wrapperClasses = ['cdx-image'];
+        
+        // Aspect Ratio Klassen
+        if ($aspectRatio !== 'auto') {
+            $wrapperClasses[] = 'aspect-' . $aspectRatio;
+            $wrapperClasses[] = 'crop-' . $cropMode;
+        }
+        
+        if ($stretched) {
+            $wrapperClasses[] = 'stretched';
+        }
+        
+        // CSS-Klassen für das Bild zusammenstellen
+        $imageClasses = ['cdx-image__image'];
+        if ($withBorder) {
+            $imageClasses[] = 'with-border';
+        }
+        if ($withBackground) {
+            $imageClasses[] = 'with-background';
+        }
+        if ($stretched) {
+            $imageClasses[] = 'stretched';
+        }
+        
+        $html = "<div class=\"" . implode(' ', $wrapperClasses) . "\">\n";
+        $html .= "<div class=\"cdx-image__wrapper\">\n";
+        $html .= "<img src=\"{$finalImageUrl}\" alt=\"" . htmlspecialchars($imageAlt ?: $imageFile ?: 'Bild') . "\" class=\"" . implode(' ', $imageClasses) . "\">\n";
+        
+        if ($caption) {
+            $html .= "<div class=\"cdx-image__caption\">" . htmlspecialchars($caption) . "</div>\n";
+        }
+        
+        $html .= "</div>\n";
+        $html .= "</div>\n";
+        
+        return $html;
     }
 
     /**
@@ -332,6 +430,93 @@ class EditorJsRenderer
         $html .= "</div>\n";
         $html .= "</div>\n";
         
+        return $html;
+    }
+
+    /**
+     * Rendert unseren benutzerdefinierten Video-Block
+     */
+    public function renderVideo(array $data): string
+    {
+        // error_log('Video Block Data: ' . print_r($data, true));
+
+        $videoFile = $data['videoFile'] ?? '';
+        $videoUrl = $data['videoUrl'] ?? '';
+        $posterFile = $data['posterFile'] ?? '';
+        $posterUrl = $data['posterUrl'] ?? '';
+        $subtitleFile = $data['subtitleFile'] ?? '';
+        $subtitleUrl = $data['subtitleUrl'] ?? '';
+        $caption = $data['caption'] ?? '';
+        
+        $stretched = $data['stretched'] ?? false;
+        $autoplay = $data['autoplay'] ?? false;
+        $loop = $data['loop'] ?? false;
+        $muted = $data['muted'] ?? false;
+        $controls = $data['controls'] ?? true;
+        $aspectRatio = $data['aspectRatio'] ?? 'auto';
+
+        // URLs auflösen, falls nur Dateinamen vorhanden sind
+        if (function_exists('rex_url')) {
+            if (empty($videoUrl) && !empty($videoFile)) {
+                $videoUrl = rex_url::media($videoFile);
+            }
+            if (empty($posterUrl) && !empty($posterFile)) {
+                $posterUrl = rex_url::media($posterFile);
+            }
+            if (empty($subtitleUrl) && !empty($subtitleFile)) {
+                $subtitleUrl = rex_url::media($subtitleFile);
+            }
+        }
+
+        if (empty($videoUrl)) {
+            return '<!-- Video Block: Keine Video-URL verfügbar. Data: ' . htmlspecialchars(json_encode($data)) . ' -->';
+        }
+
+        // CSS-Klassen für den Wrapper
+        $wrapperClasses = ['cdx-video__wrapper'];
+        if ($stretched) {
+            $wrapperClasses[] = 'stretched';
+        }
+        if ($aspectRatio !== 'auto') {
+            $wrapperClasses[] = 'aspect-' . $aspectRatio;
+        }
+
+        // Attribute für das <video>-Tag
+        $videoAttributes = [];
+        $videoAttributes[] = 'src="' . htmlspecialchars($videoUrl) . '"';
+        if ($controls) {
+            $videoAttributes[] = 'controls';
+        }
+        if ($autoplay) {
+            $videoAttributes[] = 'autoplay';
+        }
+        if ($loop) {
+            $videoAttributes[] = 'loop';
+        }
+        if ($muted) {
+            $videoAttributes[] = 'muted';
+        }
+        if (!empty($posterUrl)) {
+            $videoAttributes[] = 'poster="' . htmlspecialchars($posterUrl) . '"';
+        }
+        $videoAttributes[] = 'playsinline'; // Wichtig für mobile Browser
+
+        $html = '<div class="' . implode(' ', $wrapperClasses) . '">';
+        $html .= '<video class="cdx-video__video" ' . implode(' ', $videoAttributes) . '>';
+
+        if (!empty($subtitleUrl)) {
+            $html .= '<track src="' . htmlspecialchars($subtitleUrl) . '" kind="subtitles" srclang="de" label="Deutsch" default>';
+        }
+
+        $html .= 'Ihr Browser unterstützt das Video-Tag nicht.';
+        $html .= '</video>';
+
+        if (!empty($caption)) {
+            $html .= '<div class="cdx-video__caption">' . htmlspecialchars($caption) . '</div>';
+        }
+
+        $html .= '</div>';
+
         return $html;
     }
     

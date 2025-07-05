@@ -12,16 +12,18 @@ import Marker from '@editorjs/marker';
 import LinkTool from '@editorjs/link';
 
 // Eigene Blöcke importieren
-import './blocks/alert.js';
+import AlertBlock from './blocks/alert.js';
 import './blocks/alert.css';
-import './blocks/textimage.js';
+import TextImageBlock from './blocks/textimage.js';
 import './blocks/textimage.css';
-import './blocks/image.js';
+import ImageBlock from './blocks/image.js';
 import './blocks/image.css';
-import './blocks/rexlink.js';
-import './blocks/rexmedia.js';
-import './blocks/downloads.js';
+import REXLinkTool from './blocks/rexlink.js';
+import REXMediaTool from './blocks/rexmedia.js';
+import DownloadsBlock from './blocks/downloads.js';
 import './blocks/downloads.css';
+import VideoBlock from './blocks/video.js';
+import './blocks/video.css';
 
 // Globale Variablen für REDAXO Backend
 window.EditorJS = EditorJS;
@@ -35,10 +37,16 @@ window.InlineCode = InlineCode;
 window.Marker = Marker;
 window.LinkTool = LinkTool;
 window.REXLinkTool = REXLinkTool;
-// Alert und TextImage Blocks sind bereits über die JS-Dateien verfügbar
-// als window.AlertBlock, window.TextImageBlock, window.ImageBlock und window.DownloadsBlock
+window.AlertBlock = AlertBlock;
+window.TextImageBlock = TextImageBlock;
+window.ImageBlock = ImageBlock;
+window.DownloadsBlock = DownloadsBlock;
+window.VideoBlock = VideoBlock; // Make the new VideoBlock globally available as well
+window.REXMediaTool = REXMediaTool;
 
-// Debug: Prüfe ob DownloadsBlock verfügbar ist
+// Debug: Prüfe ob Blöcke verfügbar sind
+console.log('ImageBlock available?', typeof window.ImageBlock);
+console.log('VideoBlock available?', typeof window.VideoBlock);
 console.log('DownloadsBlock available?', typeof window.DownloadsBlock);
 
 // EditorJS Utilities für REDAXO
@@ -88,26 +96,43 @@ window.EditorJSUtils = {
                 }
             },
             alert: {
-                class: window.AlertBlock,
+                class: AlertBlock,
                 config: {
                     defaultType: 'info'
                 }
             },
             textimage: {
-                class: window.TextImageBlock,
+                class: TextImageBlock,
                 inlineToolbar: true,
                 config: {
                     defaultLayout: 'left'
                 }
             },
             image: {
-                class: window.ImageBlock,
+                class: ImageBlock,
                 config: {
                     stretched: false,
                     withBorder: false,
                     withBackground: false,
                     aspectRatio: 'auto',
                     cropMode: 'cover'
+                }
+            },
+            video: {
+                class: VideoBlock,
+                config: {
+                    aspectRatio: '16-9',
+                    controls: true,
+                    autoplay: false,
+                    loop: false,
+                    muted: false
+                }
+            },
+            downloads: {
+                class: DownloadsBlock,
+                config: {
+                    defaultLayout: 'list',
+                    showTitle: true
                 }
             },
             // Inline-Tools für Rich-Text-Formatierung
@@ -130,17 +155,6 @@ window.EditorJSUtils = {
                 shortcut: 'CMD+K'
             }
         };
-
-        // Downloads-Tool hinzufügen, falls verfügbar
-        if (typeof window.DownloadsBlock !== 'undefined') {
-            tools.downloads = {
-                class: window.DownloadsBlock,
-                config: {
-                    defaultLayout: 'list',
-                    showTitle: true
-                }
-            };
-        }
 
         const defaultOptions = {
             onReady: function() {

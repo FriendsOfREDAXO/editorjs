@@ -2,7 +2,7 @@
  * REDAXO Link Tool für EditorJS
  * Unterstützt interne Links (Linkmap) und externe Links
  */
-class REXLinkTool {
+export default class RexLink {
     static get title() {
         return 'REDAXO Link';
     }
@@ -330,6 +330,3 @@ class REXLinkTool {
         return 'CMD+K';
     }
 }
-
-// Export für das Bundle
-window.REXLinkTool = REXLinkTool;
