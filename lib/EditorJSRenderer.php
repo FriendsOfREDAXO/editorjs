@@ -115,7 +115,15 @@ class EditorJsRenderer
         $html = "<{$tag}>\n";
         
         foreach ($items as $item) {
-            $cleanItem = strip_tags($item, '<strong><em><u><s><a>');
+            // EditorJS v2.31+ verwendet Objekt-Format für Listen-Items
+            if (is_array($item) && isset($item['content'])) {
+                $content = $item['content'];
+            } else {
+                // Fallback für alte String-basierte Listen
+                $content = is_string($item) ? $item : '';
+            }
+            
+            $cleanItem = strip_tags($content, '<strong><em><u><s><a>');
             $html .= "<li>{$cleanItem}</li>\n";
         }
         
