@@ -24,6 +24,8 @@ import DownloadsBlock from './blocks/downloads.js';
 import './blocks/downloads.css';
 import VideoBlock from './blocks/video.js';
 import './blocks/video.css';
+import HeroBlock from './blocks/hero.js';
+import './blocks/hero.css';
 
 // Globale Variablen für REDAXO Backend
 window.EditorJS = EditorJS;
@@ -42,6 +44,7 @@ window.TextImageBlock = TextImageBlock;
 window.ImageBlock = ImageBlock;
 window.DownloadsBlock = DownloadsBlock;
 window.VideoBlock = VideoBlock; // Make the new VideoBlock globally available as well
+window.HeroBlock = HeroBlock;
 window.REXMediaTool = REXMediaTool;
 
 /**
@@ -265,6 +268,15 @@ window.EditorJSUtils = {
                 config: {
                     defaultLayout: 'list',
                     showTitle: true
+                }
+            },
+            hero: {
+                class: HeroBlock,
+                config: {
+                    mediaConfig: {
+                        types: ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'],
+                        category: null
+                    }
                 }
             },
             // Inline-Tools für Rich-Text-Formatierung

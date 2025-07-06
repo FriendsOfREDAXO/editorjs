@@ -46,6 +46,35 @@
     max-width: 100% !important;
 }
 
+/* Fix Toolbar positioning - make it use full width */
+.ce-toolbar__content {
+    max-width: 100% !important;
+    width: 100% !important;
+}
+
+/* Fix z-index for Settings Menu - must be above all blocks */
+.ce-settings,
+.ce-settings__button,
+.ce-popover,
+.ce-popover--opened,
+.ce-inline-toolbar,
+.ce-toolbar__settings-btn {
+    z-index: 10000 !important;
+}
+
+/* Ensure toolbox is also above blocks */
+.ce-toolbox {
+    z-index: 9999 !important;
+}
+
+/* Ensure all EditorJS UI elements are above content blocks */
+.ce-toolbar,
+.ce-toolbar__content,
+.ce-toolbar__plus,
+.ce-toolbar__actions {
+    z-index: 9998 !important;
+}
+
 /* Override EditorJS defaults für REDAXO */
 .codex-editor {
     font-family: inherit !important;

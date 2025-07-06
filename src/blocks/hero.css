@@ -1,0 +1,529 @@
+/**
+ * Hero Block Styles
+ * Modernes Design mit responsiven Layouts und coolen Effekten
+ */
+
+.cdx-hero {
+    margin: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.cdx-hero:hover {
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+}
+
+.cdx-hero__container {
+    position: relative;
+    min-height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    overflow: hidden;
+}
+
+/* Hintergrundfarb-Varianten */
+.cdx-hero__container[data-background="gradient"] {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.cdx-hero__container[data-background="blue"] {
+    background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+}
+
+.cdx-hero__container[data-background="purple"] {
+    background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
+}
+
+.cdx-hero__container[data-background="green"] {
+    background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
+}
+
+.cdx-hero__container[data-background="red"] {
+    background: linear-gradient(135deg, #e17055 0%, #d63031 100%);
+}
+
+.cdx-hero__container[data-background="dark"] {
+    background: linear-gradient(135deg, #2d3436 0%, #636e72 100%);
+}
+
+.cdx-hero__container[data-background="light"] {
+    background: linear-gradient(135deg, #ddd6fe 0%, #c7d2fe 100%);
+    color: #374151;
+}
+
+/* Höhen-Varianten */
+.cdx-hero__container[data-height="small"] {
+    min-height: 300px;
+}
+
+.cdx-hero__container[data-height="medium"] {
+    min-height: 400px;
+}
+
+.cdx-hero__container[data-height="large"] {
+    min-height: 500px;
+}
+
+.cdx-hero__container[data-height="fullscreen"] {
+    min-height: 100vh;
+}
+
+/* Hintergrundbild */
+.cdx-hero__background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+.cdx-hero__background img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.cdx-hero:hover .cdx-hero__background img {
+    transform: scale(1.05);
+}
+
+/* Overlay Varianten */
+.cdx-hero__overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    transition: opacity 0.3s ease;
+}
+
+.cdx-hero__overlay[data-overlay="none"] {
+    display: none;
+}
+
+.cdx-hero__overlay[data-overlay="light"] {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.cdx-hero__overlay[data-overlay="dark"] {
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.cdx-hero__overlay[data-overlay="gradient"] {
+    background: linear-gradient(
+        45deg,
+        rgba(0, 0, 0, 0.3) 0%,
+        rgba(0, 0, 0, 0.1) 50%,
+        rgba(0, 0, 0, 0.3) 100%
+    );
+}
+
+/* Content */
+.cdx-hero__content {
+    position: relative;
+    z-index: 3;
+    max-width: 800px;
+    padding: 60px 40px;
+    text-align: center;
+    color: white;
+    width: 100%;
+}
+
+/* Ausrichtung */
+.cdx-hero__container[data-alignment="left"] .cdx-hero__content {
+    text-align: left;
+    margin-left: 0;
+    margin-right: auto;
+}
+
+.cdx-hero__container[data-alignment="center"] .cdx-hero__content {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.cdx-hero__container[data-alignment="right"] .cdx-hero__content {
+    text-align: right;
+    margin-left: auto;
+    margin-right: 0;
+}
+
+/* Titel */
+.cdx-hero__title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin: 0 0 1rem 0;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.cdx-hero__title:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+}
+
+.cdx-hero__title[data-placeholder]:empty::before {
+    content: attr(data-placeholder);
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 400;
+}
+
+/* Untertitel */
+.cdx-hero__subtitle {
+    font-size: 1.5rem;
+    font-weight: 400;
+    line-height: 1.3;
+    margin: 0 0 1.5rem 0;
+    color: rgba(255, 255, 255, 0.9);
+    animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+.cdx-hero__subtitle:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+}
+
+.cdx-hero__subtitle[data-placeholder]:empty::before {
+    content: attr(data-placeholder);
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Text */
+.cdx-hero__text {
+    font-size: 1.125rem;
+    line-height: 1.6;
+    margin: 0 0 2.5rem 0;
+    color: rgba(255, 255, 255, 0.85);
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    animation: fadeInUp 0.8s ease-out 0.4s both;
+}
+
+.cdx-hero__container[data-alignment="left"] .cdx-hero__text {
+    margin-left: 0;
+    margin-right: auto;
+}
+
+.cdx-hero__container[data-alignment="right"] .cdx-hero__text {
+    margin-left: auto;
+    margin-right: 0;
+}
+
+.cdx-hero__text:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+}
+
+.cdx-hero__text[data-placeholder]:empty::before {
+    content: attr(data-placeholder);
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Aktionen */
+.cdx-hero__actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    animation: fadeInUp 0.8s ease-out 0.6s both;
+}
+
+.cdx-hero__container[data-alignment="left"] .cdx-hero__actions {
+    justify-content: flex-start;
+}
+
+.cdx-hero__container[data-alignment="right"] .cdx-hero__actions {
+    justify-content: flex-end;
+}
+
+/* Buttons */
+.cdx-hero__button {
+    display: inline-flex;
+    align-items: center;
+    padding: 14px 28px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 2px solid transparent;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.cdx-hero__button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.cdx-hero__button:hover::before {
+    left: 100%;
+}
+
+.cdx-hero__button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.cdx-hero__button span {
+    position: relative;
+    z-index: 1;
+}
+
+.cdx-hero__button span:focus {
+    outline: none;
+}
+
+.cdx-hero__button span[data-placeholder]:empty::before {
+    content: attr(data-placeholder);
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Sekundärer Button */
+.cdx-hero__button--secondary {
+    background: transparent;
+    border-color: rgba(255, 255, 255, 0.3);
+    color: white;
+    box-shadow: none;
+}
+
+.cdx-hero__button--secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
+}
+
+/* Bild Upload */
+.cdx-hero__image-upload {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 100;
+    cursor: pointer;
+}
+
+.cdx-hero__upload-placeholder {
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    padding: 30px 20px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.8);
+    transition: all 0.3s ease;
+    min-width: 200px;
+}
+
+.cdx-hero__upload-placeholder:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-2px);
+}
+
+.cdx-hero__upload-placeholder svg {
+    margin-bottom: 10px;
+    opacity: 0.7;
+}
+
+.cdx-hero__upload-placeholder p {
+    margin: 0 0 5px 0;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.cdx-hero__upload-placeholder small {
+    font-size: 0.875rem;
+    opacity: 0.7;
+}
+
+/* Bild Vorschau */
+.cdx-hero__image-preview {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.cdx-hero__remove-image {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #ff4757;
+    border: 2px solid white;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.cdx-hero__remove-image:hover {
+    background: #ff3838;
+    transform: scale(1.1);
+}
+
+/* Settings */
+.cdx-hero__settings {
+    display: flex;
+    gap: 8px;
+}
+
+/* Animationen */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .cdx-hero__content {
+        padding: 40px 20px;
+    }
+    
+    .cdx-hero__title {
+        font-size: 2.5rem;
+    }
+    
+    .cdx-hero__subtitle {
+        font-size: 1.25rem;
+    }
+    
+    .cdx-hero__text {
+        font-size: 1rem;
+    }
+    
+    .cdx-hero__actions {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .cdx-hero__button {
+        width: 100%;
+        max-width: 280px;
+        justify-content: center;
+    }
+    
+    .cdx-hero__image-upload {
+        position: static;
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
+    }
+    
+    .cdx-hero__upload-placeholder {
+        min-width: auto;
+        width: 100%;
+        max-width: 300px;
+    }
+}
+
+@media (max-width: 480px) {
+    .cdx-hero__container[data-height="small"] {
+        min-height: 250px;
+    }
+    
+    .cdx-hero__container[data-height="medium"] {
+        min-height: 300px;
+    }
+    
+    .cdx-hero__container[data-height="large"] {
+        min-height: 400px;
+    }
+    
+    .cdx-hero__title {
+        font-size: 2rem;
+    }
+    
+    .cdx-hero__subtitle {
+        font-size: 1.125rem;
+    }
+}
+
+/* Dark Theme Support */
+@media (prefers-color-scheme: dark) {
+    .cdx-hero {
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+    }
+    
+    .cdx-hero:hover {
+        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.3);
+    }
+}
+
+/* EditorJS Settings Z-Index Fix */
+.ce-toolbar__settings-btn {
+    position: relative;
+    z-index: 10001 !important;
+}
+
+.ce-settings {
+    z-index: 10002 !important;
+}
+
+.ce-popover {
+    z-index: 10003 !important;
+}
+
+.ce-popover--opened {
+    z-index: 10004 !important;
+}
+
+/* Hero Settings spezifisch */
+.cdx-hero .ce-settings {
+    z-index: 10005 !important;
+}
+
+.cdx-hero .ce-popover {
+    z-index: 10006 !important;
+}
+
+/* Animations deaktivieren während Settings offen sind */
+.cdx-hero.settings-open {
+    animation: none !important;
+}
+
+.cdx-hero.settings-open * {
+    animation: none !important;
+    transition: none !important;
+}
