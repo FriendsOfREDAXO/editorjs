@@ -48,7 +48,39 @@ window.EditorJSUtils = {
      * Erstellt einen neuen EditorJS mit Standard-Konfiguration
      */
     createEditor: function(options) {
-        // Tools dynamisch zusammenstellen
+        // Standard-Tools holen
+        const standardTools = this.getAvailableTools();
+        
+        // Tools aus Optionen verwenden oder Standard-Tools
+        let tools;
+        if (options && options.tools) {
+            tools = options.tools;
+        } else {
+            tools = standardTools;
+        }
+
+        const defaultOptions = {
+            onReady: function() {
+                console.log('EditorJS is ready with tools:', Object.keys(tools));
+                // Custom Enter-Handling für alle Blöcke
+                EditorJSUtils.setupEnterHandling();
+            },
+            tools: tools
+        };
+        
+        // Merge user options with defaults
+        const config = Object.assign({}, defaultOptions, options);
+        
+        // Debug: Tools-Konfiguration anzeigen
+        console.log('EditorJS creating with tools:', Object.keys(config.tools));
+        
+        return new EditorJS(config);
+    },
+    
+    /**
+     * Gibt alle verfügbaren Tools zurück
+     */
+    getAvailableTools: function() {
         const tools = {
             header: {
                 class: Header,
@@ -87,30 +119,7 @@ window.EditorJSUtils = {
                     placeholder: 'Code eingeben...'
                 }
             },
-            alert: {
-                class: window.AlertBlock,
-                config: {
-                    defaultType: 'info'
-                }
-            },
-            textimage: {
-                class: window.TextImageBlock,
-                inlineToolbar: true,
-                config: {
-                    defaultLayout: 'left'
-                }
-            },
-            image: {
-                class: window.ImageBlock,
-                config: {
-                    stretched: false,
-                    withBorder: false,
-                    withBackground: false,
-                    aspectRatio: 'auto',
-                    cropMode: 'cover'
-                }
-            },
-            // Inline-Tools für Rich-Text-Formatierung
+            // Inline-Tools
             Marker: {
                 class: Marker,
                 shortcut: 'CMD+SHIFT+M'
@@ -122,7 +131,7 @@ window.EditorJSUtils = {
             linkTool: {
                 class: LinkTool,
                 config: {
-                    endpoint: 'http://localhost:8008/fetchUrl' // Optional: für automatische Metadaten
+                    endpoint: 'http://localhost:8008/fetchUrl'
                 }
             },
             rexLink: {
@@ -131,7 +140,39 @@ window.EditorJSUtils = {
             }
         };
 
-        // Downloads-Tool hinzufügen, falls verfügbar
+        // Benutzerdefinierte Blöcke hinzufügen, falls verfügbar
+        if (typeof window.AlertBlock !== 'undefined') {
+            tools.AlertBlock = {
+                class: window.AlertBlock,
+                config: {
+                    defaultType: 'info'
+                }
+            };
+        }
+
+        if (typeof window.TextImageBlock !== 'undefined') {
+            tools.TextImageBlock = {
+                class: window.TextImageBlock,
+                inlineToolbar: true,
+                config: {
+                    defaultLayout: 'left'
+                }
+            };
+        }
+
+        if (typeof window.ImageBlock !== 'undefined') {
+            tools.ImageBlock = {
+                class: window.ImageBlock,
+                config: {
+                    stretched: false,
+                    withBorder: false,
+                    withBackground: false,
+                    aspectRatio: 'auto',
+                    cropMode: 'cover'
+                }
+            };
+        }
+
         if (typeof window.DownloadsBlock !== 'undefined') {
             tools.downloads = {
                 class: window.DownloadsBlock,
@@ -142,19 +183,14 @@ window.EditorJSUtils = {
             };
         }
 
-        const defaultOptions = {
-            onReady: function() {
-                console.log('EditorJS is ready!');
-                // Custom Enter-Handling für alle Blöcke
-                EditorJSUtils.setupEnterHandling();
-            },
-            tools: tools
-        };
-        
-        // Merge user options with defaults
-        const config = Object.assign({}, defaultOptions, options);
-        
-        return new EditorJS(config);
+        if (typeof window.VideoBlock !== 'undefined') {
+            tools.VideoBlock = {
+                class: window.VideoBlock,
+                config: {}
+            };
+        }
+
+        return tools;
     },
     
     /**

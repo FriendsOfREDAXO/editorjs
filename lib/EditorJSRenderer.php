@@ -29,7 +29,13 @@ class EditorJsRenderer
                 // Unsere benutzerdefinierten Blöcke
                 'alert' => [$this, 'renderAlert'],
                 'textimage' => [$this, 'renderTextImage'],
-                'downloads' => [$this, 'renderDownloads']
+                'downloads' => [$this, 'renderDownloads'],
+                
+                // Aliase für verschiedene Schreibweisen
+                'AlertBlock' => [$this, 'renderAlert'],
+                'TextImageBlock' => [$this, 'renderTextImage'],
+                'ImageBlock' => [$this, 'renderImage'],
+                'VideoBlock' => [$this, 'renderVideo']
             ]
         ];
     }

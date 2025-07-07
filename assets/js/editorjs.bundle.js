@@ -18656,6 +18656,28 @@ var EditorJSBundle = (() => {
      * Erstellt einen neuen EditorJS mit Standard-Konfiguration
      */
     createEditor: function(options) {
+      const standardTools = this.getAvailableTools();
+      let tools;
+      if (options && options.tools) {
+        tools = options.tools;
+      } else {
+        tools = standardTools;
+      }
+      const defaultOptions = {
+        onReady: function() {
+          console.log("EditorJS is ready with tools:", Object.keys(tools));
+          EditorJSUtils.setupEnterHandling();
+        },
+        tools
+      };
+      const config = Object.assign({}, defaultOptions, options);
+      console.log("EditorJS creating with tools:", Object.keys(config.tools));
+      return new Aa(config);
+    },
+    /**
+     * Gibt alle verfügbaren Tools zurück
+     */
+    getAvailableTools: function() {
       const tools = {
         header: {
           class: v,
@@ -18694,30 +18716,7 @@ var EditorJSBundle = (() => {
             placeholder: "Code eingeben..."
           }
         },
-        alert: {
-          class: window.AlertBlock,
-          config: {
-            defaultType: "info"
-          }
-        },
-        textimage: {
-          class: window.TextImageBlock,
-          inlineToolbar: true,
-          config: {
-            defaultLayout: "left"
-          }
-        },
-        image: {
-          class: window.ImageBlock,
-          config: {
-            stretched: false,
-            withBorder: false,
-            withBackground: false,
-            aspectRatio: "auto",
-            cropMode: "cover"
-          }
-        },
-        // Inline-Tools für Rich-Text-Formatierung
+        // Inline-Tools
         Marker: {
           class: s2,
           shortcut: "CMD+SHIFT+M"
@@ -18730,7 +18729,6 @@ var EditorJSBundle = (() => {
           class: I3,
           config: {
             endpoint: "http://localhost:8008/fetchUrl"
-            // Optional: für automatische Metadaten
           }
         },
         rexLink: {
@@ -18738,6 +18736,35 @@ var EditorJSBundle = (() => {
           shortcut: "CMD+K"
         }
       };
+      if (typeof window.AlertBlock !== "undefined") {
+        tools.AlertBlock = {
+          class: window.AlertBlock,
+          config: {
+            defaultType: "info"
+          }
+        };
+      }
+      if (typeof window.TextImageBlock !== "undefined") {
+        tools.TextImageBlock = {
+          class: window.TextImageBlock,
+          inlineToolbar: true,
+          config: {
+            defaultLayout: "left"
+          }
+        };
+      }
+      if (typeof window.ImageBlock !== "undefined") {
+        tools.ImageBlock = {
+          class: window.ImageBlock,
+          config: {
+            stretched: false,
+            withBorder: false,
+            withBackground: false,
+            aspectRatio: "auto",
+            cropMode: "cover"
+          }
+        };
+      }
       if (typeof window.DownloadsBlock !== "undefined") {
         tools.downloads = {
           class: window.DownloadsBlock,
@@ -18747,15 +18774,13 @@ var EditorJSBundle = (() => {
           }
         };
       }
-      const defaultOptions = {
-        onReady: function() {
-          console.log("EditorJS is ready!");
-          EditorJSUtils.setupEnterHandling();
-        },
-        tools
-      };
-      const config = Object.assign({}, defaultOptions, options);
-      return new Aa(config);
+      if (typeof window.VideoBlock !== "undefined") {
+        tools.VideoBlock = {
+          class: window.VideoBlock,
+          config: {}
+        };
+      }
+      return tools;
     },
     /**
      * Hilfsfunktion zum sicheren JSON-Parsen

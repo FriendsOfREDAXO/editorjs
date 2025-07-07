@@ -65,6 +65,15 @@ function initEditorJSFields() {
             data: {blocks: []}
         };
         
+        // Tools-Konfiguration basierend auf data-editorjs-tools Attribut
+        if (container.dataset.editorjsTools) {
+            const toolsConfig = EditorJSAutoInit.parseToolsConfiguration(container.dataset.editorjsTools);
+            if (toolsConfig) {
+                config.tools = toolsConfig;
+                console.log('EditorJS tools configured for', container.id + ':', Object.keys(toolsConfig));
+            }
+        }
+        
         // Bestehende Daten laden falls Textfeld vorhanden
         if (dataField) {
             if (dataField.value && dataField.value.trim() !== '') {
@@ -145,6 +154,67 @@ document.addEventListener('pjax:end', initEditorJSFields);
 
 // Utility-Funktionen für externe Verwendung
 window.EditorJSAutoInit = {
+    
+    /**
+     * Parst die Tools-Konfiguration aus dem data-editorjs-tools Attribut
+     */
+    parseToolsConfiguration: function(toolsString) {
+        if (!toolsString || typeof EditorJSUtils === 'undefined') {
+            console.log('No tools string provided or EditorJSUtils not available');
+            return undefined; // Standardkonfiguration verwenden
+        }
+        
+        console.log('Parsing tools configuration:', toolsString);
+        
+        const requestedTools = toolsString.split(',').map(tool => tool.trim().toLowerCase());
+        const availableTools = EditorJSUtils.getAvailableTools();
+        const toolsConfig = {};
+        
+        console.log('Available tools:', Object.keys(availableTools));
+        console.log('Requested tools:', requestedTools);
+        
+        // Tool-Mapping für verschiedene Schreibweisen
+        const toolAliases = {
+            'paragraph': 'paragraph',
+            'header': 'header',
+            'heading': 'header',
+            'list': 'list',
+            'quote': 'quote',
+            'code': 'code',
+            'delimiter': 'delimiter',
+            'table': 'table',
+            'image': 'ImageBlock',
+            'textimage': 'TextImageBlock',
+            'text-image': 'TextImageBlock',
+            'alert': 'AlertBlock',
+            'downloads': 'downloads',
+            'download': 'downloads',
+            'video': 'VideoBlock',
+            'rexlink': 'rexLink',
+            'link': 'rexLink'
+        };
+        
+        // Angeforderte Tools zur Konfiguration hinzufügen
+        requestedTools.forEach(requestedTool => {
+            const toolName = toolAliases[requestedTool] || requestedTool;
+            
+            if (availableTools[toolName]) {
+                toolsConfig[toolName] = availableTools[toolName];
+                console.log(`Added tool: ${requestedTool} -> ${toolName}`);
+            } else {
+                console.warn(`EditorJS Tool '${requestedTool}' (mapped to '${toolName}') nicht verfügbar. Verfügbare Tools:`, Object.keys(availableTools));
+            }
+        });
+        
+        // Mindestens paragraph sollte immer verfügbar sein
+        if (!toolsConfig.paragraph && availableTools.paragraph) {
+            toolsConfig.paragraph = availableTools.paragraph;
+            console.log('Added default paragraph tool');
+        }
+        
+        console.log('Final tools config:', Object.keys(toolsConfig));
+        return toolsConfig;
+    },
     
     /**
      * Editor für ein bestimmtes Element manuell initialisieren
