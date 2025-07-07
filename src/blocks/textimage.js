@@ -63,7 +63,8 @@ class TextImageBlock {
             button: 'cdx-textimage__button',
             caption: 'cdx-textimage__caption',
             settingsButton: 'cdx-textimage__settings-button',
-            settingsButtonActive: 'cdx-textimage__settings-button--active'
+            settingsButtonActive: 'cdx-textimage__settings-button--active',
+            altWarning: 'cdx-image__alt-warning' // Gleiche CSS-Klasse wie ImageBlock
         };
 
         this.nodes = {
@@ -74,7 +75,8 @@ class TextImageBlock {
             textWrapper: null,
             text: null,
             caption: null,
-            selectButton: null
+            selectButton: null,
+            altWarning: null
         };
 
         this.data = {
@@ -279,7 +281,7 @@ class TextImageBlock {
     _createImage() {
         const image = this._make('img', [this.CSS.image], {
             src: this.data.imageUrl,
-            alt: this.data.imageAlt || this.data.imageFile
+            alt: this.data.imageAlt || '' // Leerer Alt-Text als Standard
         });
         
         // Klick zum Ändern
@@ -290,6 +292,9 @@ class TextImageBlock {
         });
 
         this.nodes.image = image;
+        
+        // Alt-Text-Warnung prüfen und hinzufügen/entfernen
+        this._updateAltWarning();
     }
 
     _createSelectButton() {
@@ -308,8 +313,14 @@ class TextImageBlock {
         this.mediaTool.selectImage((mediaData) => {
             this._setImage(mediaData);
         }).catch(error => {
-            console.error('Fehler bei der Medienauswahl:', error);
-            alert('Fehler beim Öffnen des Medienpools: ' + error.message);
+            // Nur echte Fehler anzeigen, nicht wenn der User den Dialog abbricht
+            if (error.message !== 'Media pool closed without selection') {
+                console.error('Fehler bei der Medienauswahl:', error);
+                if (window.EditorJSDebug) {
+                    alert('Fehler beim Öffnen des Medienpools: ' + error.message);
+                }
+            }
+            // Bei normalem Abbruch: stumm ignorieren
         });
     }
 
@@ -370,6 +381,8 @@ class TextImageBlock {
             if (this.nodes.image) {
                 this.nodes.image.alt = this.data.imageAlt;
             }
+            // Alt-Warnung aktualisieren
+            this._updateAltWarning();
         }
     }
     
@@ -442,6 +455,38 @@ class TextImageBlock {
         }
 
         return el;
+    }
+
+    /**
+     * Prüft ob Alt-Text vorhanden ist und zeigt ggf. Warnsymbol
+     */
+    _updateAltWarning() {
+        // Altes Warnsymbol entfernen falls vorhanden
+        if (this.nodes.altWarning) {
+            this.nodes.altWarning.remove();
+            this.nodes.altWarning = null;
+        }
+        
+        // Prüfen ob Alt-Text fehlt (leer oder nur Whitespace)
+        const altText = this.data.imageAlt || '';
+        const hasAltText = altText.trim().length > 0;
+        
+        // Warnsymbol nur anzeigen wenn Alt-Text fehlt und nicht im ReadOnly-Modus
+        if (!hasAltText && !this.readOnly && this.nodes.image && this.nodes.imageWrapper) {
+            this.nodes.altWarning = this._make('div', [this.CSS.altWarning], {
+                innerHTML: `
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L1 21H23L12 2Z" fill="#ff9500" stroke="#fff" stroke-width="2"/>
+                        <path d="M12 9V13" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="12" cy="17" r="1" fill="#fff"/>
+                    </svg>
+                `,
+                title: 'Warnung: Kein Alt-Text vorhanden. Für bessere Barrierefreiheit sollten Sie einen beschreibenden Alt-Text hinzufügen.'
+            });
+            
+            // Warnsymbol über dem Bild positionieren
+            this.nodes.imageWrapper.appendChild(this.nodes.altWarning);
+        }
     }
 }
 

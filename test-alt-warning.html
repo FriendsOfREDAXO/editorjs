@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alt-Text Warnsymbol Test</title>
+    <link rel="stylesheet" href="assets/css/editorjs.bundle.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        #editorjs {
+            border: 1px solid #ddd;
+            padding: 20px;
+            min-height: 200px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .debug-controls {
+            margin: 10px 0;
+        }
+        button {
+            margin: 5px;
+            padding: 8px 15px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Alt-Text Warnsymbol Test</h1>
+    
+    <div class="debug-controls">
+        <button onclick="toggleDebug()">Debug Modus umschalten</button>
+        <span id="debug-status">Debug: AUS</span>
+    </div>
+    
+    <div class="test-section">
+        <h2>EditorJS mit Image-Block</h2>
+        <div id="editorjs"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Manueller Test des Warnsymbols</h2>
+        <p>Test-Bild ohne Alt-Text (sollte Warnsymbol zeigen):</p>
+        <div class="cdx-image">
+            <div class="cdx-image__wrapper">
+                <img class="cdx-image__image" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkJlaXNwaWVsYmlsZDwvdGV4dD48L3N2Zz4=" alt="">
+                <div class="cdx-image__alt-warning" title="Warnung: Kein Alt-Text vorhanden. Für bessere Barrierefreiheit sollten Sie einen beschreibenden Alt-Text hinzufügen.">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L1 21H23L12 2Z" fill="#ff9500" stroke="#fff" stroke-width="2"/>
+                        <path d="M12 9V13" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="12" cy="17" r="1" fill="#fff"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        
+        <p>Test-Bild mit Alt-Text (sollte kein Warnsymbol zeigen):</p>
+        <div class="cdx-image">
+            <div class="cdx-image__wrapper">
+                <img class="cdx-image__image" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNGNhZjUwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iI2ZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk1pdCBBbHQtVGV4dDwvdGV4dD48L3N2Zz4=" alt="Ein grünes Beispielbild mit dem Text 'Mit Alt-Text'">
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/editorjs.bundle.js"></script>
+    <script>
+        // Debug-Modus global verfügbar machen
+        window.EditorJSDebug = false;
+        
+        function toggleDebug() {
+            window.EditorJSDebug = !window.EditorJSDebug;
+            document.getElementById('debug-status').textContent = 'Debug: ' + (window.EditorJSDebug ? 'EIN' : 'AUS');
+            console.log('Debug-Modus:', window.EditorJSDebug ? 'aktiviert' : 'deaktiviert');
+        }
+        
+        // Mock für REDAXO Medienpool (falls EditorJS darauf zugreift)
+        window.rex = {
+            editorjs_imageUrlPath: '/media/',
+            editorjs_rex_media_getImageTypes: ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp']
+        };
+        
+        // Mock für openMediaPool (damit die Blöcke funktionieren)
+        window.openMediaPool = function(params) {
+            console.log('Mock openMediaPool called with:', params);
+            return {
+                addEventListener: function() {},
+                close: function() {},
+                closed: false
+            };
+        };
+
+        // EditorJS initialisieren
+        const editor = new EditorJS({
+            holder: 'editorjs',
+            tools: {
+                image: {
+                    class: window.ImageBlock,
+                    config: {
+                        context: 'test'
+                    }
+                },
+                textimage: {
+                    class: window.TextImageBlock,
+                    config: {
+                        context: 'test'
+                    }
+                }
+            },
+            data: {
+                blocks: [
+                    {
+                        type: 'image',
+                        data: {
+                            imageFile: 'test-image.jpg',
+                            imageUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjA2MjkyIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNiIgZmlsbD0iI2ZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkJpbGQgb2huZSBBbHQtVGV4dDwvdGV4dD48L3N2Zz4=',
+                            imageAlt: '', // Leerer Alt-Text - sollte Warnsymbol zeigen
+                            caption: 'Test-Bild ohne Alt-Text'
+                        }
+                    },
+                    {
+                        type: 'image',
+                        data: {
+                            imageFile: 'test-image-2.jpg',
+                            imageUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMjE5NmYzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNiIgZmlsbD0iI2ZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkJpbGQgbWl0IEFsdC1UZXh0PC90ZXh0Pjwvc3ZnPg==',
+                            imageAlt: 'Ein blaues Testbild mit der Beschriftung "Bild mit Alt-Text"', // Alt-Text vorhanden
+                            caption: 'Test-Bild mit Alt-Text'
+                        }
+                    }
+                ]
+            },
+            onChange: function() {
+                console.log('Editor content changed');
+            }
+        });
+        
+        console.log('Test-Seite geladen. Prüfen Sie die Bilder im Editor auf Warnsymbole.');
+    </script>
+</body>
+</html>

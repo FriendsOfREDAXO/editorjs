@@ -40,7 +40,10 @@ class REXMediaTool {
         return new Promise((resolve, reject) => {
             if (typeof openMediaPool === 'undefined') {
                 const error = 'Medienpool ist nicht verfügbar';
-                alert(error);
+                // Nur bei Debug-Modus loggen
+                if (window.EditorJSDebug) {
+                    console.warn('[REXMediaTool]', error);
+                }
                 reject(new Error(error));
                 return;
             }
@@ -73,27 +76,36 @@ class REXMediaTool {
 
             console.log('Opening media pool with params:', params);
             const mediaPool = openMediaPool(params);
-            console.log('Media pool opened:', mediaPool);
+            if (window.EditorJSDebug) {
+                console.log('Media pool opened:', mediaPool);
+            }
             
             // Event Listener für die Medienauswahl
             const handleMediaSelect = (filename, additionalData = {}) => {
-                console.log('Media select handler called:', { filename, additionalData });
+                if (window.EditorJSDebug) {
+                    console.log('Media select handler called:', { filename, additionalData });
+                }
                 
                 try {
                     mediaPool.close();
                 } catch (e) {
-                    console.warn('Error closing media pool:', e);
+                    // Fehler beim Schließen stumm ignorieren - nicht kritisch
+                    if (window.EditorJSDebug) {
+                        console.warn('Error closing media pool:', e);
+                    }
                 }
                 
                 const mediaData = this._createMediaData(filename, additionalData, config);
-                console.log('Created media data:', mediaData);
+                if (window.EditorJSDebug) {
+                    console.log('Created media data:', mediaData);
+                }
                 
                 // Callback aufrufen falls vorhanden
                 if (callback && typeof callback === 'function') {
-                    console.log('Calling callback with:', mediaData);
+                    if (window.EditorJSDebug) {
+                        console.log('Calling callback with:', mediaData);
+                    }
                     callback(mediaData);
-                } else {
-                    console.warn('No callback function provided or invalid');
                 }
                 
                 resolve(mediaData);
@@ -103,7 +115,9 @@ class REXMediaTool {
             const globalCallbackName = 'rex_selectMedia_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
             
             window[globalCallbackName] = function(filename) {
-                console.log('Global callback triggered with filename:', filename);
+                if (window.EditorJSDebug) {
+                    console.log('Global callback triggered with filename:', filename);
+                }
                 handleMediaSelect(filename);
                 // Cleanup
                 delete window[globalCallbackName];
@@ -112,23 +126,33 @@ class REXMediaTool {
             // Verschiedene Event-Listener registrieren
             if (typeof $ !== 'undefined') {
                 // jQuery Version (falls verfügbar)
-                console.log('Setting up jQuery event listeners');
+                if (window.EditorJSDebug) {
+                    console.log('Setting up jQuery event listeners');
+                }
                 $(mediaPool).on('rex:selectMedia', function(event, filename, additionalData) {
-                    console.log('jQuery rex:selectMedia event:', { event, filename, additionalData });
+                    if (window.EditorJSDebug) {
+                        console.log('jQuery rex:selectMedia event:', { event, filename, additionalData });
+                    }
                     handleMediaSelect(filename, additionalData);
                 });
                 
                 // Auch auf den globalen Event-Bus hören
                 $(document).on('rex:selectMedia', function(event, filename, additionalData) {
-                    console.log('Document jQuery rex:selectMedia event:', { event, filename, additionalData });
+                    if (window.EditorJSDebug) {
+                        console.log('Document jQuery rex:selectMedia event:', { event, filename, additionalData });
+                    }
                     handleMediaSelect(filename, additionalData);
                 });
             }
             
             // Vanilla JS Event Listeners
-            console.log('Setting up vanilla JS event listeners');
+            if (window.EditorJSDebug) {
+                console.log('Setting up vanilla JS event listeners');
+            }
             const vanillaHandler = function(event) {
-                console.log('Vanilla rex:selectMedia event:', event);
+                if (window.EditorJSDebug) {
+                    console.log('Vanilla rex:selectMedia event:', event);
+                }
                 const filename = event.detail?.filename || event.filename || event.detail;
                 const additionalData = event.detail || {};
                 if (filename) {
@@ -150,15 +174,22 @@ class REXMediaTool {
             // Error handling
             if (mediaPool && mediaPool.addEventListener) {
                 mediaPool.addEventListener('error', function(event) {
+                    if (window.EditorJSDebug) {
+                        console.warn('[REXMediaTool] Media pool error:', event.message);
+                    }
                     reject(new Error('Fehler beim Öffnen des Medienpools: ' + event.message));
                 });
             }
 
             // Fallback: Prüfen ob das mediaPool Objekt spezielle Eigenschaften hat
             if (mediaPool && typeof mediaPool.onSelect === 'function') {
-                console.log('Using mediaPool.onSelect method');
+                if (window.EditorJSDebug) {
+                    console.log('Using mediaPool.onSelect method');
+                }
                 mediaPool.onSelect = function(filename) {
-                    console.log('mediaPool.onSelect called with:', filename);
+                    if (window.EditorJSDebug) {
+                        console.log('mediaPool.onSelect called with:', filename);
+                    }
                     handleMediaSelect(filename);
                 };
             }
@@ -175,7 +206,7 @@ class REXMediaTool {
                 // Prüfen ob das Popup geschlossen wurde
                 if (mediaPool && mediaPool.closed) {
                     clearInterval(pollInterval);
-                    console.log('Media pool closed without selection');
+                    // Kein Logging oder Alert - stumme Ablehnung
                     reject(new Error('Media pool closed without selection'));
                 }
             }, 100);
@@ -203,7 +234,7 @@ class REXMediaTool {
         return {
             filename: filename,
             url: url,
-            alt: additionalData.alt || filename,
+            alt: additionalData.alt || '', // Leerer Alt-Text als Standard, nicht Dateiname
             title: additionalData.title || '',
             caption: additionalData.caption || '',
             extension: extension,

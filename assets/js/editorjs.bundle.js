@@ -16844,7 +16844,9 @@ var EditorJSBundle = (() => {
         button: "cdx-textimage__button",
         caption: "cdx-textimage__caption",
         settingsButton: "cdx-textimage__settings-button",
-        settingsButtonActive: "cdx-textimage__settings-button--active"
+        settingsButtonActive: "cdx-textimage__settings-button--active",
+        altWarning: "cdx-image__alt-warning"
+        // Gleiche CSS-Klasse wie ImageBlock
       };
       this.nodes = {
         holder: null,
@@ -16854,7 +16856,8 @@ var EditorJSBundle = (() => {
         textWrapper: null,
         text: null,
         caption: null,
-        selectButton: null
+        selectButton: null,
+        altWarning: null
       };
       this.data = {
         text: data.text || "",
@@ -17016,7 +17019,8 @@ var EditorJSBundle = (() => {
     _createImage() {
       const image = this._make("img", [this.CSS.image], {
         src: this.data.imageUrl,
-        alt: this.data.imageAlt || this.data.imageFile
+        alt: this.data.imageAlt || ""
+        // Leerer Alt-Text als Standard
       });
       image.addEventListener("click", () => {
         if (!this.readOnly) {
@@ -17024,6 +17028,7 @@ var EditorJSBundle = (() => {
         }
       });
       this.nodes.image = image;
+      this._updateAltWarning();
     }
     _createSelectButton() {
       const button = this._make("div", [this.CSS.button], {
@@ -17038,8 +17043,12 @@ var EditorJSBundle = (() => {
       this.mediaTool.selectImage((mediaData) => {
         this._setImage(mediaData);
       }).catch((error) => {
-        console.error("Fehler bei der Medienauswahl:", error);
-        alert("Fehler beim \xD6ffnen des Medienpools: " + error.message);
+        if (error.message !== "Media pool closed without selection") {
+          console.error("Fehler bei der Medienauswahl:", error);
+          if (window.EditorJSDebug) {
+            alert("Fehler beim \xD6ffnen des Medienpools: " + error.message);
+          }
+        }
       });
     }
     _setImage(mediaData) {
@@ -17080,6 +17089,7 @@ var EditorJSBundle = (() => {
         if (this.nodes.image) {
           this.nodes.image.alt = this.data.imageAlt;
         }
+        this._updateAltWarning();
       }
     }
     _editCaption() {
@@ -17134,6 +17144,30 @@ var EditorJSBundle = (() => {
       }
       return el;
     }
+    /**
+     * Prüft ob Alt-Text vorhanden ist und zeigt ggf. Warnsymbol
+     */
+    _updateAltWarning() {
+      if (this.nodes.altWarning) {
+        this.nodes.altWarning.remove();
+        this.nodes.altWarning = null;
+      }
+      const altText = this.data.imageAlt || "";
+      const hasAltText = altText.trim().length > 0;
+      if (!hasAltText && !this.readOnly && this.nodes.image && this.nodes.imageWrapper) {
+        this.nodes.altWarning = this._make("div", [this.CSS.altWarning], {
+          innerHTML: `
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L1 21H23L12 2Z" fill="#ff9500" stroke="#fff" stroke-width="2"/>
+                        <path d="M12 9V13" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="12" cy="17" r="1" fill="#fff"/>
+                    </svg>
+                `,
+          title: "Warnung: Kein Alt-Text vorhanden. F\xFCr bessere Barrierefreiheit sollten Sie einen beschreibenden Alt-Text hinzuf\xFCgen."
+        });
+        this.nodes.imageWrapper.appendChild(this.nodes.altWarning);
+      }
+    }
   };
   window.TextImageBlock = TextImageBlock;
 
@@ -17169,14 +17203,16 @@ var EditorJSBundle = (() => {
         altText: "cdx-image__alt-text",
         button: "cdx-image__button",
         settingsButton: "cdx-image__settings-button",
-        settingsButtonActive: "cdx-image__settings-button--active"
+        settingsButtonActive: "cdx-image__settings-button--active",
+        altWarning: "cdx-image__alt-warning"
       };
       this.nodes = {
         holder: null,
         wrapper: null,
         image: null,
         caption: null,
-        selectButton: null
+        selectButton: null,
+        altWarning: null
       };
       this.data = {
         imageFile: data.imageFile || "",
@@ -17348,7 +17384,8 @@ var EditorJSBundle = (() => {
     _createImage() {
       const image = this._make("img", [this.CSS.image], {
         src: this.data.imageUrl,
-        alt: this.data.imageAlt || this.data.imageFile
+        alt: this.data.imageAlt || ""
+        // Leerer Alt-Text als Standard
       });
       if (this.data.stretched) {
         image.classList.add("stretched");
@@ -17374,6 +17411,7 @@ var EditorJSBundle = (() => {
         }
       });
       this.nodes.image = image;
+      this._updateAltWarning();
     }
     _createSelectButton() {
       const button = this._make("div", [this.CSS.button], {
@@ -17388,8 +17426,12 @@ var EditorJSBundle = (() => {
       this.mediaTool.selectImage((mediaData) => {
         this._setImage(mediaData);
       }).catch((error) => {
-        console.error("Fehler bei der Medienauswahl:", error);
-        alert("Fehler beim \xD6ffnen des Medienpools: " + error.message);
+        if (error.message !== "Media pool closed without selection") {
+          console.error("Fehler bei der Medienauswahl:", error);
+          if (window.EditorJSDebug) {
+            alert("Fehler beim \xD6ffnen des Medienpools: " + error.message);
+          }
+        }
       });
     }
     _setImage(mediaData) {
@@ -17492,6 +17534,30 @@ var EditorJSBundle = (() => {
       }
       return el;
     }
+    /**
+     * Prüft ob Alt-Text vorhanden ist und zeigt ggf. Warnsymbol
+     */
+    _updateAltWarning() {
+      if (this.nodes.altWarning) {
+        this.nodes.altWarning.remove();
+        this.nodes.altWarning = null;
+      }
+      const altText = this.data.imageAlt || "";
+      const hasAltText = altText.trim().length > 0;
+      if (!hasAltText && !this.readOnly && this.nodes.image && this.nodes.wrapper) {
+        this.nodes.altWarning = this._make("div", [this.CSS.altWarning], {
+          innerHTML: `
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L1 21H23L12 2Z" fill="#ff9500" stroke="#fff" stroke-width="2"/>
+                        <path d="M12 9V13" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="12" cy="17" r="1" fill="#fff"/>
+                    </svg>
+                `,
+          title: "Warnung: Kein Alt-Text vorhanden. F\xFCr bessere Barrierefreiheit sollten Sie einen beschreibenden Alt-Text hinzuf\xFCgen."
+        });
+        this.nodes.wrapper.appendChild(this.nodes.altWarning);
+      }
+    }
     _createDropdown(label, icon, options, currentValue, onChange) {
       const dropdown = this._make("div", ["cdx-image-dropdown"]);
       const button = this._make("span", [this.CSS.settingsButton, "cdx-image-dropdown__button"], {
@@ -17554,6 +17620,7 @@ var EditorJSBundle = (() => {
         if (this.nodes.image) {
           this.nodes.image.alt = this.data.imageAlt;
         }
+        this._updateAltWarning();
       }
     }
     _editCaption() {
@@ -17885,7 +17952,9 @@ var EditorJSBundle = (() => {
       return new Promise((resolve, reject) => {
         if (typeof openMediaPool === "undefined") {
           const error = "Medienpool ist nicht verf\xFCgbar";
-          alert(error);
+          if (window.EditorJSDebug) {
+            console.warn("[REXMediaTool]", error);
+          }
           reject(new Error(error));
           return;
         }
@@ -17902,44 +17971,64 @@ var EditorJSBundle = (() => {
         }
         console.log("Opening media pool with params:", params);
         const mediaPool = openMediaPool(params);
-        console.log("Media pool opened:", mediaPool);
+        if (window.EditorJSDebug) {
+          console.log("Media pool opened:", mediaPool);
+        }
         const handleMediaSelect = (filename, additionalData = {}) => {
-          console.log("Media select handler called:", { filename, additionalData });
+          if (window.EditorJSDebug) {
+            console.log("Media select handler called:", { filename, additionalData });
+          }
           try {
             mediaPool.close();
           } catch (e) {
-            console.warn("Error closing media pool:", e);
+            if (window.EditorJSDebug) {
+              console.warn("Error closing media pool:", e);
+            }
           }
           const mediaData = this._createMediaData(filename, additionalData, config);
-          console.log("Created media data:", mediaData);
+          if (window.EditorJSDebug) {
+            console.log("Created media data:", mediaData);
+          }
           if (callback && typeof callback === "function") {
-            console.log("Calling callback with:", mediaData);
+            if (window.EditorJSDebug) {
+              console.log("Calling callback with:", mediaData);
+            }
             callback(mediaData);
-          } else {
-            console.warn("No callback function provided or invalid");
           }
           resolve(mediaData);
         };
         const globalCallbackName = "rex_selectMedia_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
         window[globalCallbackName] = function(filename) {
-          console.log("Global callback triggered with filename:", filename);
+          if (window.EditorJSDebug) {
+            console.log("Global callback triggered with filename:", filename);
+          }
           handleMediaSelect(filename);
           delete window[globalCallbackName];
         };
         if (typeof $ !== "undefined") {
-          console.log("Setting up jQuery event listeners");
+          if (window.EditorJSDebug) {
+            console.log("Setting up jQuery event listeners");
+          }
           $(mediaPool).on("rex:selectMedia", function(event, filename, additionalData) {
-            console.log("jQuery rex:selectMedia event:", { event, filename, additionalData });
+            if (window.EditorJSDebug) {
+              console.log("jQuery rex:selectMedia event:", { event, filename, additionalData });
+            }
             handleMediaSelect(filename, additionalData);
           });
           $(document).on("rex:selectMedia", function(event, filename, additionalData) {
-            console.log("Document jQuery rex:selectMedia event:", { event, filename, additionalData });
+            if (window.EditorJSDebug) {
+              console.log("Document jQuery rex:selectMedia event:", { event, filename, additionalData });
+            }
             handleMediaSelect(filename, additionalData);
           });
         }
-        console.log("Setting up vanilla JS event listeners");
+        if (window.EditorJSDebug) {
+          console.log("Setting up vanilla JS event listeners");
+        }
         const vanillaHandler = function(event) {
-          console.log("Vanilla rex:selectMedia event:", event);
+          if (window.EditorJSDebug) {
+            console.log("Vanilla rex:selectMedia event:", event);
+          }
           const filename = event.detail?.filename || event.filename || event.detail;
           const additionalData = event.detail || {};
           if (filename) {
@@ -17954,13 +18043,20 @@ var EditorJSBundle = (() => {
         document.addEventListener("mediapool:select", vanillaHandler);
         if (mediaPool && mediaPool.addEventListener) {
           mediaPool.addEventListener("error", function(event) {
+            if (window.EditorJSDebug) {
+              console.warn("[REXMediaTool] Media pool error:", event.message);
+            }
             reject(new Error("Fehler beim \xD6ffnen des Medienpools: " + event.message));
           });
         }
         if (mediaPool && typeof mediaPool.onSelect === "function") {
-          console.log("Using mediaPool.onSelect method");
+          if (window.EditorJSDebug) {
+            console.log("Using mediaPool.onSelect method");
+          }
           mediaPool.onSelect = function(filename) {
-            console.log("mediaPool.onSelect called with:", filename);
+            if (window.EditorJSDebug) {
+              console.log("mediaPool.onSelect called with:", filename);
+            }
             handleMediaSelect(filename);
           };
         }
@@ -17973,7 +18069,6 @@ var EditorJSBundle = (() => {
           }
           if (mediaPool && mediaPool.closed) {
             clearInterval(pollInterval);
-            console.log("Media pool closed without selection");
             reject(new Error("Media pool closed without selection"));
           }
         }, 100);
@@ -17996,7 +18091,8 @@ var EditorJSBundle = (() => {
       return {
         filename,
         url,
-        alt: additionalData.alt || filename,
+        alt: additionalData.alt || "",
+        // Leerer Alt-Text als Standard, nicht Dateiname
         title: additionalData.title || "",
         caption: additionalData.caption || "",
         extension,

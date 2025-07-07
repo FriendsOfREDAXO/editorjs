@@ -7,8 +7,8 @@ if (rex::isBackend() && is_object(rex::getUser())) {
     // EditorJS Bundle (enthält Core + alle Tools)
     rex_view::addJsFile($this->getAssetsUrl('js/editorjs.bundle.js'));
     
-    // Bundle-CSS (automatisch generiert)
-    rex_view::addCssFile($this->getAssetsUrl('css/editorjs.bundle.css'));
+    // Bundle-CSS (automatisch generiert im js-Ordner)
+    rex_view::addCssFile($this->getAssetsUrl('js/editorjs.bundle.css'));
     
     // Auto-Initialisierung für Module
     rex_view::addJsFile($this->getAssetsUrl('js/editorjs-auto-init.js'));
