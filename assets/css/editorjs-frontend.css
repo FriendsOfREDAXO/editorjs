@@ -551,3 +551,89 @@ pre, code {
 .cdx-downloads__link:hover::after {
     opacity: 1;
 }
+
+/* === Image Block === */
+.cdx-image {
+    margin: 20px 0;
+}
+
+.cdx-image__container {
+    text-align: center;
+}
+
+.cdx-image__image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+/* Stretched Images */
+.cdx-image--stretched .cdx-image__image {
+    width: 100%;
+    object-fit: cover;
+}
+
+/* Border */
+.cdx-image--with-border .cdx-image__image {
+    border: 2px solid #e0e0e0;
+    padding: 10px;
+}
+
+/* Background */
+.cdx-image--with-background {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+/* Aspect Ratios */
+.cdx-image--aspect-16-9 .cdx-image__image {
+    aspect-ratio: 16/9;
+    object-fit: cover; /* Default für Aspect Ratios */
+}
+
+.cdx-image--aspect-4-3 .cdx-image__image {
+    aspect-ratio: 4/3;
+    object-fit: cover; /* Default für Aspect Ratios */
+}
+
+.cdx-image--aspect-1-1 .cdx-image__image {
+    aspect-ratio: 1/1;
+    object-fit: cover; /* Default für Aspect Ratios */
+}
+
+.cdx-image--aspect-3-2 .cdx-image__image {
+    aspect-ratio: 3/2;
+    object-fit: cover; /* Default für Aspect Ratios */
+}
+
+/* Crop Modes - höhere Spezifität um Aspect Ratio zu überschreiben */
+.cdx-image.cdx-image--crop-cover .cdx-image__image {
+    object-fit: cover !important;
+}
+
+.cdx-image.cdx-image--crop-contain .cdx-image__image {
+    object-fit: contain !important;
+}
+
+.cdx-image.cdx-image--crop-fill .cdx-image__image {
+    object-fit: fill !important;
+}
+
+/* Caption */
+.cdx-image__caption {
+    margin-top: 10px;
+    color: #666;
+    font-size: 14px;
+    font-style: italic;
+    text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .cdx-image--stretched .cdx-image__image {
+        max-width: 100%;
+        width: auto;
+    }
+}

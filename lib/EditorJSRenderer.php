@@ -348,6 +348,116 @@ class EditorJsRenderer
         
         return $html;
     }
+
+    /**
+     * Rendert unseren benutzerdefinierten Image-Block
+     */
+    public function renderImage(array $data): string
+    {
+        $imageFile = $data['imageFile'] ?? '';
+        $imageUrl = $data['imageUrl'] ?? '';
+        $imageAlt = $data['imageAlt'] ?? '';
+        $caption = $data['caption'] ?? '';
+        $stretched = $data['stretched'] ?? false;
+        $withBorder = $data['withBorder'] ?? false;
+        $withBackground = $data['withBackground'] ?? false;
+        $aspectRatio = $data['aspectRatio'] ?? '';
+        $cropMode = $data['cropMode'] ?? 'contain';
+        
+        // Bild-URL erstellen
+        if ($imageFile && !$imageUrl) {
+            if (function_exists('rex_url')) {
+                $imageUrl = \rex_url::media($imageFile);
+            } else {
+                // Fallback für Demo: Placehold.co verwenden
+                $imageUrl = "https://placehold.co/600x400/007bff/ffffff?text=" . urlencode($imageFile);
+            }
+        }
+        
+        // Fallback für Demo ohne Bild
+        if (!$imageUrl) {
+            $imageUrl = 'https://placehold.co/600x400/007bff/ffffff?text=Bild+Block';
+        }
+        
+        // CSS-Klassen zusammenstellen
+        $classes = ['cdx-image'];
+        
+        if ($stretched) {
+            $classes[] = 'cdx-image--stretched';
+        }
+        
+        if ($withBorder) {
+            $classes[] = 'cdx-image--with-border';
+        }
+        
+        if ($withBackground) {
+            $classes[] = 'cdx-image--with-background';
+        }
+        
+        if ($aspectRatio) {
+            $classes[] = 'cdx-image--aspect-' . str_replace(':', '-', $aspectRatio);
+        }
+        
+        if ($cropMode) {
+            $classes[] = 'cdx-image--crop-' . $cropMode;
+        }
+        
+        $classString = implode(' ', $classes);
+        
+        $html = "<div class=\"{$classString}\">\n";
+        $html .= "<div class=\"cdx-image__container\">\n";
+        
+        // Bild
+        $html .= "<img src=\"{$imageUrl}\" alt=\"" . htmlspecialchars($imageAlt ?: $imageFile ?: 'Bild') . "\" class=\"cdx-image__image\">\n";
+        
+        // Caption falls vorhanden
+        if ($caption) {
+            $html .= "<div class=\"cdx-image__caption\">" . htmlspecialchars($caption) . "</div>\n";
+        }
+        
+        $html .= "</div>\n";
+        $html .= "</div>\n";
+        
+        return $html;
+    }
+
+    /**
+     * Rendert Video-Block (Placeholder)
+     */
+    public function renderVideo(array $data): string
+    {
+        $url = $data['url'] ?? '';
+        $caption = $data['caption'] ?? '';
+        
+        if (!$url) {
+            return "<div class=\"cdx-video cdx-video--placeholder\">Video-Block: Keine URL angegeben</div>\n";
+        }
+        
+        $html = "<div class=\"cdx-video\">\n";
+        $html .= "<div class=\"cdx-video__container\">\n";
+        
+        // Einfache Video-Einbettung (für YouTube, Vimeo etc. würde hier spezielle Logik gehören)
+        if (strpos($url, '.mp4') !== false || strpos($url, '.webm') !== false || strpos($url, '.ogg') !== false) {
+            $html .= "<video controls class=\"cdx-video__video\">\n";
+            $html .= "<source src=\"{$url}\" type=\"video/mp4\">\n";
+            $html .= "Ihr Browser unterstützt das Video-Element nicht.\n";
+            $html .= "</video>\n";
+        } else {
+            // Placeholder für externe Videos
+            $html .= "<div class=\"cdx-video__placeholder\">\n";
+            $html .= "<p>Video-URL: <a href=\"{$url}\" target=\"_blank\">" . htmlspecialchars($url) . "</a></p>\n";
+            $html .= "</div>\n";
+        }
+        
+        if ($caption) {
+            $html .= "<div class=\"cdx-video__caption\">" . htmlspecialchars($caption) . "</div>\n";
+        }
+        
+        $html .= "</div>\n";
+        $html .= "</div>\n";
+        
+        return $html;
+    }
     
     /**
      * Prüft ob eine Datei ein Bild ist
