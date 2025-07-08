@@ -422,33 +422,108 @@ class EditorJsRenderer
     }
 
     /**
-     * Rendert Video-Block (Placeholder)
+     * Rendert unseren benutzerdefinierten Video-Block
      */
     public function renderVideo(array $data): string
     {
-        $url = $data['url'] ?? '';
+        $videoFile = $data['videoFile'] ?? '';
+        $videoUrl = $data['videoUrl'] ?? '';
+        $poster = $data['poster'] ?? '';
+        $posterUrl = $data['posterUrl'] ?? '';
         $caption = $data['caption'] ?? '';
+        $stretched = $data['stretched'] ?? false;
+        $withBorder = $data['withBorder'] ?? false;
+        $withBackground = $data['withBackground'] ?? false;
+        $aspectRatio = $data['aspectRatio'] ?? '';
+        $autoplay = $data['autoplay'] ?? false;
+        $muted = $data['muted'] ?? false;
+        $loop = $data['loop'] ?? false;
+        $controls = $data['controls'] ?? true;
         
-        if (!$url) {
-            return "<div class=\"cdx-video cdx-video--placeholder\">Video-Block: Keine URL angegeben</div>\n";
+        // Video-URL erstellen
+        if ($videoFile && !$videoUrl) {
+            if (function_exists('rex_url')) {
+                $videoUrl = \rex_url::media($videoFile);
+            } else {
+                // Fallback für Demo: Placehold.co verwenden
+                $videoUrl = "/media/" . $videoFile;
+            }
         }
         
-        $html = "<div class=\"cdx-video\">\n";
+        // Poster-URL erstellen falls vorhanden
+        if ($poster && !$posterUrl) {
+            if (function_exists('rex_url')) {
+                $posterUrl = \rex_url::media($poster);
+            } else {
+                // Fallback für Demo
+                $posterUrl = "/media/" . $poster;
+            }
+        }
+        
+        // Fallback für Demo ohne Video
+        if (!$videoUrl) {
+            return "<div class=\"cdx-video cdx-video--placeholder\">Video-Block: Keine Video-Datei angegeben</div>\n";
+        }
+        
+        // CSS-Klassen zusammenstellen
+        $classes = ['cdx-video'];
+        
+        if ($stretched) {
+            $classes[] = 'cdx-video--stretched';
+        }
+        
+        if ($withBorder) {
+            $classes[] = 'cdx-video--with-border';
+        }
+        
+        if ($withBackground) {
+            $classes[] = 'cdx-video--with-background';
+        }
+        
+        if ($aspectRatio) {
+            $classes[] = 'cdx-video--aspect-' . str_replace(':', '-', $aspectRatio);
+        }
+        
+        $classString = implode(' ', $classes);
+        
+        // Video-Attribute zusammenstellen
+        $videoAttributes = ['class="cdx-video__video"'];
+        
+        if ($controls) {
+            $videoAttributes[] = 'controls';
+        }
+        
+        if ($autoplay) {
+            $videoAttributes[] = 'autoplay';
+        }
+        
+        if ($muted) {
+            $videoAttributes[] = 'muted';
+        }
+        
+        if ($loop) {
+            $videoAttributes[] = 'loop';
+        }
+        
+        if ($posterUrl) {
+            $videoAttributes[] = 'poster="' . htmlspecialchars($posterUrl) . '"';
+        }
+        
+        $videoAttributeString = implode(' ', $videoAttributes);
+        
+        // Video-Typ bestimmen
+        $videoType = $this->getVideoType($videoFile);
+        
+        $html = "<div class=\"{$classString}\">\n";
         $html .= "<div class=\"cdx-video__container\">\n";
         
-        // Einfache Video-Einbettung (für YouTube, Vimeo etc. würde hier spezielle Logik gehören)
-        if (strpos($url, '.mp4') !== false || strpos($url, '.webm') !== false || strpos($url, '.ogg') !== false) {
-            $html .= "<video controls class=\"cdx-video__video\">\n";
-            $html .= "<source src=\"{$url}\" type=\"video/mp4\">\n";
-            $html .= "Ihr Browser unterstützt das Video-Element nicht.\n";
-            $html .= "</video>\n";
-        } else {
-            // Placeholder für externe Videos
-            $html .= "<div class=\"cdx-video__placeholder\">\n";
-            $html .= "<p>Video-URL: <a href=\"{$url}\" target=\"_blank\">" . htmlspecialchars($url) . "</a></p>\n";
-            $html .= "</div>\n";
-        }
+        // Video
+        $html .= "<video {$videoAttributeString}>\n";
+        $html .= "<source src=\"{$videoUrl}\" type=\"{$videoType}\">\n";
+        $html .= "Ihr Browser unterstützt das Video-Element nicht.\n";
+        $html .= "</video>\n";
         
+        // Caption falls vorhanden
         if ($caption) {
             $html .= "<div class=\"cdx-video__caption\">" . htmlspecialchars($caption) . "</div>\n";
         }
@@ -457,6 +532,28 @@ class EditorJsRenderer
         $html .= "</div>\n";
         
         return $html;
+    }
+    
+    /**
+     * Bestimmt den MIME-Type für Video-Dateien
+     */
+    private function getVideoType(string $filename): string
+    {
+        $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        
+        $mimeTypes = [
+            'mp4' => 'video/mp4',
+            'webm' => 'video/webm',
+            'ogg' => 'video/ogg',
+            'ogv' => 'video/ogg',
+            'avi' => 'video/x-msvideo',
+            'mov' => 'video/quicktime',
+            'wmv' => 'video/x-ms-wmv',
+            'flv' => 'video/x-flv',
+            'm4v' => 'video/x-m4v'
+        ];
+        
+        return $mimeTypes[$extension] ?? 'video/mp4';
     }
     
     /**

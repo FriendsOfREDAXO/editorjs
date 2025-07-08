@@ -18,6 +18,8 @@ import './blocks/textimage.js';
 import './blocks/textimage.css';
 import './blocks/image.js';
 import './blocks/image.css';
+import './blocks/video.js';
+import './blocks/video.css';
 import './blocks/rexlink.js';
 import './blocks/rexmedia.js';
 import './blocks/downloads.js';
