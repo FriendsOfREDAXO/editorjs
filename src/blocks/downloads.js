@@ -212,14 +212,21 @@ class DownloadsBlock {
         const itemWrapper = this._make('div', [this.CSS.item]);
         itemWrapper.dataset.index = index;
 
-        // Header mit Drag Handle und Remove Button
-        const header = this._make('div', [this.CSS.itemHeader]);
-        
-        const dragHandle = this._make('span', [this.CSS.dragHandle], {
+        // Drag-Handle für dieses Item
+        const dragHandle = this._make('div', [this.CSS.dragHandle], {
             innerHTML: '<i class="fa-solid fa-grip-vertical"></i>',
             title: 'Zum Sortieren ziehen'
         });
 
+        // Drag & Drop Events hinzufügen
+        this._addDragEvents(itemWrapper, dragHandle);
+
+        // Main Content Area
+        const mainContent = this._make('div', 'cdx-downloads__main-content');
+
+        // Header mit Remove Button
+        const header = this._make('div', [this.CSS.itemHeader]);
+        
         const removeButton = this._make('button', [this.CSS.removeButton], {
             innerHTML: '<i class="fa-solid fa-trash"></i>',
             title: 'Download entfernen',
@@ -230,10 +237,9 @@ class DownloadsBlock {
             this._removeItem(index);
         });
 
-        header.appendChild(dragHandle);
         header.appendChild(removeButton);
 
-        // Content
+        // Content mit Inputs
         const content = this._make('div', [this.CSS.itemContent]);
 
         // File Selection Area
@@ -266,8 +272,12 @@ class DownloadsBlock {
 
         content.appendChild(descriptionInput);
 
-        itemWrapper.appendChild(header);
-        itemWrapper.appendChild(content);
+        // Zusammenbau der Item-Struktur
+        mainContent.appendChild(header);
+        mainContent.appendChild(content);
+        
+        itemWrapper.appendChild(dragHandle);
+        itemWrapper.appendChild(mainContent);
 
         return itemWrapper;
     }
@@ -537,6 +547,84 @@ class DownloadsBlock {
         }
 
         return el;
+    }
+
+    _addDragEvents(itemWrapper, dragHandle) {
+        let draggedItem = null;
+        let draggedIndex = null;
+
+        // Drag Start
+        dragHandle.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            draggedItem = itemWrapper;
+            draggedIndex = parseInt(itemWrapper.dataset.index);
+            
+            // Visuelles Feedback
+            itemWrapper.classList.add('dragging');
+            dragHandle.style.cursor = 'grabbing';
+            
+            // Globale Mouse Events
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+        });
+
+        const handleMouseMove = (e) => {
+            if (!draggedItem) return;
+            
+            e.preventDefault();
+            
+            // Finde das Element unter dem Cursor
+            const afterElement = this._getDragAfterElement(this.nodes.container, e.clientY);
+            
+            if (afterElement == null) {
+                this.nodes.container.appendChild(draggedItem);
+            } else {
+                this.nodes.container.insertBefore(draggedItem, afterElement);
+            }
+        };
+
+        const handleMouseUp = (e) => {
+            if (!draggedItem) return;
+            
+            e.preventDefault();
+            
+            // Aufräumen
+            draggedItem.classList.remove('dragging');
+            dragHandle.style.cursor = 'grab';
+            
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+            
+            // Neue Reihenfolge bestimmen
+            const newIndex = Array.from(this.nodes.container.children).indexOf(draggedItem);
+            
+            if (newIndex !== draggedIndex) {
+                // Array-Reihenfolge anpassen
+                const item = this.data.items.splice(draggedIndex, 1)[0];
+                this.data.items.splice(newIndex, 0, item);
+                
+                // Items neu rendern um Indizes zu aktualisieren
+                this._renderItems();
+            }
+            
+            draggedItem = null;
+            draggedIndex = null;
+        };
+    }
+
+    _getDragAfterElement(container, y) {
+        const draggableElements = [...container.querySelectorAll('.' + this.CSS.item + ':not(.dragging)')];
+        
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
     }
 }
 

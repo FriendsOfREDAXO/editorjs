@@ -54,6 +54,8 @@
     background: #fff;
     overflow: hidden;
     transition: all 0.2s ease;
+    display: flex;
+    align-items: stretch;
 }
 
 .cdx-downloads__item:hover {
@@ -61,24 +63,43 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-.cdx-downloads__item-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 15px;
-    background: #f8f9fa;
-    border-bottom: 1px solid #e9ecef;
-}
-
 .cdx-downloads__drag-handle {
     color: #6c757d;
     cursor: grab;
-    padding: 5px;
-    font-size: 14px;
+    padding: 10px;
+    font-size: 16px;
+    -webkit-user-select: none;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    background: #f8f9fa;
+    border-right: 1px solid #e9ecef;
 }
 
 .cdx-downloads__drag-handle:hover {
     color: #495057;
+    background: #e9ecef;
+}
+
+.cdx-downloads__drag-handle:active {
+    cursor: grabbing;
+}
+
+.cdx-downloads__main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.cdx-downloads__item-header {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 10px 15px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
 }
 
 .cdx-downloads__remove-button {
@@ -364,4 +385,12 @@
 .cdx-downloads__item:focus-within {
     border-color: #007bff;
     box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+/* Drag & Drop Styles */
+.cdx-downloads__item.dragging {
+    opacity: 0.6;
+    transform: scale(0.98);
+    z-index: 1000;
+    pointer-events: none;
 }
