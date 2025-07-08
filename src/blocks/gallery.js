@@ -1,12 +1,12 @@
 /**
- * Downloads Repeater Block für EditorJS
- * Ermöglicht das Hinzufügen mehrerer Downloads (PDFs, Bilder) aus dem REDAXO Medienpool
+ * Image Gallery Block für EditorJS mit REXMediaTool
+ * Ermöglicht das Hinzufügen mehrerer Bilder aus dem REDAXO Medienpool
  */
-class DownloadsBlock {
+class ImageGalleryBlock {
     static get toolbox() {
         return {
-            title: 'Downloads',
-            icon: '<svg width="17" height="15" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M288 32c0-17.7-14.3-32-32-32s-32 14.3-32 32V274.7l-73.4-73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l128 128c12.5 12.5 32.8 12.5 45.3 0l128-128c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L288 274.7V32zM64 352c-35.3 0-64 28.7-64 64v32c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V416c0-35.3-28.7-64-64-64H346.5l-45.3 45.3c-25 25-65.5 25-90.5 0L165.5 352H64zm368 56a24 24 0 1 1 0 48 24 24 0 1 1 0-48z"/></svg>'
+            title: 'Bildergalerie',
+            icon: '<svg width="17" height="15" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M448 80c8.8 0 16 7.2 16 16V415.8l-5-6.5-136-176c-4.5-5.9-11.6-9.3-19-9.3s-14.4 3.4-19 9.3L202 340.7l-30.5-42.7C167 291.7 159.8 288 152 288s-15 3.7-19.5 10.1l-80 112L48 416.3l0-.3V96c0-8.8 7.2-16 16-16H448zM64 32C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V96c0-35.3-28.7-64-64-64H64zm80 192a48 48 0 1 0 0-96 48 48 0 1 0 0 96z"/></svg>'
         };
     }
 
@@ -19,26 +19,25 @@ class DownloadsBlock {
         this.readOnly = readOnly;
         
         this.CSS = {
-            wrapper: 'cdx-downloads',
-            container: 'cdx-downloads__container',
-            item: 'cdx-downloads__item',
-            itemHeader: 'cdx-downloads__item-header',
-            itemContent: 'cdx-downloads__item-content',
-            itemActions: 'cdx-downloads__item-actions',
-            fileSelect: 'cdx-downloads__file-select',
-            filePreview: 'cdx-downloads__file-preview',
-            fileIcon: 'cdx-downloads__file-icon',
-            fileInfo: 'cdx-downloads__file-info',
-            fileName: 'cdx-downloads__file-name',
-            fileSize: 'cdx-downloads__file-size',
-            titleInput: 'cdx-downloads__title-input',
-            descriptionInput: 'cdx-downloads__description-input',
-            addButton: 'cdx-downloads__add-button',
-            removeButton: 'cdx-downloads__remove-button',
-            dragHandle: 'cdx-downloads__drag-handle',
-            settingsButton: 'cdx-downloads__settings-button',
-            settingsButtonActive: 'cdx-downloads__settings-button--active',
-            thumb: 'cdx-downloads__thumb'
+            wrapper: 'cdx-gallery',
+            container: 'cdx-gallery__container',
+            item: 'cdx-gallery__item',
+            itemHeader: 'cdx-gallery__item-header',
+            itemContent: 'cdx-gallery__item-content',
+            itemActions: 'cdx-gallery__item-actions',
+            imageSelect: 'cdx-gallery__image-select',
+            imagePreview: 'cdx-gallery__image-preview',
+            imageContainer: 'cdx-gallery__image-container',
+            image: 'cdx-gallery__image',
+            imageInfo: 'cdx-gallery__image-info',
+            imageName: 'cdx-gallery__image-name',
+            titleInput: 'cdx-gallery__title-input',
+            descriptionInput: 'cdx-gallery__description-input',
+            addButton: 'cdx-gallery__add-button',
+            removeButton: 'cdx-gallery__remove-button',
+            dragHandle: 'cdx-gallery__drag-handle',
+            settingsButton: 'cdx-gallery__settings-button',
+            settingsButtonActive: 'cdx-gallery__settings-button--active'
         };
 
         this.nodes = {
@@ -47,38 +46,69 @@ class DownloadsBlock {
         };
 
         this.data = {
-            title: data.title || 'Downloads',
+            title: data.title || 'Bildergalerie',
             items: data.items || [this._createEmptyItem()],
             showTitle: data.showTitle !== false,
-            layout: data.layout || 'list' // list, grid, compact
+            layout: data.layout || 'grid', // grid, masonry, carousel, list
+            imageSize: data.imageSize || 'medium', // small, medium, large, full
+            showCaptions: data.showCaptions !== false,
+            aspectRatio: data.aspectRatio || '', // '', '1-1', '16-9', '4-3'
+            spacing: data.spacing || 'normal' // tight, normal, wide
         };
 
         this.layouts = {
+            grid: {
+                icon: '<i class="fa-solid fa-th"></i>',
+                title: 'Raster'
+            },
+            carousel: {
+                icon: '<i class="fa-solid fa-images"></i>',
+                title: 'Karussell'
+            },
             list: {
                 icon: '<i class="fa-solid fa-list"></i>',
                 title: 'Liste'
-            },
-            grid: {
-                icon: '<i class="fa-solid fa-th-large"></i>',
-                title: 'Raster'
-            },
-            compact: {
-                icon: '<i class="fa-solid fa-bars"></i>',
-                title: 'Kompakt'
             }
+        };
+
+        this.imageSizes = {
+            small: 'Klein',
+            medium: 'Mittel',
+            large: 'Groß',
+            full: 'Original'
+        };
+
+        this.aspectRatios = {
+            '': 'Automatisch',
+            '1-1': '1:1 (Quadrat)',
+            '16-9': '16:9 (Widescreen)',
+            '4-3': '4:3 (Standard)',
+            '3-2': '3:2'
+        };
+
+        this.spacings = {
+            tight: 'Eng',
+            normal: 'Normal',
+            wide: 'Weit'
         };
     }
 
     render() {
         this.nodes.wrapper = this._make('div', [this.CSS.wrapper]);
         this.nodes.wrapper.dataset.layout = this.data.layout;
+        this.nodes.wrapper.dataset.imageSize = this.data.imageSize;
+        this.nodes.wrapper.dataset.spacing = this.data.spacing;
+        
+        if (this.data.aspectRatio) {
+            this.nodes.wrapper.dataset.aspectRatio = this.data.aspectRatio;
+        }
 
         // Titel-Bereich
         if (this.data.showTitle) {
-            const titleContainer = this._make('div', 'cdx-downloads__title-container');
+            const titleContainer = this._make('div', 'cdx-gallery__title-container');
             const titleInput = this._make('input', [this.CSS.titleInput], {
                 type: 'text',
-                placeholder: 'Downloads Titel...',
+                placeholder: 'Galerie Titel...',
                 value: this.data.title
             });
 
@@ -90,7 +120,7 @@ class DownloadsBlock {
             this.nodes.wrapper.appendChild(titleContainer);
         }
 
-        // Container für Download-Items
+        // Container für Galerie-Items
         this.nodes.container = this._make('div', [this.CSS.container]);
         this.nodes.wrapper.appendChild(this.nodes.container);
 
@@ -99,7 +129,7 @@ class DownloadsBlock {
 
         // Add Button
         const addButton = this._make('button', [this.CSS.addButton], {
-            innerHTML: '<i class="fa-solid fa-plus"></i> Download hinzufügen',
+            innerHTML: '<i class="fa-solid fa-plus"></i> Bild hinzufügen',
             type: 'button'
         });
 
@@ -129,7 +159,7 @@ class DownloadsBlock {
 
             button.addEventListener('click', () => {
                 this.data.layout = layout;
-                this.nodes.wrapper.dataset.layout = layout;
+                this._updateWrapperAttributes();
                 
                 // Update active state
                 wrapper.querySelectorAll('.' + this.CSS.settingsButton).forEach(btn => {
@@ -139,6 +169,36 @@ class DownloadsBlock {
             });
 
             if (layout === this.data.layout) {
+                button.classList.add(this.CSS.settingsButtonActive);
+            }
+
+            wrapper.appendChild(button);
+        });
+
+        // Image Size Settings
+        const sizeLabel = this._make('div', null, {
+            innerHTML: '<strong>Bildgröße:</strong>',
+            style: 'margin: 15px 0 8px 0;'
+        });
+        wrapper.appendChild(sizeLabel);
+
+        Object.entries(this.imageSizes).forEach(([size, title]) => {
+            const button = this._make('span', [this.CSS.settingsButton], {
+                innerHTML: title
+            });
+
+            button.addEventListener('click', () => {
+                this.data.imageSize = size;
+                this._updateWrapperAttributes();
+                
+                // Update active state
+                wrapper.querySelectorAll('.' + this.CSS.settingsButton).forEach(btn => {
+                    btn.classList.remove(this.CSS.settingsButtonActive);
+                });
+                button.classList.add(this.CSS.settingsButtonActive);
+            });
+
+            if (size === this.data.imageSize) {
                 button.classList.add(this.CSS.settingsButtonActive);
             }
 
@@ -155,20 +215,20 @@ class DownloadsBlock {
             style: 'cursor: pointer; font-weight: normal;'
         });
 
-        const checkbox = titleLabel.querySelector('input');
-        checkbox.checked = this.data.showTitle;
-        checkbox.addEventListener('change', (e) => {
+        const titleCheckbox = titleLabel.querySelector('input');
+        titleCheckbox.checked = this.data.showTitle;
+        titleCheckbox.addEventListener('change', (e) => {
             this.data.showTitle = e.target.checked;
             
             // Nur das Title-Container Element ein-/ausblenden, nicht den ganzen Block neu rendern
-            const titleContainer = this.nodes.wrapper.querySelector('.cdx-downloads__title-container');
+            const titleContainer = this.nodes.wrapper.querySelector('.cdx-gallery__title-container');
             if (this.data.showTitle) {
                 if (!titleContainer) {
                     // Title-Container erstellen wenn er nicht existiert
-                    const newTitleContainer = this._make('div', 'cdx-downloads__title-container');
+                    const newTitleContainer = this._make('div', 'cdx-gallery__title-container');
                     const titleInput = this._make('input', [this.CSS.titleInput], {
                         type: 'text',
-                        placeholder: 'Downloads Titel...',
+                        placeholder: 'Galerie Titel...',
                         value: this.data.title
                     });
 
@@ -189,6 +249,21 @@ class DownloadsBlock {
         titleToggle.appendChild(titleLabel);
         wrapper.appendChild(titleToggle);
 
+        // Beschriftungen anzeigen Toggle
+        const captionsLabel = this._make('label', null, {
+            innerHTML: '<input type="checkbox" style="margin-right: 8px;"> Beschriftungen anzeigen',
+            style: 'cursor: pointer; font-weight: normal; margin-top: 8px; display: block;'
+        });
+
+        const captionsCheckbox = captionsLabel.querySelector('input');
+        captionsCheckbox.checked = this.data.showCaptions;
+        captionsCheckbox.addEventListener('change', (e) => {
+            this.data.showCaptions = e.target.checked;
+            this._updateWrapperAttributes();
+        });
+
+        wrapper.appendChild(captionsLabel);
+
         return wrapper;
     }
 
@@ -203,7 +278,11 @@ class DownloadsBlock {
             title: this.data.title,
             items: this.data.items,
             showTitle: this.data.showTitle,
-            layout: this.data.layout
+            layout: this.data.layout,
+            imageSize: this.data.imageSize,
+            showCaptions: this.data.showCaptions,
+            aspectRatio: this.data.aspectRatio,
+            spacing: this.data.spacing
         };
     }
 
@@ -212,16 +291,21 @@ class DownloadsBlock {
             title: {},
             items: {},
             showTitle: {},
-            layout: {}
+            layout: {},
+            imageSize: {},
+            showCaptions: {},
+            aspectRatio: {},
+            spacing: {}
         };
     }
 
     _createEmptyItem() {
         return {
-            file: '',
+            imageFile: '',
+            imageUrl: '',
             title: '',
             description: '',
-            customIcon: ''
+            alt: ''
         };
     }
 
@@ -248,14 +332,14 @@ class DownloadsBlock {
         this._addDragEvents(itemWrapper, dragHandle);
 
         // Main Content Area
-        const mainContent = this._make('div', 'cdx-downloads__main-content');
+        const mainContent = this._make('div', 'cdx-gallery__main-content');
 
         // Header mit Remove Button
         const header = this._make('div', [this.CSS.itemHeader]);
         
         const removeButton = this._make('button', [this.CSS.removeButton], {
             innerHTML: '<i class="fa-solid fa-trash"></i>',
-            title: 'Download entfernen',
+            title: 'Bild entfernen',
             type: 'button'
         });
 
@@ -268,14 +352,14 @@ class DownloadsBlock {
         // Content mit Inputs
         const content = this._make('div', [this.CSS.itemContent]);
 
-        // File Selection Area
-        const fileSelect = this._createFileSelectArea(item, index);
-        content.appendChild(fileSelect);
+        // Image Selection Area
+        const imageSelect = this._createImageSelectArea(item, index);
+        content.appendChild(imageSelect);
 
         // Title Input
         const titleInput = this._make('input', [this.CSS.titleInput], {
             type: 'text',
-            placeholder: 'Download Titel (optional)',
+            placeholder: 'Bildtitel (optional)',
             value: item.title
         });
 
@@ -285,9 +369,22 @@ class DownloadsBlock {
 
         content.appendChild(titleInput);
 
+        // Alt Text Input
+        const altInput = this._make('input', [this.CSS.titleInput], {
+            type: 'text',
+            placeholder: 'Alt-Text für Barrierefreiheit',
+            value: item.alt
+        });
+
+        altInput.addEventListener('input', (e) => {
+            this.data.items[index].alt = e.target.value;
+        });
+
+        content.appendChild(altInput);
+
         // Description Input
         const descriptionInput = this._make('textarea', [this.CSS.descriptionInput], {
-            placeholder: 'Beschreibung (optional)',
+            placeholder: 'Bildbeschreibung (optional)',
             value: item.description,
             rows: 2
         });
@@ -308,17 +405,17 @@ class DownloadsBlock {
         return itemWrapper;
     }
 
-    _createFileSelectArea(item, index) {
-        const fileSelect = this._make('div', [this.CSS.fileSelect]);
+    _createImageSelectArea(item, index) {
+        const imageSelect = this._make('div', [this.CSS.imageSelect]);
 
-        if (item.file) {
-            // File selected - show preview
-            const preview = this._createFilePreview(item);
-            fileSelect.appendChild(preview);
+        if (item.imageFile || item.imageUrl) {
+            // Image selected - show preview
+            const preview = this._createImagePreview(item, index);
+            imageSelect.appendChild(preview);
         } else {
-            // No file selected - show select button
-            const selectButton = this._make('button', 'cdx-downloads__select-button', {
-                innerHTML: '<i class="fa-solid fa-folder-open"></i> Datei aus Medienpool wählen',
+            // No image selected - show select button
+            const selectButton = this._make('button', 'cdx-gallery__select-button', {
+                innerHTML: '<i class="fa-solid fa-image"></i> Bild aus Medienpool wählen',
                 type: 'button'
             });
 
@@ -326,79 +423,50 @@ class DownloadsBlock {
                 this._openMediaPool(index);
             });
 
-            fileSelect.appendChild(selectButton);
+            imageSelect.appendChild(selectButton);
         }
 
-        return fileSelect;
+        return imageSelect;
     }
 
-    _createFilePreview(item) {
-        const preview = this._make('div', [this.CSS.filePreview]);
+    _createImagePreview(item, index) {
+        const preview = this._make('div', [this.CSS.imagePreview]);
 
-        // Icon oder Thumbnail
-        const iconContainer = this._make('div', [this.CSS.fileIcon]);
+        // Image Container - klickbar zum Ändern
+        const imageContainer = this._make('div', [this.CSS.imageContainer]);
+        imageContainer.style.cursor = 'pointer';
+        imageContainer.title = 'Klicken um Bild zu ändern';
         
-        if (this._isImage(item.file)) {
-            // Thumbnail für Bilder
-            const thumb = this._make('img', [this.CSS.thumb], {
-                src: `/media/${item.file}`,
-                alt: item.title || item.file
-            });
-            iconContainer.appendChild(thumb);
-        } else {
-            // Icon für andere Dateitypen
-            const icon = this._getFileIcon(item.file);
-            iconContainer.innerHTML = icon;
-        }
-
-        // File Info
-        const fileInfo = this._make('div', [this.CSS.fileInfo]);
-        
-        const fileName = this._make('div', [this.CSS.fileName], {
-            textContent: item.file
+        const imageUrl = item.imageUrl || `/media/${item.imageFile}`;
+        const image = this._make('img', [this.CSS.image], {
+            src: imageUrl,
+            alt: item.alt || item.title || item.imageFile
         });
 
-        const fileSize = this._make('div', [this.CSS.fileSize], {
-            textContent: this._getFileSize(item.file)
+        // Klick-Event direkt auf das Bild
+        imageContainer.addEventListener('click', () => {
+            this._openMediaPool(index);
         });
 
-        fileInfo.appendChild(fileName);
-        fileInfo.appendChild(fileSize);
-
-        // Actions
-        const actions = this._make('div', [this.CSS.itemActions]);
-        
-        const changeButton = this._make('button', 'cdx-downloads__change-button', {
-            innerHTML: '<i class="fa-solid fa-sync"></i>',
-            title: 'Datei ändern',
-            type: 'button'
-        });
-
-        changeButton.addEventListener('click', () => {
-            this._openMediaPool(this._getItemIndex(preview));
-        });
-
-        actions.appendChild(changeButton);
-
-        preview.appendChild(iconContainer);
-        preview.appendChild(fileInfo);
-        preview.appendChild(actions);
+        imageContainer.appendChild(image);
+        preview.appendChild(imageContainer);
 
         return preview;
     }
 
     _openMediaPool(index) {
-        console.log('Opening media pool for index:', index);
+        console.log('Opening media pool for image index:', index);
         
         // Erstelle eindeutige Callback-Funktion
-        const callbackName = 'downloadsBlockCallback_' + Date.now() + '_' + index;
+        const callbackName = 'galleryBlockCallback_' + Date.now() + '_' + index;
         
         // Globale Callback-Funktion für REDAXO
         window[callbackName] = (filename) => {
             console.log('Global callback triggered for index', index, 'with filename:', filename);
             
             if (filename) {
-                this.data.items[index].file = filename;
+                this.data.items[index].imageFile = filename;
+                this.data.items[index].imageUrl = `/media/${filename}`;
                 console.log('Updated item data:', this.data.items[index]);
                 this._renderItems();
             }
@@ -410,20 +478,20 @@ class DownloadsBlock {
         // Versuch 1: rex_selectMedia (Standard REDAXO Funktion)
         if (typeof rex_selectMedia !== 'undefined') {
             console.log('Using rex_selectMedia function');
-            // Alle Dateitypen erlauben - kein Filter auf Bildtypen
-            rex_selectMedia(callbackName, '');
+            // Nur Bildtypen erlauben
+            rex_selectMedia(callbackName, 'jpg,jpeg,png,gif,svg,webp');
         }
         // Versuch 2: REXMediaTool
         else if (typeof window.REXMediaTool !== 'undefined') {
             console.log('REXMediaTool available, calling openMediaPool...');
             
-            // Explizit alle Dateitypen erlauben für Downloads
-            const downloadOptions = {
-                types: null, // null = alle Dateitypen erlauben
-                context: 'editorjs_downloads'
+            // Nur Bildtypen für Galerie
+            const imageOptions = {
+                types: ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'],
+                context: 'editorjs_gallery'
             };
             
-            window.REXMediaTool.openMediaPool(downloadOptions, (mediaData) => {
+            window.REXMediaTool.openMediaPool(imageOptions, (mediaData) => {
                 console.log('Media selected:', mediaData);
                 
                 // Prüfen ob mediaData ein String (filename) oder Objekt ist
@@ -439,7 +507,8 @@ class DownloadsBlock {
                 console.log('Extracted filename:', filename);
                 
                 if (filename) {
-                    this.data.items[index].file = filename;
+                    this.data.items[index].imageFile = filename;
+                    this.data.items[index].imageUrl = `/media/${filename}`;
                     console.log('Updated item data:', this.data.items[index]);
                     this._renderItems();
                 } else {
@@ -452,7 +521,7 @@ class DownloadsBlock {
             console.log('Using direct openMediaPool function');
             
             // Direkte REDAXO-Integration mit Global Callback
-            const params = 'editorjs_downloads&callback=' + callbackName;
+            const params = 'editorjs_gallery&callback=' + callbackName;
             const mediaPoolWindow = openMediaPool(params);
             
             console.log('Media pool opened with params:', params);
@@ -477,9 +546,10 @@ class DownloadsBlock {
             if (!popup) {
                 console.warn('Popup blocked, using fallback');
                 // Fallback: Prompt für Dateiname
-                const filename = prompt('Dateiname aus Medienpool:');
+                const filename = prompt('Bildname aus Medienpool:');
                 if (filename) {
-                    this.data.items[index].file = filename;
+                    this.data.items[index].imageFile = filename;
+                    this.data.items[index].imageUrl = `/media/${filename}`;
                     this._renderItems();
                 }
                 
@@ -489,90 +559,24 @@ class DownloadsBlock {
         }
     }
 
-    _getFileIcon(filename) {
-        const extension = filename.split('.').pop().toLowerCase();
+    _updateWrapperAttributes() {
+        if (!this.nodes.wrapper) return;
+
+        this.nodes.wrapper.dataset.layout = this.data.layout;
+        this.nodes.wrapper.dataset.imageSize = this.data.imageSize;
+        this.nodes.wrapper.dataset.spacing = this.data.spacing;
         
-        const iconMap = {
-            // PDF
-            'pdf': '<i class="fa-solid fa-file-pdf" style="color: #dc3545;"></i>',
-            
-            // Images
-            'jpg': '<i class="fa-solid fa-file-image" style="color: #17a2b8;"></i>',
-            'jpeg': '<i class="fa-solid fa-file-image" style="color: #17a2b8;"></i>',
-            'png': '<i class="fa-solid fa-file-image" style="color: #17a2b8;"></i>',
-            'gif': '<i class="fa-solid fa-file-image" style="color: #17a2b8;"></i>',
-            'svg': '<i class="fa-solid fa-file-image" style="color: #17a2b8;"></i>',
-            'webp': '<i class="fa-solid fa-file-image" style="color: #17a2b8;"></i>',
-            
-            // Documents
-            'doc': '<i class="fa-solid fa-file-word" style="color: #2c5aa0;"></i>',
-            'docx': '<i class="fa-solid fa-file-word" style="color: #2c5aa0;"></i>',
-            'xls': '<i class="fa-solid fa-file-excel" style="color: #1d6f42;"></i>',
-            'xlsx': '<i class="fa-solid fa-file-excel" style="color: #1d6f42;"></i>',
-            'ppt': '<i class="fa-solid fa-file-powerpoint" style="color: #d04423;"></i>',
-            'pptx': '<i class="fa-solid fa-file-powerpoint" style="color: #d04423;"></i>',
-            
-            // Archive
-            'zip': '<i class="fa-solid fa-file-zipper" style="color: #6c757d;"></i>',
-            'rar': '<i class="fa-solid fa-file-zipper" style="color: #6c757d;"></i>',
-            '7z': '<i class="fa-solid fa-file-zipper" style="color: #6c757d;"></i>',
-            
-            // Text
-            'txt': '<i class="fa-solid fa-file-lines" style="color: #6c757d;"></i>',
-            'rtf': '<i class="fa-solid fa-file-lines" style="color: #6c757d;"></i>',
-            
-            // Audio/Video
-            'mp3': '<i class="fa-solid fa-file-audio" style="color: #ff6b35;"></i>',
-            'wav': '<i class="fa-solid fa-file-audio" style="color: #ff6b35;"></i>',
-            'mp4': '<i class="fa-solid fa-file-video" style="color: #ff6b35;"></i>',
-            'avi': '<i class="fa-solid fa-file-video" style="color: #ff6b35;"></i>'
-        };
-        
-        return iconMap[extension] || '<i class="fa-solid fa-file" style="color: #6c757d;"></i>';
-    }
-
-    _isImage(filename) {
-        const extension = filename.split('.').pop().toLowerCase();
-        const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'];
-        return imageExtensions.includes(extension);
-    }
-
-    _getFileSize(filename) {
-        // In einer echten Implementierung würde man die Dateigröße vom Server holen
-        return 'Dateigröße unbekannt';
-    }
-
-    _getItemIndex(element) {
-        const item = element.closest('.' + this.CSS.item);
-        return parseInt(item.dataset.index);
-    }
-
-    _addItem() {
-        this.data.items.push(this._createEmptyItem());
-        this._renderItems();
-    }
-
-    _removeItem(index) {
-        if (this.data.items.length > 1) {
-            this.data.items.splice(index, 1);
-            this._renderItems();
-        }
-    }
-
-    _make(tagName, classNames = null, attributes = {}) {
-        const el = document.createElement(tagName);
-
-        if (Array.isArray(classNames)) {
-            el.classList.add(...classNames);
-        } else if (classNames) {
-            el.classList.add(classNames);
+        if (this.data.aspectRatio) {
+            this.nodes.wrapper.dataset.aspectRatio = this.data.aspectRatio;
+        } else {
+            delete this.nodes.wrapper.dataset.aspectRatio;
         }
 
-        for (let attrName in attributes) {
-            el[attrName] = attributes[attrName];
+        if (this.data.showCaptions) {
+            this.nodes.wrapper.classList.add('cdx-gallery--show-captions');
+        } else {
+            this.nodes.wrapper.classList.remove('cdx-gallery--show-captions');
         }
-
-        return el;
     }
 
     _addDragEvents(itemWrapper, dragHandle) {
@@ -652,7 +656,35 @@ class DownloadsBlock {
             }
         }, { offset: Number.NEGATIVE_INFINITY }).element;
     }
+
+    _addItem() {
+        this.data.items.push(this._createEmptyItem());
+        this._renderItems();
+    }
+
+    _removeItem(index) {
+        if (this.data.items.length > 1) {
+            this.data.items.splice(index, 1);
+            this._renderItems();
+        }
+    }
+
+    _make(tagName, classNames = null, attributes = {}) {
+        const el = document.createElement(tagName);
+
+        if (Array.isArray(classNames)) {
+            el.classList.add(...classNames);
+        } else if (classNames) {
+            el.classList.add(classNames);
+        }
+
+        for (let attrName in attributes) {
+            el[attrName] = attributes[attrName];
+        }
+
+        return el;
+    }
 }
 
 // Export für das Bundle
-window.DownloadsBlock = DownloadsBlock;
+window.ImageGalleryBlock = ImageGalleryBlock;

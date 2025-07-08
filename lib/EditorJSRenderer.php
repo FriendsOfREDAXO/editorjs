@@ -30,12 +30,14 @@ class EditorJsRenderer
                 'alert' => [$this, 'renderAlert'],
                 'textimage' => [$this, 'renderTextImage'],
                 'downloads' => [$this, 'renderDownloads'],
+                'gallery' => [$this, 'renderGallery'],
                 
                 // Aliase für verschiedene Schreibweisen
                 'AlertBlock' => [$this, 'renderAlert'],
                 'TextImageBlock' => [$this, 'renderTextImage'],
                 'ImageBlock' => [$this, 'renderImage'],
-                'VideoBlock' => [$this, 'renderVideo']
+                'VideoBlock' => [$this, 'renderVideo'],
+                'ImageGalleryBlock' => [$this, 'renderGallery']
             ]
         ];
     }
@@ -257,6 +259,97 @@ class EditorJsRenderer
             $cleanText = strip_tags($text, $allowedTags);
             
             $html .= $cleanText;
+            $html .= "</div>\n";
+            $html .= "</div>\n";
+        }
+        
+        $html .= "</div>\n";
+        $html .= "</div>\n";
+        
+        return $html;
+    }
+
+    /**
+     * Rendert unseren benutzerdefinierten Gallery-Block
+     */
+    public function renderGallery(array $data): string
+    {
+        $title = $data['title'] ?? 'Bildergalerie';
+        $items = $data['items'] ?? [];
+        $showTitle = $data['showTitle'] ?? true;
+        $layout = $data['layout'] ?? 'grid';
+        $imageSize = $data['imageSize'] ?? 'medium';
+        $showCaptions = $data['showCaptions'] ?? true;
+        $aspectRatio = $data['aspectRatio'] ?? '';
+        $spacing = $data['spacing'] ?? 'normal';
+        
+        if (empty($items)) {
+            return '';
+        }
+        
+        $classes = ['cdx-gallery'];
+        $dataAttrs = [
+            'data-layout' => $layout,
+            'data-image-size' => $imageSize,
+            'data-spacing' => $spacing
+        ];
+        
+        if ($aspectRatio) {
+            $dataAttrs['data-aspect-ratio'] = $aspectRatio;
+        }
+        
+        if ($showCaptions) {
+            $classes[] = 'cdx-gallery--show-captions';
+        }
+        
+        $classStr = implode(' ', $classes);
+        $dataStr = implode(' ', array_map(function($k, $v) {
+            return $k . '="' . htmlspecialchars($v) . '"';
+        }, array_keys($dataAttrs), $dataAttrs));
+        
+        $html = "<div class=\"{$classStr}\" {$dataStr}>\n";
+        
+        // Titel anzeigen falls aktiviert
+        if ($showTitle && !empty($title)) {
+            $html .= "<h3 class=\"cdx-gallery__title\">" . htmlspecialchars($title) . "</h3>\n";
+        }
+        
+        $html .= "<div class=\"cdx-gallery__container\">\n";
+        
+        foreach ($items as $item) {
+            $imageFile = $item['imageFile'] ?? '';
+            $imageUrl = $item['imageUrl'] ?? '';
+            $itemTitle = $item['title'] ?? '';
+            $description = $item['description'] ?? '';
+            $alt = $item['alt'] ?? $itemTitle ?: $imageFile;
+            
+            if (empty($imageFile) && empty($imageUrl)) {
+                continue;
+            }
+            
+            // Bild-URL für REDAXO generieren
+            if ($imageFile && !$imageUrl) {
+                $imageUrl = \rex_url::media($imageFile);
+            }
+            
+            $html .= "<div class=\"cdx-gallery__item-frontend\">\n";
+            
+            // Bild Container
+            $html .= "<div class=\"cdx-gallery__image-container-frontend\">\n";
+            $html .= "<img src=\"{$imageUrl}\" alt=\"" . htmlspecialchars($alt) . "\" class=\"cdx-gallery__image-frontend\" loading=\"lazy\" />\n";
+            
+            // Caption overlay falls aktiviert
+            if ($showCaptions && (!empty($itemTitle) || !empty($description))) {
+                $html .= "<div class=\"cdx-gallery__caption-frontend\">\n";
+                if (!empty($itemTitle)) {
+                    $html .= "<div class=\"cdx-gallery__caption-title\">" . htmlspecialchars($itemTitle) . "</div>\n";
+                }
+                if (!empty($description)) {
+                    $html .= "<div class=\"cdx-gallery__caption-description\">" . htmlspecialchars($description) . "</div>\n";
+                }
+                $html .= "</div>\n";
+            }
+            
             $html .= "</div>\n";
             $html .= "</div>\n";
         }

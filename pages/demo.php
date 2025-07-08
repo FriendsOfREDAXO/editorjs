@@ -4,30 +4,91 @@
 
 echo rex_view::title($this->i18n('title'), $this->i18n('demo'));
 
-
-
-// Demo-Daten
+// Demo-Daten mit allen verfügbaren Blöcken
 $demoData = [
     'blocks' => [
         [
             'type' => 'header',
             'data' => [
-                'text' => $this->i18n('welcome_title'),
+                'text' => 'EditorJS für REDAXO - Demo',
                 'level' => 2
             ]
         ],
         [
             'type' => 'paragraph',
             'data' => [
-                'text' => $this->i18n('welcome_text')
+                'text' => 'Willkommen zur EditorJS-Demo! Diese Seite zeigt alle verfügbaren Blöcke und deren Funktionen. Probieren Sie die verschiedenen Block-Typen aus.'
             ]
         ],
         [
             'type' => 'alert',
             'data' => [
                 'type' => 'info',
-                'title' => 'Neuer Alert-Block!',
-                'message' => 'Dies ist ein benutzerdefinierter Alert-Block. Sie können zwischen verschiedenen Typen wählen: Info, Warnung, Fehler und Erfolg.'
+                'title' => 'Info Alert-Block',
+                'message' => 'Dies ist ein Info-Alert. Es gibt auch Warning, Error und Success-Varianten für verschiedene Anwendungsfälle.'
+            ]
+        ],
+        [
+            'type' => 'image',
+            'data' => [
+                'imageFile' => '',
+                'imageUrl' => '',
+                'caption' => 'Klicken Sie hier, um ein Bild aus dem REDAXO-Medienpool auszuwählen',
+                'stretched' => false,
+                'withBorder' => false,
+                'withBackground' => false,
+                'aspectRatio' => ''
+            ]
+        ],
+        [
+            'type' => 'video',
+            'data' => [
+                'videoFile' => '',
+                'posterFile' => '',
+                'caption' => 'Video-Block mit Poster-Bild',
+                'autoplay' => false,
+                'muted' => false,
+                'loop' => false,
+                'controls' => true
+            ]
+        ],
+        [
+            'type' => 'downloads',
+            'data' => [
+                'title' => 'Download-Bereich',
+                'items' => [
+                    [
+                        'file' => '',
+                        'title' => 'Beispiel-Download',
+                        'description' => 'Beschreibung des Downloads'
+                    ]
+                ],
+                'showTitle' => true,
+                'layout' => 'list'
+            ]
+        ],
+        [
+            'type' => 'gallery',
+            'data' => [
+                'title' => 'Bildergalerie',
+                'items' => [
+                    [
+                        'imageFile' => '',
+                        'title' => 'Beispiel-Bild 1',
+                        'description' => 'Beschreibung des ersten Bildes',
+                        'alt' => 'Alt-Text für Barrierefreiheit'
+                    ],
+                    [
+                        'imageFile' => '',
+                        'title' => 'Beispiel-Bild 2',
+                        'description' => 'Beschreibung des zweiten Bildes',
+                        'alt' => 'Alt-Text für Barrierefreiheit'
+                    ]
+                ],
+                'showTitle' => true,
+                'layout' => 'grid',
+                'imageSize' => 'medium',
+                'showCaptions' => true
             ]
         ],
         [
@@ -45,12 +106,11 @@ $demoData = [
             'data' => [
                 'style' => 'unordered',
                 'items' => [
-                    $this->i18n('features_simple'),
-                    $this->i18n('features_blocks'),
-                    $this->i18n('features_json'),
-                    'Benutzerdefinierte Blöcke (Alert-Block)',
-                    'Text-Bild-Block mit Medienpool',
-                    'Downloads-Repeater mit Medienpool-Integration'
+                    'Einfache und intuitive Bedienung',
+                    'REDAXO-Medienpool Integration',
+                    'Responsive Design',
+                    'Drag & Drop Funktionalität',
+                    'Umfangreiche Block-Bibliothek'
                 ]
             ]
         ],
@@ -85,7 +145,7 @@ $demoData = [
     <div class="col-md-6">
         <div class="panel panel-default">
             <header class="panel-heading">
-                <h3 class="panel-title"><?= $this->i18n('editor') ?></h3>
+                <h3 class="panel-title">EditorJS Demo</h3>
             </header>
             <div class="panel-body">
                 <div id="editorjs-demo" class="editorjs-field" style="min-height: 400px; border: 1px solid #ddd; padding: 10px;">
@@ -93,9 +153,9 @@ $demoData = [
                 </div>
                 
                 <div class="form-group" style="margin-top: 10px;">
-                    <button type="button" class="btn btn-primary" onclick="loadDemoData()"><?= $this->i18n('demo_data_load') ?></button>
-                    <button type="button" class="btn btn-default" onclick="clearEditor()"><?= $this->i18n('clear') ?></button>
-                    <button type="button" class="btn btn-info" onclick="showJSON()"><?= $this->i18n('show_json') ?></button>
+                    <button type="button" class="btn btn-primary" onclick="loadDemoData()">Demo-Daten laden</button>
+                    <button type="button" class="btn btn-default" onclick="clearEditor()">Editor leeren</button>
+                    <button type="button" class="btn btn-info" onclick="showJSON()">JSON anzeigen</button>
                 </div>
             </div>
         </div>
@@ -104,7 +164,7 @@ $demoData = [
     <div class="col-md-6">
         <div class="panel panel-default">
             <header class="panel-heading">
-                <h3 class="panel-title"><?= $this->i18n('json_output') ?></h3>
+                <h3 class="panel-title">JSON-Ausgabe</h3>
             </header>
             <div class="panel-body">
                 <pre id="json-output" style="max-height: 400px; overflow-y: auto; background: #f8f9fa; padding: 10px; border: 1px solid #e9ecef;"><?= json_encode($demoData, JSON_PRETTY_PRINT) ?></pre>
@@ -113,27 +173,67 @@ $demoData = [
     </div>
 </div>
 
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel panel-default">
+            <header class="panel-heading">
+                <h3 class="panel-title">Verfügbare Blöcke</h3>
+            </header>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h4>Standard EditorJS Blöcke</h4>
+                        <ul>
+                            <li><strong>Paragraph</strong> - Standard-Textabsätze</li>
+                            <li><strong>Header</strong> - Überschriften (H1-H6)</li>
+                            <li><strong>List</strong> - Nummerierte und Aufzählungslisten</li>
+                            <li><strong>Quote</strong> - Zitate</li>
+                            <li><strong>Code</strong> - Code-Blöcke</li>
+                            <li><strong>Delimiter</strong> - Trennlinien</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h4>REDAXO-spezifische Blöcke</h4>
+                        <ul>
+                            <li><strong>Image Block</strong> - Einzelbilder mit Medienpool</li>
+                            <li><strong>Video Block</strong> - Videos mit Poster-Bild</li>
+                            <li><strong>Downloads Block</strong> - Multiple Downloads mit Drag & Drop</li>
+                            <li><strong>Gallery Block</strong> - Bildergalerien mit verschiedenen Layouts</li>
+                            <li><strong>Alert Block</strong> - Hinweis-Boxen (Info, Warning, Error, Success)</li>
+                            <li><strong>TextImage Block</strong> - Text mit Bild kombiniert</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="alert alert-info">
-    <h4><i class="fa fa-info-circle"></i> Tastaturkürzel</h4>
-    <ul class="list-unstyled">
-        <li><strong>Enter:</strong> 
-            <ul>
-                <li>In Text-Blöcken: Neue Zeile (Zeilenumbruch)</li>
-                <li>In Listen: Neuer Listenpunkt</li>
+    <h4><i class="fa fa-info-circle"></i> Bedienung</h4>
+    <div class="row">
+        <div class="col-md-6">
+            <h5>Tastaturkürzel</h5>
+            <ul class="list-unstyled">
+                <li><strong>Enter:</strong> Neue Zeile oder neuer Listenpunkt</li>
+                <li><strong>Shift + Enter:</strong> Neuen Block erstellen</li>
+                <li><strong>Tab:</strong> Einrücken in Listen</li>
+                <li><strong>Cmd/Ctrl + B:</strong> Fett</li>
+                <li><strong>Cmd/Ctrl + I:</strong> Kursiv</li>
+                <li><strong>Cmd/Ctrl + K:</strong> REDAXO Link einfügen</li>
             </ul>
-        </li>
-        <li><strong>Shift + Enter:</strong> 
-            <ul>
-                <li>In Text-Blöcken: Neuen Block erstellen</li>
-                <li>In Listen: Zeilenumbruch im aktuellen Listenpunkt</li>
+        </div>
+        <div class="col-md-6">
+            <h5>Block-Funktionen</h5>
+            <ul class="list-unstyled">
+                <li><strong>Medienpool:</strong> Klick auf Bilder/Videos zur Auswahl</li>
+                <li><strong>Drag & Drop:</strong> Downloads und Galerie-Bilder sortierbar</li>
+                <li><strong>Einstellungen:</strong> Block-spezifische Optionen über Zahnrad-Symbol</li>
+                <li><strong>Layouts:</strong> Verschiedene Darstellungsformen verfügbar</li>
+                <li><strong>Auto-Save:</strong> Änderungen werden automatisch gespeichert</li>
             </ul>
-        </li>
-        <li><strong>Tab:</strong> Einrücken in Listen</li>
-        <li><strong>Cmd/Ctrl + B:</strong> Fett</li>
-        <li><strong>Cmd/Ctrl + I:</strong> Kursiv</li>
-        <li><strong>Cmd/Ctrl + K:</strong> REDAXO Link einfügen</li>
-    </ul>
-    <p><small><strong>Hinweis:</strong> Das Enter-Verhalten passt sich automatisch an den Block-Typ an. In normalen Text-Bereichen erstellt <kbd>Enter</kbd> Zeilenumbrüche, in Listen neue Listenpunkte.</small></p>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -169,6 +269,10 @@ function initEditor() {
         if (typeof Delimiter === 'undefined') missingTools.push('Delimiter');
         if (typeof CodeTool === 'undefined') missingTools.push('CodeTool');
         if (typeof AlertBlock === 'undefined') missingTools.push('AlertBlock');
+        if (typeof ImageBlock === 'undefined') missingTools.push('ImageBlock');
+        if (typeof VideoBlock === 'undefined') missingTools.push('VideoBlock');
+        if (typeof DownloadsBlock === 'undefined') missingTools.push('DownloadsBlock');
+        if (typeof ImageGalleryBlock === 'undefined') missingTools.push('ImageGalleryBlock');
         if (typeof TextImageBlock === 'undefined') missingTools.push('TextImageBlock');
         if (typeof Marker === 'undefined') missingTools.push('Marker');
         if (typeof InlineCode === 'undefined') missingTools.push('InlineCode');
@@ -220,21 +324,43 @@ function initEditor() {
                     defaultType: 'info'
                 }
             },
-            textimage: {
-                class: TextImageBlock,
-                inlineToolbar: true,
-                config: {
-                    defaultLayout: 'left'
-                }
-            },
             image: {
                 class: ImageBlock,
                 config: {
                     stretched: false,
                     withBorder: false,
                     withBackground: false,
-                    aspectRatio: 'auto',
+                    aspectRatio: '',
                     cropMode: 'cover'
+                }
+            },
+            video: {
+                class: VideoBlock,
+                config: {
+                    autoplay: false,
+                    muted: false,
+                    loop: false,
+                    controls: true
+                }
+            },
+            downloads: {
+                class: DownloadsBlock,
+                config: {
+                    defaultLayout: 'list'
+                }
+            },
+            gallery: {
+                class: ImageGalleryBlock,
+                config: {
+                    defaultLayout: 'grid',
+                    defaultImageSize: 'medium'
+                }
+            },
+            textimage: {
+                class: TextImageBlock,
+                inlineToolbar: true,
+                config: {
+                    defaultLayout: 'left'
                 }
             },
             // Inline-Tools für Rich-Text-Formatierung

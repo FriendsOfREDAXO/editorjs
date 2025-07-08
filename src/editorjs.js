@@ -24,6 +24,8 @@ import './blocks/rexlink.js';
 import './blocks/rexmedia.js';
 import './blocks/downloads.js';
 import './blocks/downloads.css';
+import './blocks/gallery.js';
+import './blocks/gallery.css';
 
 // Globale Variablen für REDAXO Backend
 window.EditorJS = EditorJS;
@@ -185,10 +187,14 @@ window.EditorJSUtils = {
             };
         }
 
-        if (typeof window.VideoBlock !== 'undefined') {
-            tools.VideoBlock = {
-                class: window.VideoBlock,
-                config: {}
+        if (typeof window.ImageGalleryBlock !== 'undefined') {
+            tools.gallery = {
+                class: window.ImageGalleryBlock,
+                config: {
+                    defaultLayout: 'grid',
+                    showTitle: true,
+                    showCaptions: true
+                }
             };
         }
 
