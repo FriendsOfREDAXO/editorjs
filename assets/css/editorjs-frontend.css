@@ -365,7 +365,7 @@ blockquote cite {
     font-style: normal;
 }
 
-pre, code {
+pre.editorjs-code, pre.editorjs-code code {
     background-color: #f8f9fa;
     border: 1px solid #e9ecef;
     border-radius: 4px;
