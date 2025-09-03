@@ -178,7 +178,7 @@ class EditorJsRenderer
     {
         $code = $data['code'] ?? '';
         
-        return "<pre><code>" . htmlspecialchars($code) . "</code></pre>\n";
+        return "<pre class=\"editorjs-code\"><code>" . htmlspecialchars($code) . "</code></pre>\n";
     }
 
     /**
