@@ -1,4 +1,4 @@
-/* TextImage Block Styles */
+/* TextImage Block Styles - Erweitert mit Video- und Lightbox-Support */
 .cdx-textimage {
     margin: 20px 0;
 }
@@ -46,10 +46,13 @@
     flex-direction: column !important;
 }
 
-/* Image Wrapper */
+/* Image/Video Wrapper */
 .cdx-textimage__image-wrapper {
     flex: 0 0 300px;
     max-width: 300px;
+    position: relative;
+    border-radius: 6px;
+    overflow: hidden;
 }
 
 .cdx-textimage[data-layout="top"] .cdx-textimage__image-wrapper {
@@ -57,19 +60,25 @@
     max-width: 100%;
 }
 
-/* Image */
-.cdx-textimage__image {
+/* Image und Video */
+.cdx-textimage__image,
+.cdx-textimage__video {
     width: 100%;
     height: auto;
     border-radius: 6px;
     cursor: pointer;
     transition: opacity 0.2s ease;
     border: 2px solid transparent;
+    display: block;
 }
 
 .cdx-textimage__image:hover {
     opacity: 0.8;
     border-color: #007bff;
+}
+
+.cdx-textimage__video {
+    background: #000;
 }
 
 /* Select Button */
@@ -229,6 +238,36 @@
     border-color: #0056b3;
 }
 
+/* Lightbox */
+.cdx-textimage__lightbox-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    cursor: pointer;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.cdx-textimage__lightbox-image {
+    max-width: 90vw;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    cursor: default;
+}
+
 /* Alt-Text Eingabefeld für TextImage */
 .cdx-textimage__alt-text {
     margin-top: 6px;
@@ -260,6 +299,27 @@
     font-style: normal;
 }
 
+/* Alt-Text Warnung */
+.cdx-image__alt-warning {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(255, 149, 0, 0.9);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: help;
+    z-index: 10;
+}
+
+.cdx-image__alt-warning svg {
+    width: 16px;
+    height: 16px;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .cdx-textimage__container {
@@ -274,5 +334,20 @@
     
     .cdx-textimage__button {
         min-height: 150px;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .cdx-textimage__lightbox-overlay {
+        display: none;
+    }
+    
+    .cdx-textimage__button {
+        display: none;
+    }
+    
+    .cdx-image__alt-warning {
+        display: none;
     }
 }

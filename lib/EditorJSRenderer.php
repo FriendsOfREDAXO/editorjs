@@ -31,13 +31,15 @@ class EditorJsRenderer
                 'textimage' => [$this, 'renderTextImage'],
                 'downloads' => [$this, 'renderDownloads'],
                 'gallery' => [$this, 'renderGallery'],
+                'card' => [$this, 'renderCard'],
                 
                 // Aliase für verschiedene Schreibweisen
                 'AlertBlock' => [$this, 'renderAlert'],
                 'TextImageBlock' => [$this, 'renderTextImage'],
                 'ImageBlock' => [$this, 'renderImage'],
                 'VideoBlock' => [$this, 'renderVideo'],
-                'ImageGalleryBlock' => [$this, 'renderGallery']
+                'ImageGalleryBlock' => [$this, 'renderGallery'],
+                'CardBlock' => [$this, 'renderCard']
             ]
         ];
     }
@@ -206,42 +208,93 @@ class EditorJsRenderer
     }
 
     /**
-     * Rendert unseren benutzerdefinierten TextImage-Block
+     * Rendert unseren benutzerdefinierten TextImage-Block (erweitert mit Video-Support)
      */
     public function renderTextImage(array $data): string
     {
         $text = $data['text'] ?? '';
-        $imageFile = $data['imageFile'] ?? '';
-        $imageUrl = $data['imageUrl'] ?? '';
+        
+        // Rückwärtskompatibilität und neue Struktur
+        $mediaFile = $data['mediaFile'] ?? $data['imageFile'] ?? '';
+        $mediaUrl = $data['mediaUrl'] ?? $data['imageUrl'] ?? '';
+        $mediaType = $data['mediaType'] ?? ($data['imageFile'] ? 'image' : $this->_detectMediaType($mediaFile));
+        $mediaAlt = $data['mediaAlt'] ?? $data['imageAlt'] ?? '';
+        
         $caption = $data['caption'] ?? '';
         $layout = $data['layout'] ?? 'left';
+        $lightbox = $data['lightbox'] ?? true;
         
-        // Bild-URL erstellen
-        if ($imageFile && !$imageUrl) {
+        // Video-spezifische Eigenschaften
+        $videoAutoplay = $data['videoAutoplay'] ?? false;
+        $videoMuted = $data['videoMuted'] ?? false;
+        $videoLoop = $data['videoLoop'] ?? false;
+        $videoControls = $data['videoControls'] ?? true;
+        
+        // Media-URL erstellen
+        if ($mediaFile && !$mediaUrl) {
             if (function_exists('rex_url')) {
-                $imageUrl = \rex_url::media($imageFile);
+                $mediaUrl = \rex_url::media($mediaFile);
             } else {
-                // Fallback für Demo: Placehold.co verwenden
-                $imageUrl = "https://placehold.co/300x200/007bff/ffffff?text=" . urlencode($imageFile);
+                $mediaUrl = "/media/" . $mediaFile;
             }
         }
         
-        // Fallback für Demo ohne Bild - spezifische Farben je Layout
-        if (!$imageUrl) {
+        // Fallback für Demo ohne Media
+        if (!$mediaUrl) {
             $layouts = [
-                'left' => 'https://placehold.co/300x200/007bff/ffffff?text=Bild+Links',
-                'right' => 'https://placehold.co/300x200/28a745/ffffff?text=Bild+Rechts', 
-                'top' => 'https://placehold.co/600x200/dc3545/ffffff?text=Bild+Oben'
+                'left' => 'https://placehold.co/300x200/007bff/ffffff?text=Media+Links',
+                'right' => 'https://placehold.co/300x200/28a745/ffffff?text=Media+Rechts', 
+                'top' => 'https://placehold.co/600x200/dc3545/ffffff?text=Media+Oben'
             ];
-            $imageUrl = $layouts[$layout] ?? $layouts['left'];
+            $mediaUrl = $layouts[$layout] ?? $layouts['left'];
+            $mediaType = 'image'; // Fallback ist immer Bild
         }
         
         $html = "<div class=\"cdx-textimage\" data-layout=\"{$layout}\">\n";
         $html .= "<div class=\"cdx-textimage__container layout-{$layout} layout-{$layout}\">\n";
         
-        // Bild-Wrapper (immer anzeigen)
+        // Media-Wrapper (immer anzeigen)
         $html .= "<div class=\"cdx-textimage__image-wrapper\">\n";
-        $html .= "<img src=\"{$imageUrl}\" alt=\"" . htmlspecialchars($imageFile ?: 'Demo Bild') . "\" class=\"cdx-textimage__image\">\n";
+        
+        if ($mediaType === 'video') {
+            // Video rendern
+            $videoAttributes = ['class="cdx-textimage__video"'];
+            
+            if ($videoControls) {
+                $videoAttributes[] = 'controls';
+            }
+            
+            if ($videoAutoplay) {
+                $videoAttributes[] = 'autoplay';
+            }
+            
+            if ($videoMuted) {
+                $videoAttributes[] = 'muted';
+            }
+            
+            if ($videoLoop) {
+                $videoAttributes[] = 'loop';
+            }
+            
+            $videoAttributeString = implode(' ', $videoAttributes);
+            $videoType = $this->getVideoType($mediaFile);
+            
+            $html .= "<video {$videoAttributeString}>\n";
+            $html .= "<source src=\"{$mediaUrl}\" type=\"{$videoType}\">\n";
+            $html .= "Ihr Browser unterstützt das Video-Element nicht.\n";
+            $html .= "</video>\n";
+        } else {
+            // Bild rendern
+            if ($lightbox) {
+                $html .= "<a href=\"{$mediaUrl}\" class=\"cdx-textimage__lightbox-link\" data-lightbox=\"textimage\">\n";
+            }
+            
+            $html .= "<img src=\"{$mediaUrl}\" alt=\"" . htmlspecialchars($mediaAlt ?: $mediaFile ?: 'Demo Media') . "\" class=\"cdx-textimage__image\">\n";
+            
+            if ($lightbox) {
+                $html .= "</a>\n";
+            }
+        }
         
         if ($caption) {
             $html .= "<div class=\"cdx-textimage__caption\">" . htmlspecialchars($caption) . "</div>\n";
@@ -626,10 +679,146 @@ class EditorJsRenderer
         
         return $html;
     }
+
+    /**
+     * Rendert unseren benutzerdefinierten Card-Block
+     */
+    public function renderCard(array $data): string
+    {
+        $title = $data['title'] ?? '';
+        $text = $data['text'] ?? '';
+        $mediaFile = $data['mediaFile'] ?? '';
+        $mediaUrl = $data['mediaUrl'] ?? '';
+        $mediaType = $data['mediaType'] ?? $this->_detectMediaType($mediaFile);
+        $mediaAlt = $data['mediaAlt'] ?? '';
+        $layout = $data['layout'] ?? 'vertical';
+        $gridColumns = $data['gridColumns'] ?? 2;
+        $aspectRatio = $data['aspectRatio'] ?? 'auto';
+        $lightbox = $data['lightbox'] ?? true;
+        $linkUrl = $data['linkUrl'] ?? '';
+        $linkTarget = $data['linkTarget'] ?? '_self';
+        
+        // Video-spezifische Eigenschaften
+        $videoAutoplay = $data['videoAutoplay'] ?? false;
+        $videoMuted = $data['videoMuted'] ?? false;
+        $videoLoop = $data['videoLoop'] ?? false;
+        $videoControls = $data['videoControls'] ?? true;
+        
+        // Media-URL erstellen
+        if ($mediaFile && !$mediaUrl) {
+            if (function_exists('rex_url')) {
+                $mediaUrl = \rex_url::media($mediaFile);
+            } else {
+                $mediaUrl = "/media/" . $mediaFile;
+            }
+        }
+        
+        // CSS-Klassen für Layout
+        $classes = ['cdx-card'];
+        $dataAttrs = [
+            'data-layout' => $layout,
+            'data-grid-columns' => $gridColumns,
+            'data-aspect-ratio' => $aspectRatio
+        ];
+        
+        $classStr = implode(' ', $classes);
+        $dataStr = implode(' ', array_map(function($k, $v) {
+            return $k . '="' . htmlspecialchars($v) . '"';
+        }, array_keys($dataAttrs), $dataAttrs));
+        
+        // Wrapper - optional mit Link
+        $cardContent = '';
+        
+        $cardContent .= "<div class=\"{$classStr}\" {$dataStr}>\n";
+        $cardContent .= "<div class=\"cdx-card__container\">\n";
+        
+        // Media Wrapper falls vorhanden
+        if ($mediaUrl) {
+            $cardContent .= "<div class=\"cdx-card__media-wrapper\">\n";
+            
+            if ($mediaType === 'video') {
+                // Video rendern
+                $videoAttributes = ['class="cdx-card__video cdx-card__media"'];
+                
+                if ($videoControls) {
+                    $videoAttributes[] = 'controls';
+                }
+                
+                if ($videoAutoplay) {
+                    $videoAttributes[] = 'autoplay';
+                }
+                
+                if ($videoMuted) {
+                    $videoAttributes[] = 'muted';
+                }
+                
+                if ($videoLoop) {
+                    $videoAttributes[] = 'loop';
+                }
+                
+                $videoAttributeString = implode(' ', $videoAttributes);
+                $videoType = $this->getVideoType($mediaFile);
+                
+                $cardContent .= "<video {$videoAttributeString}>\n";
+                $cardContent .= "<source src=\"{$mediaUrl}\" type=\"{$videoType}\">\n";
+                $cardContent .= "Ihr Browser unterstützt das Video-Element nicht.\n";
+                $cardContent .= "</video>\n";
+            } else {
+                // Bild rendern
+                if ($lightbox && !$linkUrl) {
+                    $cardContent .= "<a href=\"{$mediaUrl}\" class=\"cdx-card__lightbox-link\" data-lightbox=\"card\">\n";
+                }
+                
+                $cardContent .= "<img src=\"{$mediaUrl}\" alt=\"" . htmlspecialchars($mediaAlt ?: $title ?: 'Card Media') . "\" class=\"cdx-card__image cdx-card__media\">\n";
+                
+                if ($lightbox && !$linkUrl) {
+                    $cardContent .= "</a>\n";
+                }
+            }
+            
+            $cardContent .= "</div>\n";
+        }
+        
+        // Content Wrapper
+        if ($title || $text) {
+            $cardContent .= "<div class=\"cdx-card__content-wrapper\">\n";
+            
+            if ($title) {
+                $cardContent .= "<h3 class=\"cdx-card__title\">" . htmlspecialchars($title) . "</h3>\n";
+            }
+            
+            if ($text) {
+                $allowedTags = '<p><strong><em><u><s><a><ul><ol><li><br>';
+                $cleanText = strip_tags($text, $allowedTags);
+                $cardContent .= "<div class=\"cdx-card__text\">{$cleanText}</div>\n";
+            }
+            
+            $cardContent .= "</div>\n";
+        }
+        
+        $cardContent .= "</div>\n";
+        $cardContent .= "</div>\n";
+        
+        // Optional mit Link umhüllen
+        if ($linkUrl) {
+            return "<a href=\"{$linkUrl}\" target=\"{$linkTarget}\" class=\"cdx-card__link\">\n{$cardContent}</a>\n";
+        }
+        
+        return $cardContent;
+    }
     
     /**
-     * Bestimmt den MIME-Type für Video-Dateien
+     * Bestimmt den Medientyp basierend auf der Dateiendung
      */
+    private function _detectMediaType(string $filename): string
+    {
+        if (!$filename) return 'image';
+        
+        $videoExtensions = ['mp4', 'webm', 'ogg', 'avi', 'mov', 'wmv', 'flv', 'm4v'];
+        $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        
+        return in_array($extension, $videoExtensions) ? 'video' : 'image';
+    }
     private function getVideoType(string $filename): string
     {
         $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));

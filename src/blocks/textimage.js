@@ -43,11 +43,11 @@ class TextImageBlock {
         this.readOnly = readOnly;
         this.config = config || {};
         
-        // REXMediaTool für Medienpool-Integration
+        // REXMediaTool für Medienpool-Integration (Bilder und Videos)
         this.mediaTool = new REXMediaTool({ 
             api: this.api, 
             config: {
-                types: ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'], // Nur Bilder
+                types: ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'mp4', 'webm', 'ogg', 'avi', 'mov'], // Bilder und Videos
                 context: 'editorjs_textimage'
             }
         });
@@ -58,13 +58,16 @@ class TextImageBlock {
             container: 'cdx-textimage__container',
             imageWrapper: 'cdx-textimage__image-wrapper',
             image: 'cdx-textimage__image',
+            video: 'cdx-textimage__video',
             textWrapper: 'cdx-textimage__text-wrapper',
             text: 'cdx-textimage__text',
             button: 'cdx-textimage__button',
             caption: 'cdx-textimage__caption',
             settingsButton: 'cdx-textimage__settings-button',
             settingsButtonActive: 'cdx-textimage__settings-button--active',
-            altWarning: 'cdx-image__alt-warning' // Gleiche CSS-Klasse wie ImageBlock
+            altWarning: 'cdx-image__alt-warning', // Gleiche CSS-Klasse wie ImageBlock
+            lightboxOverlay: 'cdx-textimage__lightbox-overlay',
+            lightboxImage: 'cdx-textimage__lightbox-image'
         };
 
         this.nodes = {
@@ -72,6 +75,7 @@ class TextImageBlock {
             container: null,
             imageWrapper: null,
             image: null,
+            video: null,
             textWrapper: null,
             text: null,
             caption: null,
@@ -81,12 +85,18 @@ class TextImageBlock {
 
         this.data = {
             text: data.text || '',
-            imageFile: data.imageFile || '',
-            imageUrl: data.imageUrl || '',
-            imageAlt: data.imageAlt || '',
+            mediaFile: data.mediaFile || data.imageFile || '', // Kompatibilität mit alten Daten
+            mediaUrl: data.mediaUrl || data.imageUrl || '',
+            mediaType: data.mediaType || (data.imageFile ? 'image' : ''), // 'image' oder 'video'
+            mediaAlt: data.mediaAlt || data.imageAlt || '',
             caption: data.caption || '',
             layout: data.layout || 'left', // left, right, top
-            stretched: data.stretched || false
+            stretched: data.stretched || false,
+            lightbox: data.lightbox !== undefined ? data.lightbox : true, // Lightbox standardmäßig aktiviert
+            videoAutoplay: data.videoAutoplay !== undefined ? data.videoAutoplay : false,
+            videoMuted: data.videoMuted !== undefined ? data.videoMuted : false,
+            videoLoop: data.videoLoop !== undefined ? data.videoLoop : false,
+            videoControls: data.videoControls !== undefined ? data.videoControls : true
         };
 
         this.layouts = {
@@ -112,16 +122,16 @@ class TextImageBlock {
         holder.dataset.layout = this.data.layout;
         holder.appendChild(container);
 
-        // Image Wrapper
+        // Image/Video Wrapper
         const imageWrapper = this._make('div', [this.CSS.imageWrapper]);
         
-        if (this.data.imageUrl) {
-            this._createImage();
+        if (this.data.mediaUrl) {
+            this._createMedia();
         } else {
             this._createSelectButton();
         }
         
-        imageWrapper.appendChild(this.nodes.image || this.nodes.selectButton);
+        imageWrapper.appendChild(this.nodes.image || this.nodes.video || this.nodes.selectButton);
         
         // Caption nur anzeigen wenn vorhanden
         if (this.data.caption) {
@@ -207,7 +217,7 @@ class TextImageBlock {
             this._editAltText();
         });
         
-        // Caption Button
+        // Caption bearbeiten Button
         const captionButton = this._make('span', [this.CSS.settingsButton], {
             innerHTML: '<i class="fa-solid fa-closed-captioning"></i>',
             title: 'Bildunterschrift bearbeiten'
@@ -220,10 +230,45 @@ class TextImageBlock {
         captionButton.addEventListener('click', () => {
             this._editCaption();
         });
+
+        // Lightbox Button (nur bei Bildern)
+        const lightboxButton = this._make('span', [this.CSS.settingsButton], {
+            innerHTML: '<i class="fa-solid fa-search-plus"></i>',
+            title: 'Lightbox aktivieren/deaktivieren'
+        });
+        
+        if (this.data.lightbox && this.data.mediaType === 'image') {
+            lightboxButton.classList.add(this.CSS.settingsButtonActive);
+        }
+        
+        lightboxButton.addEventListener('click', () => {
+            this._toggleLightbox();
+            lightboxButton.classList.toggle(this.CSS.settingsButtonActive, this.data.lightbox);
+        });
+
+        // Video-Optionen Button (nur bei Videos)
+        const videoOptionsButton = this._make('span', [this.CSS.settingsButton], {
+            innerHTML: '<i class="fa-solid fa-play-circle"></i>',
+            title: 'Video-Optionen'
+        });
+        
+        videoOptionsButton.addEventListener('click', () => {
+            this._showVideoOptions();
+        });
         
         wrapper.appendChild(changeImageButton);
         wrapper.appendChild(altTextButton);
         wrapper.appendChild(captionButton);
+        
+        // Lightbox-Button nur bei Bildern anzeigen
+        if (this.data.mediaType === 'image') {
+            wrapper.appendChild(lightboxButton);
+        }
+        
+        // Video-Optionen nur bei Videos anzeigen
+        if (this.data.mediaType === 'video') {
+            wrapper.appendChild(videoOptionsButton);
+        }
 
         return wrapper;
     }
@@ -233,12 +278,22 @@ class TextImageBlock {
 
         return {
             text: text.innerHTML,
-            imageFile: this.data.imageFile,
-            imageUrl: this.data.imageUrl,
-            imageAlt: this.data.imageAlt,
+            mediaFile: this.data.mediaFile,
+            mediaUrl: this.data.mediaUrl,
+            mediaType: this.data.mediaType,
+            mediaAlt: this.data.mediaAlt,
             caption: this.data.caption,
             layout: this.data.layout,
-            stretched: this.data.stretched
+            stretched: this.data.stretched,
+            lightbox: this.data.lightbox,
+            videoAutoplay: this.data.videoAutoplay,
+            videoMuted: this.data.videoMuted,
+            videoLoop: this.data.videoLoop,
+            videoControls: this.data.videoControls,
+            // Rückwärtskompatibilität
+            imageFile: this.data.mediaFile,
+            imageUrl: this.data.mediaUrl,
+            imageAlt: this.data.mediaAlt
         };
     }
 
@@ -270,36 +325,85 @@ class TextImageBlock {
                 strong: true,
                 em: true
             },
+            mediaFile: {},
+            mediaUrl: {},
+            mediaType: {},
+            mediaAlt: {},
+            layout: {},
+            stretched: {},
+            lightbox: {},
+            videoAutoplay: {},
+            videoMuted: {},
+            videoLoop: {},
+            videoControls: {},
+            // Rückwärtskompatibilität
             imageFile: {},
             imageUrl: {},
-            imageAlt: {},
-            layout: {},
-            stretched: {}
+            imageAlt: {}
         };
+    }
+
+    _createMedia() {
+        // Automatisch erkennen ob Bild oder Video
+        if (this.data.mediaType === 'video' || this._isVideoFile(this.data.mediaFile)) {
+            this._createVideo();
+        } else {
+            this._createImage();
+        }
     }
 
     _createImage() {
         const image = this._make('img', [this.CSS.image], {
-            src: this.data.imageUrl,
-            alt: this.data.imageAlt || '' // Leerer Alt-Text als Standard
+            src: this.data.mediaUrl,
+            alt: this.data.mediaAlt || '' // Leerer Alt-Text als Standard
+        });
+        
+        // Lightbox-Funktionalität
+        if (this.data.lightbox && !this.readOnly) {
+            image.style.cursor = 'pointer';
+            image.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this._openLightbox();
+            });
+        } else {
+            // Klick zum Ändern (wenn nicht Lightbox)
+            image.addEventListener('click', () => {
+                if (!this.readOnly) {
+                    this._openMediapool();
+                }
+            });
+        }
+
+        this.nodes.image = image;
+        this.data.mediaType = 'image';
+        
+        // Alt-Text-Warnung prüfen und hinzufügen/entfernen
+        this._updateAltWarning();
+    }
+    
+    _createVideo() {
+        const video = this._make('video', [this.CSS.video], {
+            src: this.data.mediaUrl,
+            controls: this.data.videoControls,
+            autoplay: this.data.videoAutoplay,
+            muted: this.data.videoMuted,
+            loop: this.data.videoLoop
         });
         
         // Klick zum Ändern
-        image.addEventListener('click', () => {
+        video.addEventListener('click', () => {
             if (!this.readOnly) {
                 this._openMediapool();
             }
         });
 
-        this.nodes.image = image;
-        
-        // Alt-Text-Warnung prüfen und hinzufügen/entfernen
-        this._updateAltWarning();
+        this.nodes.video = video;
+        this.data.mediaType = 'video';
     }
 
     _createSelectButton() {
         const button = this._make('div', [this.CSS.button], {
-            innerHTML: '<i class="fa-solid fa-image"></i> Bild aus Medienpool wählen'
+            innerHTML: '<i class="fa-solid fa-plus"></i> Bild oder Video aus Medienpool wählen'
         });
         
         button.addEventListener('click', () => {
@@ -311,7 +415,7 @@ class TextImageBlock {
 
     _openMediapool() {
         this.mediaTool.selectImage((mediaData) => {
-            this._setImage(mediaData);
+            this._setMedia(mediaData);
         }).catch(error => {
             // Nur echte Fehler anzeigen, nicht wenn der User den Dialog abbricht
             if (error.message !== 'Media pool closed without selection') {
@@ -324,13 +428,16 @@ class TextImageBlock {
         });
     }
 
-    _setImage(mediaData) {
+    _setMedia(mediaData) {
         // Daten aus dem MediaTool übernehmen
-        this.data.imageFile = mediaData.filename;
-        this.data.imageUrl = mediaData.url;
-        this.data.imageAlt = mediaData.alt;
+        this.data.mediaFile = mediaData.filename;
+        this.data.mediaUrl = mediaData.url;
+        this.data.mediaAlt = mediaData.alt;
+        
+        // Medientyp automatisch erkennen
+        this.data.mediaType = this._isVideoFile(mediaData.filename) ? 'video' : 'image';
 
-        // DOM aktualisieren - altes Bild oder Button entfernen
+        // DOM aktualisieren - altes Media oder Button entfernen
         if (this.nodes.selectButton) {
             this.nodes.selectButton.remove();
             this.nodes.selectButton = null;
@@ -340,10 +447,16 @@ class TextImageBlock {
             this.nodes.image.remove();
             this.nodes.image = null;
         }
+        
+        if (this.nodes.video) {
+            this.nodes.video.remove();
+            this.nodes.video = null;
+        }
 
-        // Neues Bild erstellen und einfügen
-        this._createImage();
-        this.nodes.imageWrapper.insertBefore(this.nodes.image, this.nodes.imageWrapper.firstChild);
+        // Neues Media erstellen und einfügen
+        this._createMedia();
+        const mediaElement = this.nodes.image || this.nodes.video;
+        this.nodes.imageWrapper.insertBefore(mediaElement, this.nodes.imageWrapper.firstChild);
         
         // Caption aktualisieren
         this._updateCaption();
@@ -372,18 +485,108 @@ class TextImageBlock {
     }
 
     _editAltText() {
-        const currentAlt = this.data.imageAlt || '';
+        const currentAlt = this.data.mediaAlt || '';
         const newAlt = prompt('Alt-Text für Barrierefreiheit eingeben:\n(Beschreibt das Bild für Screenreader)', currentAlt);
         
         if (newAlt !== null) { // null bedeutet Abbruch
-            this.data.imageAlt = newAlt;
+            this.data.mediaAlt = newAlt;
             // Img-Tag Alt-Attribut aktualisieren
             if (this.nodes.image) {
-                this.nodes.image.alt = this.data.imageAlt;
+                this.nodes.image.alt = this.data.mediaAlt;
             }
             // Alt-Warnung aktualisieren
             this._updateAltWarning();
         }
+    }
+    
+    _toggleLightbox() {
+        this.data.lightbox = !this.data.lightbox;
+        
+        // Image-Event-Listener aktualisieren
+        if (this.nodes.image && this.data.mediaType === 'image') {
+            // Alte Event-Listener entfernen und neue hinzufügen
+            const newImage = this.nodes.image.cloneNode(true);
+            
+            if (this.data.lightbox && !this.readOnly) {
+                newImage.style.cursor = 'pointer';
+                newImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this._openLightbox();
+                });
+            } else {
+                newImage.style.cursor = 'default';
+                newImage.addEventListener('click', () => {
+                    if (!this.readOnly) {
+                        this._openMediapool();
+                    }
+                });
+            }
+            
+            this.nodes.image.replaceWith(newImage);
+            this.nodes.image = newImage;
+        }
+    }
+    
+    _openLightbox() {
+        if (this.data.mediaType !== 'image' || !this.data.mediaUrl) return;
+
+        // Lightbox Overlay erstellen
+        const overlay = this._make('div', [this.CSS.lightboxOverlay], {
+            style: 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; display: flex; align-items: center; justify-content: center; cursor: pointer;'
+        });
+
+        const image = this._make('img', [this.CSS.lightboxImage], {
+            src: this.data.mediaUrl,
+            alt: this.data.mediaAlt || '',
+            style: 'max-width: 90%; max-height: 90%; object-fit: contain; border-radius: 8px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);'
+        });
+
+        overlay.appendChild(image);
+        document.body.appendChild(overlay);
+
+        // Schließen bei Klick auf Overlay
+        overlay.addEventListener('click', () => {
+            document.body.removeChild(overlay);
+        });
+
+        // Schließen mit Escape-Taste
+        const closeHandler = (e) => {
+            if (e.key === 'Escape') {
+                document.body.removeChild(overlay);
+                document.removeEventListener('keydown', closeHandler);
+            }
+        };
+        document.addEventListener('keydown', closeHandler);
+    }
+    
+    _showVideoOptions() {
+        // Einfache Video-Optionen über Confirm-Dialoge
+        // In einer erweiterten Version könnte hier ein modaler Dialog verwendet werden
+        if (confirm('Autoplay aktivieren?')) {
+            this.data.videoAutoplay = !this.data.videoAutoplay;
+        }
+        
+        if (confirm('Video stumm starten?')) {
+            this.data.videoMuted = !this.data.videoMuted;
+        }
+        
+        if (confirm('Video in Endlosschleife?')) {
+            this.data.videoLoop = !this.data.videoLoop;
+        }
+        
+        // Video-Attribute aktualisieren
+        if (this.nodes.video) {
+            this.nodes.video.autoplay = this.data.videoAutoplay;
+            this.nodes.video.muted = this.data.videoMuted;
+            this.nodes.video.loop = this.data.videoLoop;
+        }
+    }
+    
+    _isVideoFile(filename) {
+        if (!filename) return false;
+        const videoExtensions = ['mp4', 'webm', 'ogg', 'avi', 'mov', 'wmv', 'flv', 'm4v'];
+        const extension = filename.toLowerCase().split('.').pop();
+        return videoExtensions.includes(extension);
     }
     
     _editCaption() {
@@ -467,12 +670,12 @@ class TextImageBlock {
             this.nodes.altWarning = null;
         }
         
-        // Prüfen ob Alt-Text fehlt (leer oder nur Whitespace)
-        const altText = this.data.imageAlt || '';
+        // Prüfen ob Alt-Text fehlt (leer oder nur Whitespace) - nur bei Bildern
+        const altText = this.data.mediaAlt || '';
         const hasAltText = altText.trim().length > 0;
         
-        // Warnsymbol nur anzeigen wenn Alt-Text fehlt und nicht im ReadOnly-Modus
-        if (!hasAltText && !this.readOnly && this.nodes.image && this.nodes.imageWrapper) {
+        // Warnsymbol nur anzeigen wenn Alt-Text fehlt und nicht im ReadOnly-Modus und es ein Bild ist
+        if (!hasAltText && !this.readOnly && this.data.mediaType === 'image' && this.nodes.image && this.nodes.imageWrapper) {
             this.nodes.altWarning = this._make('div', [this.CSS.altWarning], {
                 innerHTML: `
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

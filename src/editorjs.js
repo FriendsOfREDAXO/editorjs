@@ -26,6 +26,8 @@ import './blocks/downloads.js';
 import './blocks/downloads.css';
 import './blocks/gallery.js';
 import './blocks/gallery.css';
+import './blocks/card.js';
+import './blocks/card.css';
 
 // Globale Variablen für REDAXO Backend
 window.EditorJS = EditorJS;
@@ -194,6 +196,16 @@ window.EditorJSUtils = {
                     defaultLayout: 'grid',
                     showTitle: true,
                     showCaptions: true
+                }
+            };
+        }
+
+        if (typeof window.CardBlock !== 'undefined') {
+            tools.card = {
+                class: window.CardBlock,
+                inlineToolbar: true,
+                config: {
+                    defaultLayout: 'vertical'
                 }
             };
         }
