@@ -92,13 +92,37 @@ $demoData = [
             ]
         ],
         [
+            'type' => 'card',
+            'data' => [
+                'title' => 'Neuer Card-Block',
+                'text' => '<p>Der <strong>Card-Block</strong> ist eine neue Funktion, die Bilder oder Videos mit Titel und Text kombiniert. Unterstützt verschiedene Layouts:</p><ul><li>Vertikal (Standard)</li><li>Horizontal</li><li>Grid/Kachel-Layout</li></ul><p>Mit <em>Lightbox-Funktionalität</em> für Bilder und Video-Steuerung für Videos.</p>',
+                'mediaFile' => '',
+                'mediaUrl' => '',
+                'mediaType' => 'image',
+                'mediaAlt' => 'Card-Beispielbild',
+                'layout' => 'vertical',
+                'gridColumns' => 2,
+                'aspectRatio' => '16-9',
+                'lightbox' => true,
+                'linkUrl' => '',
+                'linkTarget' => '_self'
+            ]
+        ],
+        [
             'type' => 'textimage',
             'data' => [
-                'text' => '<p><strong>Text mit Bild</strong></p><p>Dieser Block kombiniert <em>formatierten Text</em> mit einem Bild aus dem REDAXO-Medienpool. Sie können das Layout über die Einstellungen ändern.</p><ul><li>Bild links vom Text</li><li>Bild rechts vom Text</li><li>Bild über dem Text</li></ul>',
-                'imageFile' => '',
-                'imageUrl' => '',
-                'caption' => 'Klicken Sie hier, um ein Bild aus dem Medienpool auszuwählen',
-                'layout' => 'left'
+                'text' => '<p><strong>Erweiterte Text+Bild Funktionen</strong></p><p>Dieser Block wurde erweitert und unterstützt jetzt:</p><ul><li><strong>Video-Support:</strong> Automatische Erkennung von Video-Dateien</li><li><strong>Lightbox:</strong> Bildvergrößerung per Klick</li><li><strong>Video-Steuerung:</strong> Autoplay, Loop, Mute-Optionen</li><li><strong>Bessere UX:</strong> Verbesserte Benutzeroberfläche</li></ul>',
+                'mediaFile' => '',
+                'mediaUrl' => '',
+                'mediaType' => 'image',
+                'mediaAlt' => 'TextImage-Beispiel',
+                'caption' => 'Unterstützt jetzt Bilder und Videos mit Lightbox',
+                'layout' => 'right',
+                'lightbox' => true,
+                'videoAutoplay' => false,
+                'videoMuted' => false,
+                'videoLoop' => false,
+                'videoControls' => true
             ]
         ],
         [

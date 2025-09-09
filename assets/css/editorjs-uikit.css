@@ -1,0 +1,229 @@
+/**
+ * EditorJS UIKit 3 Frontend Styles
+ * Zusätzliche Styles für die UIKit-Fragment-Ausgabe
+ */
+
+/* Card Block Enhancements */
+.cdx-card .uk-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    overflow: hidden;
+}
+
+.cdx-card .uk-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 25px rgba(0, 0, 0, 0.16);
+}
+
+.cdx-card .uk-card-media-top img,
+.cdx-card .uk-card-media-top video {
+    transition: transform 0.3s ease;
+}
+
+.cdx-card:hover .uk-card-media-top img,
+.cdx-card:hover .uk-card-media-top video {
+    transform: scale(1.05);
+}
+
+/* Card Horizontal Layout */
+.cdx-card .uk-card-horizontal {
+    min-height: 250px;
+}
+
+.cdx-card .uk-card-horizontal .uk-cover-container {
+    min-height: 250px;
+}
+
+/* TextImage Block Enhancements */
+.cdx-textimage .uk-transition-toggle {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.cdx-textimage .uk-transition-scale-up {
+    transition: transform 0.3s ease;
+}
+
+.cdx-textimage .uk-transition-toggle:hover .uk-transition-scale-up {
+    transform: scale(1.05);
+}
+
+/* Gallery Specific Enhancements */
+.cdx-gallery .uk-lightbox-toolbar {
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+}
+
+.cdx-gallery .uk-lightbox-caption {
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    padding: 20px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* Gallery Grid Improvements */
+.cdx-gallery [uk-grid] > * {
+    margin-bottom: 20px;
+}
+
+.cdx-gallery .uk-inline-clip {
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f8f9fa;
+}
+
+/* Overlay Enhancements */
+.cdx-gallery .uk-overlay {
+    background: linear-gradient(
+        to top,
+        rgba(0, 0, 0, 0.8) 0%,
+        rgba(0, 0, 0, 0.4) 50%,
+        transparent 100%
+    );
+    backdrop-filter: blur(2px);
+}
+
+.cdx-gallery .uk-transition-slide-bottom-small {
+    transition: transform 0.3s ease;
+}
+
+/* Video Enhancements */
+.cdx-video video {
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Downloads Block */
+.cdx-downloads .uk-list > li {
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+}
+
+.cdx-downloads .uk-list > li:hover {
+    background-color: #f8f9fa;
+}
+
+/* Responsive Improvements */
+@media (max-width: 640px) {
+    .cdx-card .uk-card-horizontal {
+        min-height: auto;
+    }
+    
+    .cdx-card .uk-card-horizontal .uk-cover-container {
+        min-height: 200px;
+    }
+    
+    .cdx-gallery .uk-overlay {
+        font-size: 12px;
+        padding: 10px;
+    }
+    
+    .cdx-gallery .uk-lightbox-caption {
+        padding: 15px;
+        font-size: 12px;
+    }
+}
+
+/* UIKit Lightbox Customizations */
+.uk-lightbox {
+    background: rgba(0, 0, 0, 0.9);
+}
+
+.uk-lightbox-items > * {
+    max-width: 95vw;
+    max-height: 95vh;
+    border-radius: 8px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+}
+
+.uk-lightbox-toolbar {
+    padding: 20px;
+}
+
+.uk-lightbox-button {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+}
+
+.uk-lightbox-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Aspect Ratio Utilities */
+.uk-aspect-ratio-16-9 {
+    aspect-ratio: 16/9;
+}
+
+.uk-aspect-ratio-4-3 {
+    aspect-ratio: 4/3;
+}
+
+.uk-aspect-ratio-1-1 {
+    aspect-ratio: 1/1;
+}
+
+.uk-aspect-ratio-3-2 {
+    aspect-ratio: 3/2;
+}
+
+/* Animation Enhancements */
+.uk-transition-fade {
+    transition: opacity 0.3s ease;
+}
+
+.uk-transition-slide-bottom-small {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .cdx-card .uk-card-default {
+        background: #2d3748;
+        border-color: #4a5568;
+        color: #e2e8f0;
+    }
+    
+    .cdx-textimage .uk-text-muted {
+        color: #a0aec0 !important;
+    }
+    
+    .cdx-gallery .uk-inline-clip {
+        background: #374151;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .cdx-card .uk-card {
+        box-shadow: none;
+        border: 1px solid #000;
+        break-inside: avoid;
+    }
+    
+    .cdx-gallery [uk-grid] > * {
+        break-inside: avoid;
+        margin-bottom: 1rem;
+    }
+    
+    .uk-lightbox {
+        display: none;
+    }
+}
+
+/* Accessibility Improvements */
+@media (prefers-reduced-motion: reduce) {
+    .cdx-card .uk-card,
+    .cdx-textimage .uk-transition-scale-up,
+    .cdx-gallery .uk-transition-slide-bottom-small,
+    .uk-transition-fade {
+        transition: none;
+    }
+}
+
+/* Focus Styles */
+.uk-lightbox-button:focus,
+.cdx-gallery a:focus {
+    outline: 2px solid #0078ff;
+    outline-offset: 2px;
+}

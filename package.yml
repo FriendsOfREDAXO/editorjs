@@ -13,6 +13,9 @@ page:
         renderer:
             title: 'Frontend Renderer'
             perm: editorjs[]
+        settings:
+            title: 'Einstellungen'
+            perm: editorjs[]
             
 requires:
     redaxo: '>=5.16.0'
