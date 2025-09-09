@@ -91,7 +91,7 @@ class EditorJSFragmentRenderer
 
         // Fallback zu Standard-Renderer
         $standardRenderer = new EditorJSRenderer();
-        return $standardRenderer->renderBlock($block);
+        return $this->renderBlockFallback($block, $standardRenderer);
     }
 
     /**
@@ -134,10 +134,51 @@ class EditorJSFragmentRenderer
             }
             // Fallback bei Fehlern
             $standardRenderer = new EditorJSRenderer();
-            return $standardRenderer->renderBlock(['type' => basename($fragmentFile, '.php'), 'data' => $data]);
+            return $this->renderBlockFallback(['type' => basename($fragmentFile, '.php'), 'data' => $data], $standardRenderer);
         }
         
         return ob_get_clean();
+    }
+
+    /**
+     * Fallback-Rendering mit Standard-Renderer
+     */
+    private function renderBlockFallback(array $block, EditorJSRenderer $renderer): string
+    {
+        $type = $block['type'] ?? '';
+        $data = $block['data'] ?? [];
+
+        // Direkt die entsprechende Render-Methode aufrufen
+        switch ($type) {
+            case 'header':
+                return $renderer->renderHeader($data);
+            case 'paragraph':
+                return $renderer->renderParagraph($data);
+            case 'list':
+                return $renderer->renderList($data);
+            case 'quote':
+                return $renderer->renderQuote($data);
+            case 'delimiter':
+                return $renderer->renderDelimiter($data);
+            case 'code':
+                return $renderer->renderCode($data);
+            case 'alert':
+            case 'AlertBlock':
+                return $renderer->renderAlert($data);
+            case 'textimage':
+            case 'TextImageBlock':
+                return $renderer->renderTextImage($data);
+            case 'downloads':
+                return $renderer->renderDownloads($data);
+            case 'gallery':
+            case 'ImageGalleryBlock':
+                return $renderer->renderGallery($data);
+            case 'card':
+            case 'CardBlock':
+                return $renderer->renderCard($data);
+            default:
+                return '<!-- Unbekannter Block-Typ: ' . htmlspecialchars($type) . ' -->';
+        }
     }
 
     /**
