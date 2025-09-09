@@ -64,6 +64,10 @@ class CardBlock {
             contentWrapper: 'cdx-card__content-wrapper',
             title: 'cdx-card__title',
             text: 'cdx-card__text',
+            altTextWrapper: 'cdx-card__alt-text-wrapper',
+            altTextInput: 'cdx-card__alt-text-input',
+            altTextLabel: 'cdx-card__alt-text-label',
+            altTextWarning: 'cdx-card__alt-text-warning',
             button: 'cdx-card__button',
             settingsButton: 'cdx-card__settings-button',
             settingsButtonActive: 'cdx-card__settings-button--active',
@@ -161,6 +165,12 @@ class CardBlock {
 
         contentWrapper.appendChild(title);
         contentWrapper.appendChild(text);
+
+        // ALT Text Input (nur bei Bildern anzeigen)
+        if (this.data.mediaType === 'image' || this.data.mediaUrl) {
+            const altTextWrapper = this._createAltTextInput();
+            contentWrapper.appendChild(altTextWrapper);
+        }
 
         // Layout-spezifische Anordnung
         if (this.data.layout === 'horizontal') {
@@ -461,7 +471,10 @@ class CardBlock {
     }
 
     _openMediapool() {
-        this.mediaTool.selectImage((mediaData) => {
+        this.mediaTool.openMediaPool({
+            types: ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'mp4', 'webm', 'ogg', 'avi', 'mov'],
+            context: 'editorjs_card'
+        }, (mediaData) => {
             this._setMedia(mediaData);
         }).catch(error => {
             if (error.message !== 'Media pool closed without selection') {
@@ -477,7 +490,7 @@ class CardBlock {
         // Daten aus dem MediaTool übernehmen
         this.data.mediaFile = mediaData.filename;
         this.data.mediaUrl = mediaData.url;
-        this.data.mediaAlt = mediaData.alt;
+        this.data.mediaAlt = mediaData.alt || this.data.mediaAlt; // Vorhandenen ALT-Text beibehalten wenn kein neuer da ist
         
         // Medientyp automatisch erkennen
         this.data.mediaType = this._isVideoFile(mediaData.filename) ? 'video' : 'image';
@@ -496,6 +509,19 @@ class CardBlock {
         // Neues Media erstellen und einfügen
         this._createMedia();
         this.nodes.mediaWrapper.insertBefore(this.nodes.media, this.nodes.mediaWrapper.firstChild);
+        
+        // ALT-Text Input hinzufügen/aktualisieren wenn es ein Bild ist
+        if (this.data.mediaType === 'image' && !this.readOnly) {
+            // Prüfen ob ALT-Text Input bereits existiert
+            const existingAltInput = this.nodes.contentWrapper.querySelector('.' + this.CSS.altTextWrapper);
+            if (existingAltInput) {
+                existingAltInput.remove();
+            }
+            
+            // Neuen ALT-Text Input erstellen und einfügen
+            const altTextWrapper = this._createAltTextInput();
+            this.nodes.contentWrapper.appendChild(altTextWrapper);
+        }
     }
 
     _changeLayout(layout) {
@@ -588,6 +614,109 @@ class CardBlock {
             }
         };
         document.addEventListener('keydown', closeHandler);
+    }
+
+    _createAltTextInput() {
+        if (this.readOnly) return this._make('div');
+        
+        const wrapper = this._make('div', [this.CSS.altTextWrapper]);
+        
+        const label = this._make('label', [this.CSS.altTextLabel], {
+            innerHTML: '<i class="fa-solid fa-universal-access"></i> ALT-Text (Barrierefreiheit):'
+        });
+        
+        const input = this._make('input', [this.CSS.altTextInput], {
+            type: 'text',
+            placeholder: 'Beschreibung des Bildes für Screenreader...',
+            value: this.data.mediaAlt || ''
+        });
+        
+        // Warning für fehlenden ALT-Text
+        const warning = this._make('div', [this.CSS.altTextWarning], {
+            innerHTML: '<i class="fa-solid fa-exclamation-triangle"></i> Bild ohne ALT-Text ist nicht barrierefrei!',
+            style: this.data.mediaAlt ? 'display: none;' : 'display: block;'
+        });
+        
+        // Event Listener für Input
+        input.addEventListener('input', (e) => {
+            this.data.mediaAlt = e.target.value.trim();
+            
+            // Warning ein-/ausblenden
+            if (this.data.mediaAlt) {
+                warning.style.display = 'none';
+            } else {
+                warning.style.display = 'block';
+            }
+            
+            // Auch das Bild-Element aktualisieren
+            if (this.nodes.media && this.data.mediaType === 'image') {
+                this.nodes.media.alt = this.data.mediaAlt;
+            }
+        });
+        
+        // Auto-Suggest Button
+        if (this.data.mediaType === 'image') {
+            const suggestButton = this._make('button', 'cdx-card__alt-suggest-button', {
+                innerHTML: '<i class="fa-solid fa-magic"></i> Automatisch vorschlagen',
+                type: 'button',
+                title: 'ALT-Text basierend auf Dateiname vorschlagen'
+            });
+            
+            suggestButton.addEventListener('click', () => {
+                this._suggestAltText(input);
+            });
+            
+            const buttonWrapper = this._make('div', 'cdx-card__alt-button-wrapper');
+            buttonWrapper.appendChild(suggestButton);
+            
+            wrapper.appendChild(label);
+            wrapper.appendChild(input);
+            wrapper.appendChild(buttonWrapper);
+            wrapper.appendChild(warning);
+        } else {
+            wrapper.appendChild(label);
+            wrapper.appendChild(input);
+            wrapper.appendChild(warning);
+        }
+        
+        return wrapper;
+    }
+
+    _suggestAltText(inputElement) {
+        let suggestion = '';
+        
+        // Basis-Vorschlag aus Dateiname ableiten
+        if (this.data.mediaFile) {
+            const filename = this.data.mediaFile.replace(/\.[^/.]+$/, ""); // Erweiterung entfernen
+            suggestion = filename.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        }
+        
+        // Mit Titel kombinieren wenn vorhanden
+        if (this.data.title && this.data.title !== 'Titel eingeben...') {
+            const titleText = this.data.title.replace(/<[^>]*>/g, ''); // HTML entfernen
+            if (titleText.trim()) {
+                suggestion = suggestion ? `${suggestion} - ${titleText}` : titleText;
+            }
+        }
+        
+        // Fallback
+        if (!suggestion) {
+            suggestion = 'Bild';
+        }
+        
+        inputElement.value = suggestion;
+        this.data.mediaAlt = suggestion;
+        
+        // Warning ausblenden
+        const warning = inputElement.parentNode.querySelector('.' + this.CSS.altTextWarning);
+        if (warning) {
+            warning.style.display = 'none';
+        }
+        
+        // Bild-Element aktualisieren
+        if (this.nodes.media && this.data.mediaType === 'image') {
+            this.nodes.media.alt = suggestion;
+        }
     }
 
     _editLink() {

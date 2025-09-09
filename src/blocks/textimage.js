@@ -414,7 +414,10 @@ class TextImageBlock {
     }
 
     _openMediapool() {
-        this.mediaTool.selectImage((mediaData) => {
+        this.mediaTool.openMediaPool({
+            types: ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'mp4', 'webm', 'ogg', 'avi', 'mov'],
+            context: 'editorjs_textimage'
+        }, (mediaData) => {
             this._setMedia(mediaData);
         }).catch(error => {
             // Nur echte Fehler anzeigen, nicht wenn der User den Dialog abbricht

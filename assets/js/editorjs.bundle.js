@@ -17129,7 +17129,10 @@ var EditorJSBundle = (() => {
       this.nodes.selectButton = button;
     }
     _openMediapool() {
-      this.mediaTool.selectImage((mediaData) => {
+      this.mediaTool.openMediaPool({
+        types: ["jpg", "jpeg", "png", "gif", "svg", "webp", "mp4", "webm", "ogg", "avi", "mov"],
+        context: "editorjs_textimage"
+      }, (mediaData) => {
         this._setMedia(mediaData);
       }).catch((error) => {
         if (error.message !== "Media pool closed without selection") {
@@ -19835,6 +19838,10 @@ var EditorJSBundle = (() => {
         contentWrapper: "cdx-card__content-wrapper",
         title: "cdx-card__title",
         text: "cdx-card__text",
+        altTextWrapper: "cdx-card__alt-text-wrapper",
+        altTextInput: "cdx-card__alt-text-input",
+        altTextLabel: "cdx-card__alt-text-label",
+        altTextWarning: "cdx-card__alt-text-warning",
         button: "cdx-card__button",
         settingsButton: "cdx-card__settings-button",
         settingsButtonActive: "cdx-card__settings-button--active",
@@ -19920,6 +19927,10 @@ var EditorJSBundle = (() => {
       }
       contentWrapper.appendChild(title);
       contentWrapper.appendChild(text);
+      if (this.data.mediaType === "image" || this.data.mediaUrl) {
+        const altTextWrapper = this._createAltTextInput();
+        contentWrapper.appendChild(altTextWrapper);
+      }
       if (this.data.layout === "horizontal") {
         container.appendChild(mediaWrapper);
         container.appendChild(contentWrapper);
@@ -20158,7 +20169,10 @@ var EditorJSBundle = (() => {
       this.nodes.selectButton = button;
     }
     _openMediapool() {
-      this.mediaTool.selectImage((mediaData) => {
+      this.mediaTool.openMediaPool({
+        types: ["jpg", "jpeg", "png", "gif", "svg", "webp", "mp4", "webm", "ogg", "avi", "mov"],
+        context: "editorjs_card"
+      }, (mediaData) => {
         this._setMedia(mediaData);
       }).catch((error) => {
         if (error.message !== "Media pool closed without selection") {
@@ -20172,7 +20186,7 @@ var EditorJSBundle = (() => {
     _setMedia(mediaData) {
       this.data.mediaFile = mediaData.filename;
       this.data.mediaUrl = mediaData.url;
-      this.data.mediaAlt = mediaData.alt;
+      this.data.mediaAlt = mediaData.alt || this.data.mediaAlt;
       this.data.mediaType = this._isVideoFile(mediaData.filename) ? "video" : "image";
       if (this.nodes.selectButton) {
         this.nodes.selectButton.remove();
@@ -20184,6 +20198,14 @@ var EditorJSBundle = (() => {
       }
       this._createMedia();
       this.nodes.mediaWrapper.insertBefore(this.nodes.media, this.nodes.mediaWrapper.firstChild);
+      if (this.data.mediaType === "image" && !this.readOnly) {
+        const existingAltInput = this.nodes.contentWrapper.querySelector("." + this.CSS.altTextWrapper);
+        if (existingAltInput) {
+          existingAltInput.remove();
+        }
+        const altTextWrapper = this._createAltTextInput();
+        this.nodes.contentWrapper.appendChild(altTextWrapper);
+      }
     }
     _changeLayout(layout) {
       this.data.layout = layout;
@@ -20253,6 +20275,79 @@ var EditorJSBundle = (() => {
         }
       };
       document.addEventListener("keydown", closeHandler);
+    }
+    _createAltTextInput() {
+      if (this.readOnly) return this._make("div");
+      const wrapper = this._make("div", [this.CSS.altTextWrapper]);
+      const label = this._make("label", [this.CSS.altTextLabel], {
+        innerHTML: '<i class="fa-solid fa-universal-access"></i> ALT-Text (Barrierefreiheit):'
+      });
+      const input = this._make("input", [this.CSS.altTextInput], {
+        type: "text",
+        placeholder: "Beschreibung des Bildes f\xFCr Screenreader...",
+        value: this.data.mediaAlt || ""
+      });
+      const warning = this._make("div", [this.CSS.altTextWarning], {
+        innerHTML: '<i class="fa-solid fa-exclamation-triangle"></i> Bild ohne ALT-Text ist nicht barrierefrei!',
+        style: this.data.mediaAlt ? "display: none;" : "display: block;"
+      });
+      input.addEventListener("input", (e) => {
+        this.data.mediaAlt = e.target.value.trim();
+        if (this.data.mediaAlt) {
+          warning.style.display = "none";
+        } else {
+          warning.style.display = "block";
+        }
+        if (this.nodes.media && this.data.mediaType === "image") {
+          this.nodes.media.alt = this.data.mediaAlt;
+        }
+      });
+      if (this.data.mediaType === "image") {
+        const suggestButton = this._make("button", "cdx-card__alt-suggest-button", {
+          innerHTML: '<i class="fa-solid fa-magic"></i> Automatisch vorschlagen',
+          type: "button",
+          title: "ALT-Text basierend auf Dateiname vorschlagen"
+        });
+        suggestButton.addEventListener("click", () => {
+          this._suggestAltText(input);
+        });
+        const buttonWrapper = this._make("div", "cdx-card__alt-button-wrapper");
+        buttonWrapper.appendChild(suggestButton);
+        wrapper.appendChild(label);
+        wrapper.appendChild(input);
+        wrapper.appendChild(buttonWrapper);
+        wrapper.appendChild(warning);
+      } else {
+        wrapper.appendChild(label);
+        wrapper.appendChild(input);
+        wrapper.appendChild(warning);
+      }
+      return wrapper;
+    }
+    _suggestAltText(inputElement) {
+      let suggestion = "";
+      if (this.data.mediaFile) {
+        const filename = this.data.mediaFile.replace(/\.[^/.]+$/, "");
+        suggestion = filename.replace(/[-_]/g, " ").replace(/\b\w/g, (c4) => c4.toUpperCase());
+      }
+      if (this.data.title && this.data.title !== "Titel eingeben...") {
+        const titleText = this.data.title.replace(/<[^>]*>/g, "");
+        if (titleText.trim()) {
+          suggestion = suggestion ? `${suggestion} - ${titleText}` : titleText;
+        }
+      }
+      if (!suggestion) {
+        suggestion = "Bild";
+      }
+      inputElement.value = suggestion;
+      this.data.mediaAlt = suggestion;
+      const warning = inputElement.parentNode.querySelector("." + this.CSS.altTextWarning);
+      if (warning) {
+        warning.style.display = "none";
+      }
+      if (this.nodes.media && this.data.mediaType === "image") {
+        this.nodes.media.alt = suggestion;
+      }
     }
     _editLink() {
       if (typeof REXLinkTool !== "undefined") {

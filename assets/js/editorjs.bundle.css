@@ -1564,7 +1564,47 @@
 .cdx-card[data-layout=horizontal] .cdx-card__content-wrapper {
   flex: 1;
 }
-.cdx-card[data-layout=grid] {
+.cdx-card[data-layout=grid] .cdx-card__container {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-columns, 2), 1fr);
+  gap: 1rem;
+  padding: 1.5rem;
+}
+.cdx-card[data-layout=grid][data-grid-columns="1"] .cdx-card__container {
+  grid-template-columns: 1fr;
+}
+.cdx-card[data-layout=grid][data-grid-columns="2"] .cdx-card__container {
+  grid-template-columns: repeat(2, 1fr);
+}
+.cdx-card[data-layout=grid][data-grid-columns="3"] .cdx-card__container {
+  grid-template-columns: repeat(3, 1fr);
+}
+.cdx-card[data-layout=grid][data-grid-columns="4"] .cdx-card__container {
+  grid-template-columns: repeat(4, 1fr);
+}
+.cdx-card[data-layout=grid] .cdx-card__media-wrapper,
+.cdx-card[data-layout=grid] .cdx-card__content-wrapper {
+  display: contents;
+}
+.cdx-card[data-layout=grid] .cdx-card__media-wrapper > *,
+.cdx-card[data-layout=grid] .cdx-card__content-wrapper > * {
+  background: #f8f9fa;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 1rem;
+  margin: 0.25rem;
+}
+.cdx-card[data-layout=grid]::before {
+  content: "Grid Layout (" attr(data-grid-columns) " Spalten) - Vorschau im Editor";
+  display: block;
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  border-left: 4px solid #1976d2;
 }
 .cdx-card__media-wrapper {
   position: relative;
@@ -1671,6 +1711,77 @@
 }
 .cdx-card__button i {
   font-size: 1.25rem;
+}
+.cdx-card__alt-text-wrapper {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+}
+.cdx-card__alt-text-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+}
+.cdx-card__alt-text-label i {
+  color: #28a745;
+  margin-right: 0.25rem;
+}
+.cdx-card__alt-text-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+.cdx-card__alt-text-input:focus {
+  border-color: #80bdff;
+  outline: 0;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+.cdx-card__alt-text-input::placeholder {
+  color: #6c757d;
+  font-style: italic;
+}
+.cdx-card__alt-text-warning {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 4px;
+  color: #856404;
+  font-size: 0.8125rem;
+}
+.cdx-card__alt-text-warning i {
+  color: #f39c12;
+}
+.cdx-card__alt-button-wrapper {
+  margin-top: 0.5rem;
+}
+.cdx-card__alt-suggest-button {
+  padding: 0.375rem 0.75rem;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+}
+.cdx-card__alt-suggest-button:hover {
+  background: #5a6268;
+}
+.cdx-card__alt-suggest-button i {
+  margin-right: 0.25rem;
 }
 .cdx-card__settings-button {
   display: inline-flex;
