@@ -28,6 +28,8 @@ import './blocks/gallery.js';
 import './blocks/gallery.css';
 import './blocks/card.js';
 import './blocks/card.css';
+import './blocks/cardssection.js';
+import './blocks/cardssection.css';
 
 // Globale Variablen für REDAXO Backend
 window.EditorJS = EditorJS;
@@ -206,6 +208,17 @@ window.EditorJSUtils = {
                 inlineToolbar: true,
                 config: {
                     defaultLayout: 'vertical'
+                }
+            };
+        }
+
+        if (typeof window.CardsSectionBlock !== 'undefined') {
+            tools.cards = {
+                class: window.CardsSectionBlock,
+                config: {
+                    defaultLayout: 'grid',
+                    showTitle: true,
+                    gridColumns: 3
                 }
             };
         }

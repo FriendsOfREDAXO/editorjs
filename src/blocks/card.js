@@ -94,8 +94,7 @@ class CardBlock {
             mediaUrl: data.mediaUrl || '',
             mediaType: data.mediaType || '', // 'image' or 'video'
             mediaAlt: data.mediaAlt || '',
-            layout: data.layout || 'vertical', // vertical, horizontal, grid
-            gridColumns: data.gridColumns || 2, // 1-4 columns for grid layout
+            layout: data.layout || 'vertical', // vertical, horizontal
             aspectRatio: data.aspectRatio || 'auto', // auto, 16-9, 4-3, 1-1
             lightbox: data.lightbox !== undefined ? data.lightbox : true, // Lightbox für Bilder
             videoAutoplay: data.videoAutoplay !== undefined ? data.videoAutoplay : false,
@@ -108,8 +107,7 @@ class CardBlock {
 
         this.layouts = {
             vertical: { title: 'Vertikal', icon: '<i class="fa-solid fa-grip-lines"></i>' },
-            horizontal: { title: 'Horizontal', icon: '<i class="fa-solid fa-grip-lines-vertical"></i>' },
-            grid: { title: 'Kachel', icon: '<i class="fa-solid fa-th"></i>' }
+            horizontal: { title: 'Horizontal', icon: '<i class="fa-solid fa-grip-lines-vertical"></i>' }
         };
 
         this.aspectRatios = {
@@ -125,7 +123,6 @@ class CardBlock {
         const container = this._make('div', [this.CSS.container]);
         
         holder.dataset.layout = this.data.layout;
-        holder.dataset.gridColumns = this.data.gridColumns;
         holder.dataset.aspectRatio = this.data.aspectRatio;
         holder.appendChild(container);
 
@@ -218,34 +215,6 @@ class CardBlock {
 
             wrapper.appendChild(button);
         });
-
-        // Grid Columns (nur bei grid layout)
-        if (this.data.layout === 'grid') {
-            for (let i = 1; i <= 4; i++) {
-                const colButton = this._make('span', [this.CSS.settingsButton], {
-                    innerHTML: `<i class="fa-solid fa-th"></i> ${i}`,
-                    title: `${i} Spalten`
-                });
-
-                colButton.addEventListener('click', () => {
-                    this._changeGridColumns(i);
-                    
-                    // Update active state for column buttons
-                    wrapper.querySelectorAll('.' + this.CSS.settingsButton).forEach(btn => {
-                        if (btn.innerHTML.includes('fa-th')) {
-                            btn.classList.remove(this.CSS.settingsButtonActive);
-                        }
-                    });
-                    colButton.classList.add(this.CSS.settingsButtonActive);
-                });
-
-                if (i === this.data.gridColumns) {
-                    colButton.classList.add(this.CSS.settingsButtonActive);
-                }
-
-                wrapper.appendChild(colButton);
-            }
-        }
 
         // Aspect Ratio
         Object.entries(this.aspectRatios).forEach(([ratio, config]) => {
@@ -345,7 +314,6 @@ class CardBlock {
             mediaType: this.data.mediaType,
             mediaAlt: this.data.mediaAlt,
             layout: this.data.layout,
-            gridColumns: this.data.gridColumns,
             aspectRatio: this.data.aspectRatio,
             lightbox: this.data.lightbox,
             videoAutoplay: this.data.videoAutoplay,
@@ -390,7 +358,6 @@ class CardBlock {
             mediaType: {},
             mediaAlt: {},
             layout: {},
-            gridColumns: {},
             aspectRatio: {},
             lightbox: {},
             videoAutoplay: {},
@@ -527,16 +494,6 @@ class CardBlock {
     _changeLayout(layout) {
         this.data.layout = layout;
         this.nodes.holder.dataset.layout = layout;
-        
-        // Bei Grid-Layout auch Spalten-Buttons anzeigen
-        if (layout === 'grid') {
-            this.nodes.holder.dataset.gridColumns = this.data.gridColumns;
-        }
-    }
-
-    _changeGridColumns(columns) {
-        this.data.gridColumns = columns;
-        this.nodes.holder.dataset.gridColumns = columns;
     }
 
     _changeAspectRatio(ratio) {

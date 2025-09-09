@@ -2431,7 +2431,7 @@ var EditorJSBundle = (() => {
     (function(t, o4) {
       n3.exports = o4();
     })(window, function() {
-      return function(t) {
+      return (function(t) {
         var o4 = {};
         function i(s3) {
           if (o4[s3])
@@ -2449,9 +2449,9 @@ var EditorJSBundle = (() => {
           var a4 = /* @__PURE__ */ Object.create(null);
           if (i.r(a4), Object.defineProperty(a4, "default", { enumerable: true, value: s3 }), 2 & r2 && typeof s3 != "string")
             for (var l3 in s3)
-              i.d(a4, l3, function(c4) {
+              i.d(a4, l3, (function(c4) {
                 return s3[c4];
-              }.bind(null, l3));
+              }).bind(null, l3));
           return a4;
         }, i.n = function(s3) {
           var r2 = s3 && s3.__esModule ? function() {
@@ -2463,12 +2463,12 @@ var EditorJSBundle = (() => {
         }, i.o = function(s3, r2) {
           return Object.prototype.hasOwnProperty.call(s3, r2);
         }, i.p = "/", i(i.s = 0);
-      }([function(t, o4, i) {
+      })([function(t, o4, i) {
         i(1), /*!
         * Codex JavaScript Notification module
         * https://github.com/codex-team/js-notifier
         */
-        t.exports = function() {
+        t.exports = (function() {
           var s3 = i(6), r2 = "cdx-notify--bounce-in", a4 = null;
           return { show: function(l3) {
             if (l3.message) {
@@ -2493,7 +2493,7 @@ var EditorJSBundle = (() => {
               a4.appendChild(c4), c4.classList.add(r2);
             }
           } };
-        }();
+        })();
       }, function(t, o4, i) {
         var s3 = i(2);
         typeof s3 == "string" && (s3 = [[t.i, s3, ""]]);
@@ -2506,7 +2506,7 @@ var EditorJSBundle = (() => {
           var s3 = [];
           return s3.toString = function() {
             return this.map(function(r2) {
-              var a4 = function(l3, c4) {
+              var a4 = (function(l3, c4) {
                 var u2 = l3[1] || "", h5 = l3[3];
                 if (!h5)
                   return u2;
@@ -2520,7 +2520,7 @@ var EditorJSBundle = (() => {
                 var f2;
                 return [u2].join(`
 `);
-              }(r2, i);
+              })(r2, i);
               return r2[2] ? "@media " + r2[2] + "{" + a4 + "}" : a4;
             }).join("");
           }, s3.i = function(r2, a4) {
@@ -2540,15 +2540,15 @@ var EditorJSBundle = (() => {
           return window && document && document.all && !window.atob;
         }, function() {
           return r2 === void 0 && (r2 = s3.apply(this, arguments)), r2;
-        }), c4 = /* @__PURE__ */ function(k3) {
+        }), c4 = /* @__PURE__ */ (function(k3) {
           var m3 = {};
           return function(w2) {
             if (typeof w2 == "function")
               return w2();
             if (m3[w2] === void 0) {
-              var x3 = function(I4) {
+              var x3 = (function(I4) {
                 return document.querySelector(I4);
-              }.call(this, w2);
+              }).call(this, w2);
               if (window.HTMLIFrameElement && x3 instanceof window.HTMLIFrameElement)
                 try {
                   x3 = x3.contentDocument.head;
@@ -2559,7 +2559,7 @@ var EditorJSBundle = (() => {
             }
             return m3[w2];
           };
-        }(), u2 = null, h5 = 0, p2 = [], g3 = i(5);
+        })(), u2 = null, h5 = 0, p2 = [], g3 = i(5);
         function f2(k3, m3) {
           for (var w2 = 0; w2 < k3.length; w2++) {
             var x3 = k3[w2], I4 = a4[x3.id];
@@ -2633,18 +2633,18 @@ var EditorJSBundle = (() => {
             var N3 = h5++;
             w2 = u2 || (u2 = M3(m3)), x3 = ie3.bind(null, w2, N3, false), I4 = ie3.bind(null, w2, N3, true);
           } else
-            k3.sourceMap && typeof URL == "function" && typeof URL.createObjectURL == "function" && typeof URL.revokeObjectURL == "function" && typeof Blob == "function" && typeof btoa == "function" ? (w2 = function(B3) {
+            k3.sourceMap && typeof URL == "function" && typeof URL.createObjectURL == "function" && typeof URL.revokeObjectURL == "function" && typeof Blob == "function" && typeof btoa == "function" ? (w2 = (function(B3) {
               var W3 = document.createElement("link");
               return B3.attrs.type === void 0 && (B3.attrs.type = "text/css"), B3.attrs.rel = "stylesheet", q3(W3, B3.attrs), O4(B3, W3), W3;
-            }(m3), x3 = function(B3, W3, ve3) {
+            })(m3), x3 = (function(B3, W3, ve3) {
               var se3 = ve3.css, tt3 = ve3.sourceMap, Yn2 = W3.convertToAbsoluteUrls === void 0 && tt3;
               (W3.convertToAbsoluteUrls || Yn2) && (se3 = g3(se3)), tt3 && (se3 += `
 /*# sourceMappingURL=data:application/json;base64,` + btoa(unescape(encodeURIComponent(JSON.stringify(tt3)))) + " */");
               var Kn2 = new Blob([se3], { type: "text/css" }), ko = B3.href;
               B3.href = URL.createObjectURL(Kn2), ko && URL.revokeObjectURL(ko);
-            }.bind(null, w2, m3), I4 = function() {
+            }).bind(null, w2, m3), I4 = function() {
               T3(w2), w2.href && URL.revokeObjectURL(w2.href);
-            }) : (w2 = M3(m3), x3 = function(B3, W3) {
+            }) : (w2 = M3(m3), x3 = (function(B3, W3) {
               var ve3 = W3.css, se3 = W3.media;
               if (se3 && B3.setAttribute("media", se3), B3.styleSheet)
                 B3.styleSheet.cssText = ve3;
@@ -2653,7 +2653,7 @@ var EditorJSBundle = (() => {
                   B3.removeChild(B3.firstChild);
                 B3.appendChild(document.createTextNode(ve3));
               }
-            }.bind(null, w2), I4 = function() {
+            }).bind(null, w2), I4 = function() {
               T3(w2);
             });
           return x3(k3), function(B3) {
@@ -3095,7 +3095,7 @@ var EditorJSBundle = (() => {
     (function(t, o4) {
       n3.exports = o4();
     })(window, function() {
-      return function(t) {
+      return (function(t) {
         var o4 = {};
         function i(s3) {
           if (o4[s3])
@@ -3113,9 +3113,9 @@ var EditorJSBundle = (() => {
           var a4 = /* @__PURE__ */ Object.create(null);
           if (i.r(a4), Object.defineProperty(a4, "default", { enumerable: true, value: s3 }), 2 & r2 && typeof s3 != "string")
             for (var l3 in s3)
-              i.d(a4, l3, function(c4) {
+              i.d(a4, l3, (function(c4) {
                 return s3[c4];
-              }.bind(null, l3));
+              }).bind(null, l3));
           return a4;
         }, i.n = function(s3) {
           var r2 = s3 && s3.__esModule ? function() {
@@ -3127,7 +3127,7 @@ var EditorJSBundle = (() => {
         }, i.o = function(s3, r2) {
           return Object.prototype.hasOwnProperty.call(s3, r2);
         }, i.p = "", i(i.s = 0);
-      }([function(t, o4, i) {
+      })([function(t, o4, i) {
         t.exports = i(1);
       }, function(t, o4, i) {
         i.r(o4), i.d(o4, "default", function() {
@@ -4851,7 +4851,7 @@ var EditorJSBundle = (() => {
     (function(t, o4) {
       n3.exports = o4();
     })(window, function() {
-      return function(t) {
+      return (function(t) {
         var o4 = {};
         function i(s3) {
           if (o4[s3])
@@ -4869,9 +4869,9 @@ var EditorJSBundle = (() => {
           var a4 = /* @__PURE__ */ Object.create(null);
           if (i.r(a4), Object.defineProperty(a4, "default", { enumerable: true, value: s3 }), 2 & r2 && typeof s3 != "string")
             for (var l3 in s3)
-              i.d(a4, l3, function(c4) {
+              i.d(a4, l3, (function(c4) {
                 return s3[c4];
-              }.bind(null, l3));
+              }).bind(null, l3));
           return a4;
         }, i.n = function(s3) {
           var r2 = s3 && s3.__esModule ? function() {
@@ -4883,7 +4883,7 @@ var EditorJSBundle = (() => {
         }, i.o = function(s3, r2) {
           return Object.prototype.hasOwnProperty.call(s3, r2);
         }, i.p = "", i(i.s = 0);
-      }([function(t, o4, i) {
+      })([function(t, o4, i) {
         function s3(l3, c4) {
           for (var u2 = 0; u2 < c4.length; u2++) {
             var h5 = c4[u2];
@@ -4894,7 +4894,7 @@ var EditorJSBundle = (() => {
           return c4 && s3(l3.prototype, c4), u2 && s3(l3, u2), l3;
         }
         i.r(o4);
-        var a4 = function() {
+        var a4 = (function() {
           function l3(c4) {
             var u2 = this;
             (function(h5, p2) {
@@ -4933,7 +4933,7 @@ var EditorJSBundle = (() => {
           } }, { key: "remove", value: function() {
             this.element.removeEventListener("keydown", this.executeShortcut);
           } }]), l3;
-        }();
+        })();
         o4.default = a4;
       }]).default;
     });
@@ -15756,7 +15756,7 @@ var EditorJSBundle = (() => {
     (function(d4, v4) {
       k3.exports = v4();
     })(window, function() {
-      return function(d4) {
+      return (function(d4) {
         var v4 = {};
         function c4(i) {
           if (v4[i])
@@ -15774,9 +15774,9 @@ var EditorJSBundle = (() => {
           var p2 = /* @__PURE__ */ Object.create(null);
           if (c4.r(p2), Object.defineProperty(p2, "default", { enumerable: true, value: i }), 2 & a4 && typeof i != "string")
             for (var l3 in i)
-              c4.d(p2, l3, function(n3) {
+              c4.d(p2, l3, (function(n3) {
                 return i[n3];
-              }.bind(null, l3));
+              }).bind(null, l3));
           return p2;
         }, c4.n = function(i) {
           var a4 = i && i.__esModule ? function() {
@@ -15788,11 +15788,11 @@ var EditorJSBundle = (() => {
         }, c4.o = function(i, a4) {
           return Object.prototype.hasOwnProperty.call(i, a4);
         }, c4.p = "", c4(c4.s = 3);
-      }([function(d4, v4) {
+      })([function(d4, v4) {
         var c4;
-        c4 = /* @__PURE__ */ function() {
+        c4 = /* @__PURE__ */ (function() {
           return this;
-        }();
+        })();
         try {
           c4 = c4 || new Function("return this")();
         } catch {
@@ -16012,9 +16012,9 @@ var EditorJSBundle = (() => {
             case "PUT":
             case "DELETE":
             case "UPDATE":
-              var r2 = function() {
+              var r2 = (function() {
                 return (arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : {}).type || a4.JSON;
-              }(t);
+              })(t);
               (s3.isFormData(t.data) || s3.isFormElement(t.data)) && (r2 = a4.FORM), t.data = e(t.data, r2), r2 !== h5.contentType.FORM && (t.headers["content-type"] = r2);
           }
           return t;
@@ -16085,14 +16085,14 @@ var EditorJSBundle = (() => {
                 a4.nextTick(function() {
                   b4(g3);
                 });
-              } : function() {
+              } : (function() {
                 if (p2.postMessage && !p2.importScripts) {
                   var g3 = true, _3 = p2.onmessage;
                   return p2.onmessage = function() {
                     g3 = false;
                   }, p2.postMessage("", "*"), p2.onmessage = _3, g3;
                 }
-              }() ? (s3 = "setImmediate$" + Math.random() + "$", h5 = function(g3) {
+              })() ? (s3 = "setImmediate$" + Math.random() + "$", h5 = function(g3) {
                 g3.source === p2 && typeof g3.data == "string" && g3.data.indexOf(s3) === 0 && b4(+g3.data.slice(s3.length));
               }, p2.addEventListener ? p2.addEventListener("message", h5, false) : p2.attachEvent("onmessage", h5), n3 = function(g3) {
                 p2.postMessage(s3 + g3, "*");
@@ -16201,7 +16201,7 @@ var EditorJSBundle = (() => {
                 o4 && o4[h5].run();
               h5 = -1, m3 = e.length;
             }
-            o4 = null, s3 = false, function(b4) {
+            o4 = null, s3 = false, (function(b4) {
               if (i === clearTimeout)
                 return clearTimeout(b4);
               if ((i === l3 || !i) && clearTimeout)
@@ -16215,7 +16215,7 @@ var EditorJSBundle = (() => {
                   return i.call(this, b4);
                 }
               }
-            }(f2);
+            })(f2);
           }
         }
         function r2(f2, m3) {
@@ -16250,7 +16250,7 @@ var EditorJSBundle = (() => {
           }
         }
         var a4 = c4(9);
-        d4.exports = function() {
+        d4.exports = (function() {
           function p2() {
             (function(e, s3) {
               if (!(e instanceof s3))
@@ -16297,16 +16297,16 @@ var EditorJSBundle = (() => {
               r2 && (h5[r2] = u2);
             }), h5;
           } }], (n3 = null) && i(l3.prototype, n3), o4 && i(l3, o4), p2;
-        }();
+        })();
       }, function(d4, v4) {
         var c4 = function(a4) {
           return encodeURIComponent(a4).replace(/[!'()*]/g, escape).replace(/%20/g, "+");
         }, i = function(a4, p2, l3, n3) {
-          return p2 = p2 || null, l3 = l3 || "&", n3 = n3 || null, a4 ? function(o4) {
+          return p2 = p2 || null, l3 = l3 || "&", n3 = n3 || null, a4 ? (function(o4) {
             for (var e = new Array(), s3 = 0; s3 < o4.length; s3++)
               o4[s3] && e.push(o4[s3]);
             return e;
-          }(Object.keys(a4).map(function(o4) {
+          })(Object.keys(a4).map(function(o4) {
             var e, s3, h5 = o4;
             if (n3 && (h5 = n3 + "[" + h5 + "]"), typeof a4[o4] == "object" && a4[o4] !== null)
               e = i(a4[o4], null, l3, h5);
@@ -19868,9 +19868,7 @@ var EditorJSBundle = (() => {
         // 'image' or 'video'
         mediaAlt: data.mediaAlt || "",
         layout: data.layout || "vertical",
-        // vertical, horizontal, grid
-        gridColumns: data.gridColumns || 2,
-        // 1-4 columns for grid layout
+        // vertical, horizontal
         aspectRatio: data.aspectRatio || "auto",
         // auto, 16-9, 4-3, 1-1
         lightbox: data.lightbox !== void 0 ? data.lightbox : true,
@@ -19885,8 +19883,7 @@ var EditorJSBundle = (() => {
       };
       this.layouts = {
         vertical: { title: "Vertikal", icon: '<i class="fa-solid fa-grip-lines"></i>' },
-        horizontal: { title: "Horizontal", icon: '<i class="fa-solid fa-grip-lines-vertical"></i>' },
-        grid: { title: "Kachel", icon: '<i class="fa-solid fa-th"></i>' }
+        horizontal: { title: "Horizontal", icon: '<i class="fa-solid fa-grip-lines-vertical"></i>' }
       };
       this.aspectRatios = {
         "auto": { title: "Automatisch", icon: '<i class="fa-solid fa-expand-arrows-alt"></i>' },
@@ -19899,7 +19896,6 @@ var EditorJSBundle = (() => {
       const holder = this._make("div", [this.CSS.baseClass, this.CSS.wrapper]);
       const container = this._make("div", [this.CSS.container]);
       holder.dataset.layout = this.data.layout;
-      holder.dataset.gridColumns = this.data.gridColumns;
       holder.dataset.aspectRatio = this.data.aspectRatio;
       holder.appendChild(container);
       const mediaWrapper = this._make("div", [this.CSS.mediaWrapper]);
@@ -19965,27 +19961,6 @@ var EditorJSBundle = (() => {
         }
         wrapper.appendChild(button);
       });
-      if (this.data.layout === "grid") {
-        for (let i = 1; i <= 4; i++) {
-          const colButton = this._make("span", [this.CSS.settingsButton], {
-            innerHTML: `<i class="fa-solid fa-th"></i> ${i}`,
-            title: `${i} Spalten`
-          });
-          colButton.addEventListener("click", () => {
-            this._changeGridColumns(i);
-            wrapper.querySelectorAll("." + this.CSS.settingsButton).forEach((btn) => {
-              if (btn.innerHTML.includes("fa-th")) {
-                btn.classList.remove(this.CSS.settingsButtonActive);
-              }
-            });
-            colButton.classList.add(this.CSS.settingsButtonActive);
-          });
-          if (i === this.data.gridColumns) {
-            colButton.classList.add(this.CSS.settingsButtonActive);
-          }
-          wrapper.appendChild(colButton);
-        }
-      }
       Object.entries(this.aspectRatios).forEach(([ratio, config]) => {
         const button = this._make("span", [this.CSS.settingsButton], {
           innerHTML: config.icon,
@@ -20059,7 +20034,6 @@ var EditorJSBundle = (() => {
         mediaType: this.data.mediaType,
         mediaAlt: this.data.mediaAlt,
         layout: this.data.layout,
-        gridColumns: this.data.gridColumns,
         aspectRatio: this.data.aspectRatio,
         lightbox: this.data.lightbox,
         videoAutoplay: this.data.videoAutoplay,
@@ -20103,7 +20077,6 @@ var EditorJSBundle = (() => {
         mediaType: {},
         mediaAlt: {},
         layout: {},
-        gridColumns: {},
         aspectRatio: {},
         lightbox: {},
         videoAutoplay: {},
@@ -20210,13 +20183,6 @@ var EditorJSBundle = (() => {
     _changeLayout(layout) {
       this.data.layout = layout;
       this.nodes.holder.dataset.layout = layout;
-      if (layout === "grid") {
-        this.nodes.holder.dataset.gridColumns = this.data.gridColumns;
-      }
-    }
-    _changeGridColumns(columns) {
-      this.data.gridColumns = columns;
-      this.nodes.holder.dataset.gridColumns = columns;
     }
     _changeAspectRatio(ratio) {
       this.data.aspectRatio = ratio;
@@ -20407,6 +20373,479 @@ var EditorJSBundle = (() => {
   };
   window.CardBlock = CardBlock;
 
+  // src/blocks/cardssection.js
+  var CardsSectionBlock = class {
+    static get toolbox() {
+      return {
+        title: "Cards",
+        icon: '<svg width="17" height="15" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="3" width="8" height="10" rx="2" ry="2" stroke="currentColor" fill="none" stroke-width="1.5"/><rect x="14" y="3" width="8" height="10" rx="2" ry="2" stroke="currentColor" fill="none" stroke-width="1.5"/><rect x="8" y="16" width="8" height="6" rx="2" ry="2" stroke="currentColor" fill="none" stroke-width="1.5"/><rect x="4" y="5" width="4" height="3" rx="1" fill="currentColor" opacity="0.3"/><line x1="4" y1="9" x2="6" y2="9" stroke="currentColor" stroke-width="1"/><line x1="4" y1="10" x2="7" y2="10" stroke="currentColor" stroke-width="1"/></svg>'
+      };
+    }
+    static get isReadOnlySupported() {
+      return true;
+    }
+    constructor({ data, config, api, readOnly }) {
+      this.api = api;
+      this.readOnly = readOnly;
+      this.mediaTool = new REXMediaTool({
+        api: this.api,
+        config: {
+          types: ["jpg", "jpeg", "png", "gif", "svg", "webp", "mp4", "webm", "ogg", "avi", "mov"],
+          context: "editorjs_cards"
+        }
+      });
+      this.CSS = {
+        wrapper: "cdx-cards-section",
+        container: "cdx-cards-section__container",
+        item: "cdx-cards-section__item",
+        itemHeader: "cdx-cards-section__item-header",
+        itemContent: "cdx-cards-section__item-content",
+        itemActions: "cdx-cards-section__item-actions",
+        mediaSelect: "cdx-cards-section__media-select",
+        mediaPreview: "cdx-cards-section__media-preview",
+        mediaWrapper: "cdx-cards-section__media-wrapper",
+        image: "cdx-cards-section__image",
+        video: "cdx-cards-section__video",
+        altTextWrapper: "cdx-cards-section__alt-text-wrapper",
+        altTextInput: "cdx-cards-section__alt-text-input",
+        altTextLabel: "cdx-cards-section__alt-text-label",
+        altTextWarning: "cdx-cards-section__alt-text-warning",
+        titleInput: "cdx-cards-section__title-input",
+        textInput: "cdx-cards-section__text-input",
+        addButton: "cdx-cards-section__add-button",
+        removeButton: "cdx-cards-section__remove-button",
+        dragHandle: "cdx-cards-section__drag-handle",
+        settingsButton: "cdx-cards-section__settings-button",
+        settingsButtonActive: "cdx-cards-section__settings-button--active"
+      };
+      this.nodes = {
+        wrapper: null,
+        container: null
+      };
+      this.data = {
+        title: data.title || "Cards",
+        items: data.items || [this._createEmptyItem()],
+        showTitle: data.showTitle !== false,
+        layout: data.layout || "grid",
+        // list, grid, compact
+        gridColumns: data.gridColumns || 3
+        // 1-4 columns for grid layout
+      };
+      this.layouts = {
+        list: {
+          icon: '<i class="fa-solid fa-list"></i>',
+          title: "Liste"
+        },
+        grid: {
+          icon: '<i class="fa-solid fa-th-large"></i>',
+          title: "Raster"
+        },
+        compact: {
+          icon: '<i class="fa-solid fa-bars"></i>',
+          title: "Kompakt"
+        }
+      };
+    }
+    render() {
+      this.nodes.wrapper = this._make("div", [this.CSS.wrapper]);
+      this.nodes.wrapper.dataset.layout = this.data.layout;
+      this.nodes.wrapper.dataset.gridColumns = this.data.gridColumns;
+      if (this.data.showTitle) {
+        const titleContainer = this._make("div", "cdx-cards-section__title-container");
+        const titleInput = this._make("input", "cdx-cards-section__title-input", {
+          type: "text",
+          placeholder: "Cards Titel...",
+          value: this.data.title
+        });
+        titleInput.addEventListener("input", (e) => {
+          this.data.title = e.target.value;
+        });
+        titleContainer.appendChild(titleInput);
+        this.nodes.wrapper.appendChild(titleContainer);
+      }
+      this.nodes.container = this._make("div", [this.CSS.container]);
+      this.nodes.wrapper.appendChild(this.nodes.container);
+      this._renderItems();
+      const addButton = this._make("button", [this.CSS.addButton], {
+        innerHTML: '<i class="fa-solid fa-plus"></i> Card hinzuf\xFCgen',
+        type: "button"
+      });
+      addButton.addEventListener("click", () => {
+        this._addItem();
+      });
+      this.nodes.wrapper.appendChild(addButton);
+      return this.nodes.wrapper;
+    }
+    renderSettings() {
+      const wrapper = this._make("div");
+      const layoutLabel = this._make("div", null, {
+        innerHTML: "<strong>Layout:</strong>",
+        style: "margin-bottom: 8px;"
+      });
+      wrapper.appendChild(layoutLabel);
+      Object.entries(this.layouts).forEach(([layout, config]) => {
+        const button = this._make("span", [this.CSS.settingsButton], {
+          innerHTML: config.icon + " " + config.title
+        });
+        button.addEventListener("click", () => {
+          this.data.layout = layout;
+          this.nodes.wrapper.dataset.layout = layout;
+          wrapper.querySelectorAll("." + this.CSS.settingsButton).forEach((btn) => {
+            btn.classList.remove(this.CSS.settingsButtonActive);
+          });
+          button.classList.add(this.CSS.settingsButtonActive);
+        });
+        if (layout === this.data.layout) {
+          button.classList.add(this.CSS.settingsButtonActive);
+        }
+        wrapper.appendChild(button);
+      });
+      if (this.data.layout === "grid") {
+        const columnsLabel = this._make("div", null, {
+          innerHTML: "<strong>Spalten:</strong>",
+          style: "margin: 15px 0 8px 0;"
+        });
+        wrapper.appendChild(columnsLabel);
+        for (let i = 1; i <= 4; i++) {
+          const colButton = this._make("span", [this.CSS.settingsButton], {
+            innerHTML: `<i class="fa-solid fa-th"></i> ${i}`,
+            title: `${i} Spalten`
+          });
+          colButton.addEventListener("click", () => {
+            this.data.gridColumns = i;
+            this.nodes.wrapper.dataset.gridColumns = i;
+            wrapper.querySelectorAll("." + this.CSS.settingsButton).forEach((btn) => {
+              if (btn.innerHTML.includes("fa-th") && btn.innerHTML.includes(i.toString())) {
+                btn.classList.remove(this.CSS.settingsButtonActive);
+              }
+            });
+            colButton.classList.add(this.CSS.settingsButtonActive);
+          });
+          if (i === this.data.gridColumns) {
+            colButton.classList.add(this.CSS.settingsButtonActive);
+          }
+          wrapper.appendChild(colButton);
+        }
+      }
+      const titleToggle = this._make("div", null, {
+        style: "margin-top: 15px; padding-top: 15px; border-top: 1px solid #e9ecef;"
+      });
+      const titleLabel = this._make("label", null, {
+        innerHTML: '<input type="checkbox" style="margin-right: 8px;"> Titel anzeigen',
+        style: "cursor: pointer; font-weight: normal;"
+      });
+      const checkbox = titleLabel.querySelector("input");
+      checkbox.checked = this.data.showTitle;
+      checkbox.addEventListener("change", (e) => {
+        this.data.showTitle = e.target.checked;
+        const titleContainer = this.nodes.wrapper.querySelector(".cdx-cards-section__title-container");
+        if (this.data.showTitle) {
+          if (!titleContainer) {
+            const newTitleContainer = this._make("div", "cdx-cards-section__title-container");
+            const titleInput = this._make("input", "cdx-cards-section__title-input", {
+              type: "text",
+              placeholder: "Cards Titel...",
+              value: this.data.title
+            });
+            titleInput.addEventListener("input", (e2) => {
+              this.data.title = e2.target.value;
+            });
+            newTitleContainer.appendChild(titleInput);
+            this.nodes.wrapper.insertBefore(newTitleContainer, this.nodes.container);
+          }
+        } else {
+          if (titleContainer) {
+            titleContainer.remove();
+          }
+        }
+      });
+      titleToggle.appendChild(titleLabel);
+      wrapper.appendChild(titleToggle);
+      return wrapper;
+    }
+    save(blockContent) {
+      const titleInput = blockContent.querySelector(".cdx-cards-section__title-input");
+      if (titleInput) {
+        this.data.title = titleInput.value;
+      }
+      return {
+        title: this.data.title,
+        items: this.data.items,
+        showTitle: this.data.showTitle,
+        layout: this.data.layout,
+        gridColumns: this.data.gridColumns
+      };
+    }
+    static get sanitize() {
+      return {
+        title: {},
+        items: {},
+        showTitle: {},
+        layout: {},
+        gridColumns: {}
+      };
+    }
+    _createEmptyItem() {
+      return {
+        mediaFile: "",
+        mediaUrl: "",
+        mediaType: "",
+        mediaAlt: "",
+        title: "",
+        text: ""
+      };
+    }
+    _renderItems() {
+      this.nodes.container.innerHTML = "";
+      this.data.items.forEach((item, index) => {
+        const itemElement = this._createItemElement(item, index);
+        this.nodes.container.appendChild(itemElement);
+      });
+    }
+    _createItemElement(item, index) {
+      const itemWrapper = this._make("div", [this.CSS.item]);
+      itemWrapper.dataset.index = index;
+      const dragHandle = this._make("div", [this.CSS.dragHandle], {
+        innerHTML: '<i class="fa-solid fa-grip-vertical"></i>',
+        title: "Zum Sortieren ziehen"
+      });
+      this._addDragEvents(itemWrapper, dragHandle);
+      const mainContent = this._make("div", "cdx-cards-section__main-content");
+      const header = this._make("div", [this.CSS.itemHeader]);
+      const removeButton = this._make("button", [this.CSS.removeButton], {
+        innerHTML: '<i class="fa-solid fa-trash"></i>',
+        title: "Card entfernen",
+        type: "button"
+      });
+      removeButton.addEventListener("click", () => {
+        this._removeItem(index);
+      });
+      header.appendChild(removeButton);
+      const content = this._make("div", [this.CSS.itemContent]);
+      const mediaSelect = this._createMediaSelectArea(item, index);
+      content.appendChild(mediaSelect);
+      const titleInput = this._make("input", [this.CSS.titleInput], {
+        type: "text",
+        placeholder: "Card Titel...",
+        value: item.title
+      });
+      titleInput.addEventListener("input", (e) => {
+        this.data.items[index].title = e.target.value;
+      });
+      content.appendChild(titleInput);
+      const textInput = this._make("textarea", [this.CSS.textInput], {
+        placeholder: "Card Text...",
+        value: item.text,
+        rows: 3
+      });
+      textInput.addEventListener("input", (e) => {
+        this.data.items[index].text = e.target.value;
+      });
+      content.appendChild(textInput);
+      if (item.mediaType === "image" && item.mediaUrl) {
+        const altTextWrapper = this._createAltTextInput(item, index);
+        content.appendChild(altTextWrapper);
+      }
+      mainContent.appendChild(header);
+      mainContent.appendChild(content);
+      itemWrapper.appendChild(dragHandle);
+      itemWrapper.appendChild(mainContent);
+      return itemWrapper;
+    }
+    _createMediaSelectArea(item, index) {
+      const mediaSelect = this._make("div", [this.CSS.mediaSelect]);
+      if (item.mediaUrl) {
+        const preview = this._createMediaPreview(item, index);
+        mediaSelect.appendChild(preview);
+      } else {
+        const selectButton = this._make("button", "cdx-cards-section__select-button", {
+          innerHTML: '<i class="fa-solid fa-image"></i> Media aus Medienpool w\xE4hlen',
+          type: "button"
+        });
+        selectButton.addEventListener("click", () => {
+          this._openMediaPool(index);
+        });
+        mediaSelect.appendChild(selectButton);
+      }
+      return mediaSelect;
+    }
+    _createMediaPreview(item, index) {
+      const preview = this._make("div", [this.CSS.mediaPreview]);
+      const mediaWrapper = this._make("div", [this.CSS.mediaWrapper]);
+      if (item.mediaType === "video" || this._isVideoFile(item.mediaFile)) {
+        const video = this._make("video", [this.CSS.video], {
+          src: item.mediaUrl,
+          controls: true,
+          preload: "metadata"
+        });
+        mediaWrapper.appendChild(video);
+      } else {
+        const image = this._make("img", [this.CSS.image], {
+          src: item.mediaUrl,
+          alt: item.mediaAlt || item.title || ""
+        });
+        image.style.cursor = "pointer";
+        image.addEventListener("click", (e) => {
+          e.stopPropagation();
+          this._openLightbox(item);
+        });
+        mediaWrapper.appendChild(image);
+      }
+      const actions = this._make("div", [this.CSS.itemActions]);
+      const changeButton = this._make("button", "cdx-cards-section__change-button", {
+        innerHTML: '<i class="fa-solid fa-sync"></i>',
+        title: "Media \xE4ndern",
+        type: "button"
+      });
+      changeButton.addEventListener("click", () => {
+        this._openMediaPool(index);
+      });
+      actions.appendChild(changeButton);
+      preview.appendChild(mediaWrapper);
+      preview.appendChild(actions);
+      return preview;
+    }
+    _createAltTextInput(item, index) {
+      if (this.readOnly) return this._make("div");
+      const wrapper = this._make("div", [this.CSS.altTextWrapper]);
+      const label = this._make("label", [this.CSS.altTextLabel], {
+        innerHTML: '<i class="fa-solid fa-universal-access"></i> ALT-Text:'
+      });
+      const input = this._make("input", [this.CSS.altTextInput], {
+        type: "text",
+        placeholder: "Beschreibung f\xFCr Screenreader...",
+        value: item.mediaAlt || ""
+      });
+      const warning = this._make("div", [this.CSS.altTextWarning], {
+        innerHTML: '<i class="fa-solid fa-exclamation-triangle"></i> Bild ohne ALT-Text!',
+        style: item.mediaAlt ? "display: none;" : "display: block;"
+      });
+      input.addEventListener("input", (e) => {
+        this.data.items[index].mediaAlt = e.target.value.trim();
+        warning.style.display = this.data.items[index].mediaAlt ? "none" : "block";
+      });
+      const suggestButton = this._make("button", "cdx-cards-section__alt-suggest-button", {
+        innerHTML: '<i class="fa-solid fa-magic"></i> Automatisch',
+        type: "button",
+        title: "ALT-Text basierend auf Titel/Dateiname vorschlagen"
+      });
+      suggestButton.addEventListener("click", () => {
+        const suggestion = this._suggestAltText(item);
+        input.value = suggestion;
+        this.data.items[index].mediaAlt = suggestion;
+        warning.style.display = "none";
+      });
+      const buttonWrapper = this._make("div", "cdx-cards-section__alt-button-wrapper");
+      buttonWrapper.appendChild(suggestButton);
+      wrapper.appendChild(label);
+      wrapper.appendChild(input);
+      wrapper.appendChild(buttonWrapper);
+      wrapper.appendChild(warning);
+      return wrapper;
+    }
+    _suggestAltText(item) {
+      let suggestion = "";
+      if (item.mediaFile) {
+        const filename = item.mediaFile.replace(/\.[^/.]+$/, "");
+        suggestion = filename.replace(/[-_]/g, " ").replace(/\b\w/g, (c4) => c4.toUpperCase());
+      }
+      if (item.title && item.title.trim()) {
+        const titleText = item.title.replace(/<[^>]*>/g, "");
+        if (titleText.trim()) {
+          suggestion = suggestion ? `${suggestion} - ${titleText}` : titleText;
+        }
+      }
+      if (!suggestion) {
+        suggestion = "Bild";
+      }
+      return suggestion;
+    }
+    _openMediaPool(index) {
+      this.mediaTool.openMediaPool({
+        types: ["jpg", "jpeg", "png", "gif", "svg", "webp", "mp4", "webm", "ogg", "avi", "mov"],
+        context: "editorjs_cards"
+      }, (mediaData) => {
+        this._setMedia(index, mediaData);
+      }).catch((error) => {
+        if (error.message !== "Media pool closed without selection") {
+          console.error("Fehler bei der Medienauswahl:", error);
+        }
+      });
+    }
+    _setMedia(index, mediaData) {
+      this.data.items[index].mediaFile = mediaData.filename;
+      this.data.items[index].mediaUrl = mediaData.url;
+      this.data.items[index].mediaAlt = mediaData.alt || this.data.items[index].mediaAlt;
+      this.data.items[index].mediaType = this._isVideoFile(mediaData.filename) ? "video" : "image";
+      this._renderItems();
+    }
+    _openLightbox(item) {
+      if (item.mediaType !== "image" || !item.mediaUrl) return;
+      const overlay = this._make("div", "cdx-cards-section__lightbox-overlay", {
+        style: "position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; display: flex; align-items: center; justify-content: center; cursor: pointer;"
+      });
+      const image = this._make("img", "cdx-cards-section__lightbox-image", {
+        src: item.mediaUrl,
+        alt: item.mediaAlt || item.title || "",
+        style: "max-width: 90%; max-height: 90%; object-fit: contain;"
+      });
+      overlay.appendChild(image);
+      document.body.appendChild(overlay);
+      overlay.addEventListener("click", () => {
+        document.body.removeChild(overlay);
+      });
+      const closeHandler = (e) => {
+        if (e.key === "Escape") {
+          document.body.removeChild(overlay);
+          document.removeEventListener("keydown", closeHandler);
+        }
+      };
+      document.addEventListener("keydown", closeHandler);
+    }
+    _isVideoFile(filename) {
+      if (!filename) return false;
+      const videoExtensions = ["mp4", "webm", "ogg", "avi", "mov", "wmv", "flv", "m4v"];
+      const extension = filename.toLowerCase().split(".").pop();
+      return videoExtensions.includes(extension);
+    }
+    _addItem() {
+      this.data.items.push(this._createEmptyItem());
+      this._renderItems();
+    }
+    _removeItem(index) {
+      if (this.data.items.length > 1) {
+        this.data.items.splice(index, 1);
+        this._renderItems();
+      }
+    }
+    _getItemIndex(element) {
+      const item = element.closest("." + this.CSS.item);
+      return parseInt(item.dataset.index);
+    }
+    _addDragEvents(itemWrapper, dragHandle) {
+      dragHandle.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+      });
+    }
+    _make(tagName, classNames = null, attributes = {}) {
+      const el = document.createElement(tagName);
+      if (Array.isArray(classNames)) {
+        el.classList.add(...classNames);
+      } else if (classNames) {
+        el.classList.add(classNames);
+      }
+      for (let attrName in attributes) {
+        if (attrName === "style") {
+          el.style.cssText = attributes[attrName];
+        } else {
+          el[attrName] = attributes[attrName];
+        }
+      }
+      return el;
+    }
+  };
+  window.CardsSectionBlock = CardsSectionBlock;
+
   // src/editorjs.js
   window.EditorJS = Aa;
   window.Header = v;
@@ -20559,6 +20998,16 @@ var EditorJSBundle = (() => {
           inlineToolbar: true,
           config: {
             defaultLayout: "vertical"
+          }
+        };
+      }
+      if (typeof window.CardsSectionBlock !== "undefined") {
+        tools.cards = {
+          class: window.CardsSectionBlock,
+          config: {
+            defaultLayout: "grid",
+            showTitle: true,
+            gridColumns: 3
           }
         };
       }

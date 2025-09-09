@@ -12,8 +12,8 @@ echo '<textarea name="REX_INPUT_VALUE[1]" data-editorjs-data style="display: non
 
 echo '<hr style="margin: 30px 0;">';
 
-echo '<h3>🆕 EditorJS mit neuen Card & Video Features (paragraph, card, textimage)</h3>';
-echo '<div id="editor-cards" data-editorjs-tools="paragraph,card,textimage" style="border: 1px solid #ddd; min-height: 200px; padding: 10px;"></div>';
+echo '<h3>🆕 EditorJS mit neuen Cards Section & Card Features</h3>';
+echo '<div id="editor-cards" data-editorjs-tools="paragraph,cards,card,textimage" style="border: 1px solid #ddd; min-height: 200px; padding: 10px;"></div>';
 echo '<textarea name="REX_INPUT_VALUE[2]" data-editorjs-data style="display: none;"></textarea>';
 
 echo '<hr style="margin: 30px 0;">';
@@ -40,23 +40,23 @@ echo '<textarea name="REX_INPUT_VALUE[5]" data-editorjs-data style="display: non
     <h4><i class="fa fa-info-circle"></i> Neue Features testen</h4>
     <div class="row">
         <div class="col-md-6">
-            <h5>🆕 Card Block</h5>
+            <h5>🆕 Cards Section</h5>
             <ul class="list-unstyled">
-                <li>• Kombination aus Media (Bild/Video) + Text</li>
-                <li>• Verschiedene Layouts: Vertikal, Horizontal, Grid</li>
-                <li>• Lightbox für Bilder, Video-Steuerung</li>
-                <li>• Konfigurierbare Spaltenanzahl (1-4)</li>
-                <li>• REX Link Integration</li>
+                <li>• Container für mehrere Cards</li>
+                <li>• Grid-Layout mit 1-4 Spalten</li>
+                <li>• Drag & Drop für Sortierung</li>
+                <li>• Jede Card: Media + Titel + Text</li>
+                <li>• ALT-Text Unterstützung</li>
             </ul>
         </div>
         <div class="col-md-6">
-            <h5>🔄 Enhanced TextImage</h5>
+            <h5>🔄 Einzelne Card</h5>
             <ul class="list-unstyled">
-                <li>• Video-Support mit automatischer Erkennung</li>
-                <li>• Lightbox-Funktionalität für Bilder</li>
-                <li>• Video-Steuerung (Autoplay, Loop, Mute)</li>
-                <li>• Verbesserte Benutzeroberfläche</li>
-                <li>• Mobile-optimiert</li>
+                <li>• Einfache Card: Vertikal/Horizontal</li>
+                <li>• Media (Bild/Video) + Content</li>
+                <li>• Lightbox für Bilder</li>
+                <li>• Video-Steuerung</li>
+                <li>• REX Link Integration</li>
             </ul>
         </div>
     </div>
@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Spezielle Hinweise für neue Features
         const container = event.detail.container;
         if (container.id === 'editor-cards') {
-            console.log('🆕 Card & TextImage Demo aktiv - probieren Sie die Lightbox und Video Features!');
+            console.log('🆕 Cards Section & Card Demo aktiv - probieren Sie die neuen Features!');
         }
     });
     
@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const hint = document.createElement('div');
             hint.className = 'new-feature-hint alert alert-success';
             hint.style.cssText = 'position: absolute; top: 10px; right: 10px; z-index: 1000; padding: 5px 10px; font-size: 12px; border-radius: 3px;';
-            hint.innerHTML = '🆕 Card & Video Features aktiv!';
+            hint.innerHTML = '🆕 Cards Section & Card Features aktiv!';
             cardEditor.style.position = 'relative';
             cardEditor.appendChild(hint);
             

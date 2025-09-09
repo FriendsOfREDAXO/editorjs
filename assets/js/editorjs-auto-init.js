@@ -191,6 +191,7 @@ window.EditorJSAutoInit = {
             'download': 'downloads',
             'video': 'VideoBlock',
             'card': 'card',
+            'cards': 'cards',
             'gallery': 'gallery',
             'rexlink': 'rexLink',
             'link': 'rexLink'

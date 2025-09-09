@@ -37,60 +37,6 @@
     flex: 1;
 }
 
-/* Layout: Grid (Kachel-Darstellung im Editor) */
-.cdx-card[data-layout="grid"] .cdx-card__container {
-    display: grid;
-    grid-template-columns: repeat(var(--grid-columns, 2), 1fr);
-    gap: 1rem;
-    padding: 1.5rem;
-}
-
-.cdx-card[data-layout="grid"][data-grid-columns="1"] .cdx-card__container {
-    grid-template-columns: 1fr;
-}
-
-.cdx-card[data-layout="grid"][data-grid-columns="2"] .cdx-card__container {
-    grid-template-columns: repeat(2, 1fr);
-}
-
-.cdx-card[data-layout="grid"][data-grid-columns="3"] .cdx-card__container {
-    grid-template-columns: repeat(3, 1fr);
-}
-
-.cdx-card[data-layout="grid"][data-grid-columns="4"] .cdx-card__container {
-    grid-template-columns: repeat(4, 1fr);
-}
-
-/* Grid Layout: Media und Content als separate Grid Items */
-.cdx-card[data-layout="grid"] .cdx-card__media-wrapper,
-.cdx-card[data-layout="grid"] .cdx-card__content-wrapper {
-    display: contents;
-}
-
-/* Grid Layout: Einzelne Card-Zelle Styling */
-.cdx-card[data-layout="grid"] .cdx-card__media-wrapper > *,
-.cdx-card[data-layout="grid"] .cdx-card__content-wrapper > * {
-    background: #f8f9fa;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    padding: 1rem;
-    margin: 0.25rem;
-}
-
-/* Grid Preview im Editor */
-.cdx-card[data-layout="grid"]::before {
-    content: "Grid Layout (" attr(data-grid-columns) " Spalten) - Vorschau im Editor";
-    display: block;
-    background: #e3f2fd;
-    color: #1976d2;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    margin-bottom: 1rem;
-    border-left: 4px solid #1976d2;
-}
-
 /* Media Wrapper */
 .cdx-card__media-wrapper {
     position: relative;

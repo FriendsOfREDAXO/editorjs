@@ -176,6 +176,9 @@ class EditorJSFragmentRenderer
             case 'card':
             case 'CardBlock':
                 return $renderer->renderCard($data);
+            case 'cards':
+            case 'CardsSectionBlock':
+                return $renderer->renderCardsSection($data);
             default:
                 return '<!-- Unbekannter Block-Typ: ' . htmlspecialchars($type) . ' -->';
         }

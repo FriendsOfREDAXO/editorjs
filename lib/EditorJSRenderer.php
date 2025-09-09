@@ -883,6 +883,84 @@ class EditorJsRenderer
         return $iconMap[$extension] ?? '<i class="fa-solid fa-file" style="color: #6c757d;"></i>';
     }
     
+    
+    /**
+     * Rendert eine Cards Section (mehrere Cards)
+     */
+    public function renderCardsSection(array $data): string
+    {
+        $title = $data['title'] ?? 'Cards';
+        $items = $data['items'] ?? [];
+        $layout = $data['layout'] ?? 'grid';
+        $gridColumns = $data['gridColumns'] ?? 3;
+        $showTitle = $data['showTitle'] ?? true;
+
+        // Nur Items mit Media-Inhalt anzeigen
+        $validItems = array_filter($items, function($item) {
+            return !empty($item['mediaUrl']);
+        });
+
+        if (empty($validItems)) {
+            return '';
+        }
+
+        $html = "<section class=\"cdx-cards-section\" data-layout=\"{$layout}\">\n";
+        
+        if ($showTitle && !empty(trim($title))) {
+            $html .= "  <h2 class=\"cdx-cards-section__title\">" . rex_escape($title) . "</h2>\n";
+        }
+        
+        $html .= "  <div class=\"cdx-cards-section__container\" data-grid-columns=\"{$gridColumns}\">\n";
+        
+        foreach ($validItems as $item) {
+            $mediaUrl = $item['mediaUrl'] ?? '';
+            $mediaType = $item['mediaType'] ?? '';
+            $mediaAlt = $item['mediaAlt'] ?? '';
+            $itemTitle = $item['title'] ?? '';
+            $itemText = $item['text'] ?? '';
+            
+            if (empty($mediaUrl)) continue;
+            
+            // Video-Erkennung
+            $isVideo = $mediaType === 'video' || $this->_detectMediaType($mediaUrl) === 'video';
+            
+            $html .= "    <div class=\"cdx-cards-section__item\">\n";
+            $html .= "      <div class=\"cdx-cards-section__card\">\n";
+            
+            // Media
+            $html .= "        <div class=\"cdx-cards-section__media\">\n";
+            if ($isVideo) {
+                $html .= "          <video class=\"cdx-cards-section__video\" controls preload=\"metadata\">\n";
+                $html .= "            <source src=\"" . rex_escape($mediaUrl) . "\" type=\"" . $this->getVideoType($mediaUrl) . "\">\n";
+                $html .= "            <p>Ihr Browser unterstützt das Video-Element nicht.</p>\n";
+                $html .= "          </video>\n";
+            } else {
+                $html .= "          <img class=\"cdx-cards-section__image\" src=\"" . rex_escape($mediaUrl) . "\" alt=\"" . rex_escape($mediaAlt ?: $itemTitle) . "\">\n";
+            }
+            $html .= "        </div>\n";
+            
+            // Content
+            if (!empty($itemTitle) || !empty($itemText)) {
+                $html .= "        <div class=\"cdx-cards-section__content\">\n";
+                if (!empty($itemTitle)) {
+                    $html .= "          <h3 class=\"cdx-cards-section__item-title\">" . $itemTitle . "</h3>\n";
+                }
+                if (!empty($itemText)) {
+                    $html .= "          <div class=\"cdx-cards-section__item-text\">" . $itemText . "</div>\n";
+                }
+                $html .= "        </div>\n";
+            }
+            
+            $html .= "      </div>\n";
+            $html .= "    </div>\n";
+        }
+        
+        $html .= "  </div>\n";
+        $html .= "</section>\n";
+        
+        return $html;
+    }
+
     /**
      * Formatiert eine Dateigröße
      */

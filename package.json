@@ -25,6 +25,6 @@
     "@editorjs/quote": "^2.7.6"
   },
   "devDependencies": {
-    "esbuild": "^0.25.5"
+    "esbuild": "^0.25.9"
   }
 }
