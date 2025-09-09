@@ -1,7 +1,7 @@
 <?php
 /**
  * Beispiel-Modul mit selektiver Tool-Auswahl
- * Demonstriert die Verwendung von data-editorjs-tools
+ * Demonstriert die Verwendung von data-editorjs-tools und neue Card/Video Features
  */
 
 // Verschiedene Beispiele für Tool-Konfigurationen
@@ -12,32 +12,85 @@ echo '<textarea name="REX_INPUT_VALUE[1]" data-editorjs-data style="display: non
 
 echo '<hr style="margin: 30px 0;">';
 
-echo '<h3>EditorJS mit Medien-Tools (paragraph, image, textimage, downloads)</h3>';
-echo '<div id="editor-media" data-editorjs-tools="paragraph,image,textimage,downloads" style="border: 1px solid #ddd; min-height: 200px; padding: 10px;"></div>';
+echo '<h3>🆕 EditorJS mit neuen Card & Video Features (paragraph, card, textimage)</h3>';
+echo '<div id="editor-cards" data-editorjs-tools="paragraph,card,textimage" style="border: 1px solid #ddd; min-height: 200px; padding: 10px;"></div>';
 echo '<textarea name="REX_INPUT_VALUE[2]" data-editorjs-data style="display: none;"></textarea>';
+
+echo '<hr style="margin: 30px 0;">';
+
+echo '<h3>EditorJS mit Medien-Tools (paragraph, image, video, textimage, downloads, gallery)</h3>';
+echo '<div id="editor-media" data-editorjs-tools="paragraph,image,video,textimage,downloads,gallery" style="border: 1px solid #ddd; min-height: 200px; padding: 10px;"></div>';
+echo '<textarea name="REX_INPUT_VALUE[3]" data-editorjs-data style="display: none;"></textarea>';
 
 echo '<hr style="margin: 30px 0;">';
 
 echo '<h3>EditorJS mit allen Tools (Standard)</h3>';
 echo '<div id="editor-full" data-editorjs style="border: 1px solid #ddd; min-height: 200px; padding: 10px;"></div>';
-echo '<textarea name="REX_INPUT_VALUE[3]" data-editorjs-data style="display: none;"></textarea>';
+echo '<textarea name="REX_INPUT_VALUE[4]" data-editorjs-data style="display: none;"></textarea>';
 
 echo '<hr style="margin: 30px 0;">';
 
 echo '<h3>EditorJS nur für Zitate und Code (quote, code, paragraph)</h3>';
 echo '<div id="editor-minimal" data-editorjs-tools="quote,code,paragraph" style="border: 1px solid #ddd; min-height: 200px; padding: 10px;"></div>';
-echo '<textarea name="REX_INPUT_VALUE[4]" data-editorjs-data style="display: none;"></textarea>';
+echo '<textarea name="REX_INPUT_VALUE[5]" data-editorjs-data style="display: none;"></textarea>';
 
 ?>
 
+<div class="alert alert-info" style="margin-top: 20px;">
+    <h4><i class="fa fa-info-circle"></i> Neue Features testen</h4>
+    <div class="row">
+        <div class="col-md-6">
+            <h5>🆕 Card Block</h5>
+            <ul class="list-unstyled">
+                <li>• Kombination aus Media (Bild/Video) + Text</li>
+                <li>• Verschiedene Layouts: Vertikal, Horizontal, Grid</li>
+                <li>• Lightbox für Bilder, Video-Steuerung</li>
+                <li>• Konfigurierbare Spaltenanzahl (1-4)</li>
+                <li>• REX Link Integration</li>
+            </ul>
+        </div>
+        <div class="col-md-6">
+            <h5>🔄 Enhanced TextImage</h5>
+            <ul class="list-unstyled">
+                <li>• Video-Support mit automatischer Erkennung</li>
+                <li>• Lightbox-Funktionalität für Bilder</li>
+                <li>• Video-Steuerung (Autoplay, Loop, Mute)</li>
+                <li>• Verbesserte Benutzeroberfläche</li>
+                <li>• Mobile-optimiert</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Tool-Selection Demo loaded');
+    console.log('Tool-Selection Demo loaded with new Card & Video features');
     
     // Event-Listener für Editor-Ready Events
     document.addEventListener('editorjs:ready', function(event) {
         console.log('Editor ready:', event.detail.container.id, 'Tools available:', Object.keys(event.detail.editor.configuration.tools));
+        
+        // Spezielle Hinweise für neue Features
+        const container = event.detail.container;
+        if (container.id === 'editor-cards') {
+            console.log('🆕 Card & TextImage Demo aktiv - probieren Sie die Lightbox und Video Features!');
+        }
     });
+    
+    // Hinweis-System für neue Features
+    setTimeout(function() {
+        const cardEditor = document.getElementById('editor-cards');
+        if (cardEditor && !cardEditor.querySelector('.new-feature-hint')) {
+            const hint = document.createElement('div');
+            hint.className = 'new-feature-hint alert alert-success';
+            hint.style.cssText = 'position: absolute; top: 10px; right: 10px; z-index: 1000; padding: 5px 10px; font-size: 12px; border-radius: 3px;';
+            hint.innerHTML = '🆕 Card & Video Features aktiv!';
+            cardEditor.style.position = 'relative';
+            cardEditor.appendChild(hint);
+            
+            setTimeout(() => hint.remove(), 3000);
+        }
+    }, 2000);
 });
 </script>
 

@@ -94,15 +94,32 @@ $demoData = [
         [
             'type' => 'card',
             'data' => [
-                'title' => 'Neuer Card-Block',
-                'text' => '<p>Der <strong>Card-Block</strong> ist eine neue Funktion, die Bilder oder Videos mit Titel und Text kombiniert. Unterstützt verschiedene Layouts:</p><ul><li>Vertikal (Standard)</li><li>Horizontal</li><li>Grid/Kachel-Layout</li></ul><p>Mit <em>Lightbox-Funktionalität</em> für Bilder und Video-Steuerung für Videos.</p>',
+                'title' => 'Neuer Card-Block - Vielseitige Medien-Karten',
+                'text' => '<p>Der <strong>Card-Block</strong> ist eine neue, vielseitige Komponente mit erweiterten Features:</p><ul><li><strong>Multi-Media Support:</strong> Automatische Erkennung von Bildern und Videos aus dem REDAXO Medienpool</li><li><strong>Lightbox-Integration:</strong> Klick-to-Zoom für Bilder mit Tastatursteuerung (ESC zum Schließen)</li><li><strong>Video-Steuerung:</strong> Vollständige Kontrolle über Autoplay, Muting, Loop und Custom Controls</li><li><strong>Flexible Layouts:</strong> Vertikal, horizontal und Grid-Layouts mit 1-4 Spalten</li><li><strong>Aspect Ratios:</strong> Konfigurierbare Seitenverhältnisse (auto, 16:9, 4:3, 1:1)</li><li><strong>REX Links:</strong> Integration mit REDAXO\'s internem Link-System</li></ul><p><em>Klicken Sie hier, um ein Medium aus dem Medienpool auszuwählen und die Features zu testen!</em></p>',
                 'mediaFile' => '',
                 'mediaUrl' => '',
                 'mediaType' => 'image',
-                'mediaAlt' => 'Card-Beispielbild',
+                'mediaAlt' => 'Card-Beispielbild - zeigt die vielseitigen Möglichkeiten',
                 'layout' => 'vertical',
-                'gridColumns' => 2,
+                'gridColumns' => 1,
                 'aspectRatio' => '16-9',
+                'lightbox' => true,
+                'linkUrl' => '',
+                'linkTarget' => '_self'
+            ]
+        ],
+        [
+            'type' => 'card',
+            'data' => [
+                'title' => 'Horizontal Layout Beispiel',
+                'text' => '<p>Dieser Card zeigt das <strong>horizontale Layout</strong> mit Text neben dem Medium.</p><p>Perfekt für:</p><ul><li>Produktpresentationen</li><li>Teammitglieder</li><li>Feature-Highlights</li></ul>',
+                'mediaFile' => '',
+                'mediaUrl' => '',
+                'mediaType' => 'image',
+                'mediaAlt' => 'Horizontal Layout Beispiel',
+                'layout' => 'horizontal',
+                'gridColumns' => 2,
+                'aspectRatio' => '4-3',
                 'lightbox' => true,
                 'linkUrl' => '',
                 'linkTarget' => '_self'
@@ -111,12 +128,12 @@ $demoData = [
         [
             'type' => 'textimage',
             'data' => [
-                'text' => '<p><strong>Erweiterte Text+Bild Funktionen</strong></p><p>Dieser Block wurde erweitert und unterstützt jetzt:</p><ul><li><strong>Video-Support:</strong> Automatische Erkennung von Video-Dateien</li><li><strong>Lightbox:</strong> Bildvergrößerung per Klick</li><li><strong>Video-Steuerung:</strong> Autoplay, Loop, Mute-Optionen</li><li><strong>Bessere UX:</strong> Verbesserte Benutzeroberfläche</li></ul>',
+                'text' => '<p><strong>Erweiterte Text+Bild/Video Funktionen</strong></p><p>Der TextImage Block wurde komplett überarbeitet und bietet jetzt:</p><ul><li><strong>🎥 Video-Support:</strong> Automatische Erkennung von Video-Dateien aus dem Medienpool</li><li><strong>🔍 Lightbox:</strong> Bildvergrößerung per Klick mit sanften Animationen</li><li><strong>⚙️ Video-Steuerung:</strong> Autoplay, Loop, Mute und Custom Control Optionen</li><li><strong>📱 Responsive Design:</strong> Mobile-optimiert mit Touch-Unterstützung</li><li><strong>🎨 Verbesserte UX:</strong> Moderne Benutzeroberfläche mit visuellen Feedback</li></ul><p>Bei Videos: Klicken Sie auf das Video-Symbol um Steuerungsoptionen zu konfigurieren.</p>',
                 'mediaFile' => '',
                 'mediaUrl' => '',
-                'mediaType' => 'image',
-                'mediaAlt' => 'TextImage-Beispiel',
-                'caption' => 'Unterstützt jetzt Bilder und Videos mit Lightbox',
+                'mediaType' => 'video',
+                'mediaAlt' => 'TextImage-Beispiel mit Video-Support',
+                'caption' => 'Unterstützt jetzt sowohl Bilder als auch Videos mit erweiterten Features',
                 'layout' => 'right',
                 'lightbox' => true,
                 'videoAutoplay' => false,
@@ -126,16 +143,49 @@ $demoData = [
             ]
         ],
         [
+            'type' => 'paragraph',
+            'data' => [
+                'text' => '<strong>🎯 Neues Fragment-Rendering-System</strong><br>Alle EditorJS-Elemente unterstützen jetzt Framework-spezifische Ausgabe mit dem neuen Fragment-System. Bootstrap 5 und UIKit 3 werden vollständig unterstützt mit nativen Komponenten wie Modals, Alerts und responsiven Grids.'
+            ]
+        ],
+        [
+            'type' => 'card',
+            'data' => [
+                'title' => 'Grid Layout mit 3 Spalten',
+                'text' => '<p>Beispiel für <strong>Grid-Layout</strong> mit mehreren Spalten:</p><ul><li>Ideal für Produkt-Kataloge</li><li>Team-Übersichten</li><li>Portfolio-Präsentationen</li></ul><p>Das Layout passt sich automatisch an verschiedene Bildschirmgrößen an.</p>',
+                'mediaFile' => '',
+                'mediaUrl' => '',
+                'mediaType' => 'image',
+                'mediaAlt' => 'Grid Layout Beispiel',
+                'layout' => 'grid',
+                'gridColumns' => 3,
+                'aspectRatio' => '1-1',
+                'lightbox' => true,
+                'linkUrl' => '',
+                'linkTarget' => '_self'
+            ]
+        ],
+        [
             'type' => 'list',
             'data' => [
                 'style' => 'unordered',
                 'items' => [
-                    'Einfache und intuitive Bedienung',
-                    'REDAXO-Medienpool Integration',
-                    'Responsive Design',
-                    'Drag & Drop Funktionalität',
-                    'Umfangreiche Block-Bibliothek'
+                    '✨ Einfache und intuitive Bedienung mit Drag & Drop',
+                    '🗂️ Vollständige REDAXO-Medienpool Integration',
+                    '📱 Responsive Design für alle Geräte',
+                    '🎨 Framework-spezifische Ausgabe (Bootstrap 5 & UIKit 3)',
+                    '📦 Umfangreiche Block-Bibliothek mit Video/Lightbox Support'
                 ]
+            ]
+        ],
+        [
+            'type' => 'delimiter'
+        ],
+        [
+            'type' => 'header',
+            'data' => [
+                'text' => 'Praktische Anwendungsbeispiele',
+                'level' => 3
             ]
         ],
         [
@@ -219,14 +269,89 @@ $demoData = [
                     <div class="col-md-6">
                         <h4>REDAXO-spezifische Blöcke</h4>
                         <ul>
+                            <li><strong>Card Block</strong> - 🆕 Vielseitige Medien-Karten mit Lightbox</li>
+                            <li><strong>TextImage Block</strong> - 🔄 Erweitert mit Video-Support und Lightbox</li>
                             <li><strong>Image Block</strong> - Einzelbilder mit Medienpool</li>
-                            <li><strong>Video Block</strong> - Videos mit Poster-Bild</li>
+                            <li><strong>Video Block</strong> - Videos mit Poster-Bild und Steuerung</li>
                             <li><strong>Downloads Block</strong> - Multiple Downloads mit Drag & Drop</li>
                             <li><strong>Gallery Block</strong> - Bildergalerien mit verschiedenen Layouts</li>
                             <li><strong>Alert Block</strong> - Hinweis-Boxen (Info, Warning, Error, Success)</li>
-                            <li><strong>TextImage Block</strong> - Text mit Bild kombiniert</li>
+                        </ul>
+                        
+                        <h4>🆕 Neue Features</h4>
+                        <ul>
+                            <li><strong>Video-Support:</strong> Automatische Erkennung & Steuerung</li>
+                            <li><strong>Lightbox:</strong> Bildvergrößerung mit Tastatursteuerung</li>
+                            <li><strong>Fragment-System:</strong> Bootstrap 5 & UIKit 3 Ausgabe</li>
+                            <li><strong>Grid-Layouts:</strong> 1-4 Spalten für Cards</li>
+                            <li><strong>Aspect Ratios:</strong> Konfigurierbare Seitenverhältnisse</li>
                         </ul>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel panel-default">
+            <header class="panel-heading">
+                <h3 class="panel-title">🆕 Fragment-Rendering-System - Bootstrap & UIKit Integration</h3>
+            </header>
+            <div class="panel-body">
+                <p class="lead">Das neue Fragment-System ermöglicht framework-spezifische Ausgabe aller EditorJS-Elemente mit nativen Bootstrap 5 und UIKit 3 Komponenten.</p>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <h4>📋 PHP Integration</h4>
+<pre><code>&lt;?php
+use FriendsOfRedaxo\EditorJs\EditorJSFragmentRenderer;
+
+// Framework-spezifischer Renderer
+$framework = 'bootstrap'; // oder 'uikit'
+$renderer = new EditorJSFragmentRenderer($framework, [
+    'lightbox' => true,
+    'lazyLoading' => true,
+    'customClass' => 'my-custom-class'
+]);
+
+// EditorJS Content rendern
+$content = rex_article::getCurrent()->getValue('content');
+echo $renderer->render($content);
+?&gt;</code></pre>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h4>✨ Framework Features</h4>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <h5>Bootstrap 5</h5>
+                                <ul class="list-unstyled">
+                                    <li>✓ Modal-Lightbox</li>
+                                    <li>✓ Alert-Komponenten</li>
+                                    <li>✓ Card-System</li>
+                                    <li>✓ Responsive Grid</li>
+                                    <li>✓ Button-Gruppen</li>
+                                </ul>
+                            </div>
+                            <div class="col-sm-6">
+                                <h5>UIKit 3</h5>
+                                <ul class="list-unstyled">
+                                    <li>✓ Native Lightbox</li>
+                                    <li>✓ Alert-Komponenten</li>
+                                    <li>✓ Card-System</li>
+                                    <li>✓ Flex-Grid</li>
+                                    <li>✓ Smooth Animations</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info">
+                    <h5><i class="fa fa-lightbulb-o"></i> Tipp: Framework-Konfiguration</h5>
+                    <p>Das Framework kann über die <strong>EditorJS-Einstellungen</strong> im REDAXO Backend global konfiguriert werden oder direkt beim Renderer-Aufruf gesetzt werden.</p>
                 </div>
             </div>
         </div>
@@ -251,9 +376,12 @@ $demoData = [
             <h5>Block-Funktionen</h5>
             <ul class="list-unstyled">
                 <li><strong>Medienpool:</strong> Klick auf Bilder/Videos zur Auswahl</li>
+                <li><strong>🆕 Lightbox:</strong> Klick auf Bilder zum Vergrößern (ESC schließt)</li>
+                <li><strong>🆕 Video-Steuerung:</strong> Autoplay, Loop, Mute über Einstellungen</li>
+                <li><strong>🆕 Grid-Layouts:</strong> Card-Spalten von 1-4 konfigurierbar</li>
                 <li><strong>Drag & Drop:</strong> Downloads und Galerie-Bilder sortierbar</li>
                 <li><strong>Einstellungen:</strong> Block-spezifische Optionen über Zahnrad-Symbol</li>
-                <li><strong>Layouts:</strong> Verschiedene Darstellungsformen verfügbar</li>
+                <li><strong>🆕 Fragment-Ausgabe:</strong> Bootstrap/UIKit Framework-Integration</li>
                 <li><strong>Auto-Save:</strong> Änderungen werden automatisch gespeichert</li>
             </ul>
         </div>
@@ -298,6 +426,7 @@ function initEditor() {
         if (typeof DownloadsBlock === 'undefined') missingTools.push('DownloadsBlock');
         if (typeof ImageGalleryBlock === 'undefined') missingTools.push('ImageGalleryBlock');
         if (typeof TextImageBlock === 'undefined') missingTools.push('TextImageBlock');
+        if (typeof CardBlock === 'undefined') missingTools.push('CardBlock');
         if (typeof Marker === 'undefined') missingTools.push('Marker');
         if (typeof InlineCode === 'undefined') missingTools.push('InlineCode');
         if (typeof LinkTool === 'undefined') missingTools.push('LinkTool');
@@ -385,6 +514,13 @@ function initEditor() {
                 inlineToolbar: true,
                 config: {
                     defaultLayout: 'left'
+                }
+            },
+            card: {
+                class: CardBlock,
+                inlineToolbar: true,
+                config: {
+                    defaultLayout: 'vertical'
                 }
             },
             // Inline-Tools für Rich-Text-Formatierung
