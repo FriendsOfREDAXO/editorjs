@@ -12,9 +12,22 @@ echo '<textarea name="REX_INPUT_VALUE[1]" data-editorjs-data style="display: non
 
 echo '<hr style="margin: 30px 0;">';
 
-echo '<h3>🆕 EditorJS mit neuen Cards Section & Card Features</h3>';
+echo '<h3>🆕 EditorJS mit Cards Section & Card Features</h3>';
+echo '<div class="alert alert-info" style="margin-bottom: 10px;">';
+echo '<strong>Cards Section:</strong> Container für mehrere Cards mit Grid-Layout | ';
+echo '<strong>Card:</strong> Einzelne Card-Elemente';
+echo '</div>';
 echo '<div id="editor-cards" data-editorjs-tools="paragraph,cards,card,textimage" style="border: 1px solid #ddd; min-height: 200px; padding: 10px;"></div>';
 echo '<textarea name="REX_INPUT_VALUE[2]" data-editorjs-data style="display: none;"></textarea>';
+
+echo '<hr style="margin: 30px 0;">';
+
+echo '<h3>🎯 Cards Section Demo - <a href="cards-section-demo.php" target="_blank" class="btn btn-sm btn-primary"><i class="fa fa-external-link"></i> Vollständige Demo öffnen</a></h3>';
+echo '<div class="alert alert-warning" style="margin-bottom: 10px;">';
+echo '<i class="fa fa-lightbulb-o"></i> <strong>Tipp:</strong> Öffnen Sie die vollständige Cards Section Demo für erweiterte Funktionen und Beispiele.';
+echo '</div>';
+echo '<div id="editor-cards-section-preview" data-editorjs-tools="cards" style="border: 1px solid #ddd; min-height: 150px; padding: 10px; background: #f8f9fa;"></div>';
+echo '<textarea name="REX_INPUT_VALUE[6]" data-editorjs-data style="display: none;"></textarea>';
 
 echo '<hr style="margin: 30px 0;">';
 
@@ -40,19 +53,21 @@ echo '<textarea name="REX_INPUT_VALUE[5]" data-editorjs-data style="display: non
     <h4><i class="fa fa-info-circle"></i> Neue Features testen</h4>
     <div class="row">
         <div class="col-md-6">
-            <h5>🆕 Cards Section</h5>
+            <h5>🆕 Cards Section (Container)</h5>
             <ul class="list-unstyled">
-                <li>• Container für mehrere Cards</li>
+                <li>• <strong>Container für mehrere Cards</strong></li>
                 <li>• Grid-Layout mit 1-4 Spalten</li>
                 <li>• Drag & Drop für Sortierung</li>
                 <li>• Jede Card: Media + Titel + Text</li>
-                <li>• ALT-Text Unterstützung</li>
+                <li>• ALT-Text Unterstützung mit Warnung</li>
+                <li>• Video-Wiedergabe im Editor</li>
             </ul>
         </div>
         <div class="col-md-6">
             <h5>🔄 Einzelne Card</h5>
             <ul class="list-unstyled">
-                <li>• Einfache Card: Vertikal/Horizontal</li>
+                <li>• <strong>Einzelne Card-Elemente</strong></li>
+                <li>• Vertikal/Horizontal Layout</li>
                 <li>• Media (Bild/Video) + Content</li>
                 <li>• Lightbox für Bilder</li>
                 <li>• Video-Steuerung</li>

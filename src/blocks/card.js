@@ -411,7 +411,18 @@ class CardBlock {
             controls: this.data.videoControls,
             autoplay: this.data.videoAutoplay,
             muted: this.data.videoMuted,
-            loop: this.data.videoLoop
+            loop: this.data.videoLoop,
+            preload: 'metadata',
+            playsinline: true // Für mobile Geräte
+        });
+
+        // Error-Handling für Video
+        video.addEventListener('error', (e) => {
+            console.warn('Video load error in Card:', e, this.data.mediaUrl);
+        });
+        
+        video.addEventListener('loadedmetadata', () => {
+            console.log('Video loaded successfully in Card:', this.data.mediaUrl);
         });
 
         // Klick zum Ändern

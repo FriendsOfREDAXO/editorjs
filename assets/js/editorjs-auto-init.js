@@ -191,7 +191,9 @@ window.EditorJSAutoInit = {
             'download': 'downloads',
             'video': 'VideoBlock',
             'card': 'card',
-            'cards': 'cards',
+            'cards': 'cards', // Cards Section Block
+            'cardssection': 'cards', // Alternative Schreibweise
+            'cards-section': 'cards', // Alternative Schreibweise  
             'gallery': 'gallery',
             'rexlink': 'rexLink',
             'link': 'rexLink'

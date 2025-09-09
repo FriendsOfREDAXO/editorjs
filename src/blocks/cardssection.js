@@ -398,12 +398,25 @@ class CardsSectionBlock {
         const mediaWrapper = this._make('div', [this.CSS.mediaWrapper]);
         
         if (item.mediaType === 'video' || this._isVideoFile(item.mediaFile)) {
-            // Video Element
+            // Video Element mit verbessertem Playback
             const video = this._make('video', [this.CSS.video], {
                 src: item.mediaUrl,
                 controls: true,
-                preload: 'metadata'
+                preload: 'metadata',
+                playsinline: true, // Für mobile Geräte
+                muted: false, // Erlaubt Playback ohne Autoplay-Beschränkungen
+                loop: false
             });
+            
+            // Error-Handling für Video
+            video.addEventListener('error', (e) => {
+                console.warn('Video load error:', e, item.mediaUrl);
+            });
+            
+            video.addEventListener('loadedmetadata', () => {
+                console.log('Video loaded successfully:', item.mediaUrl);
+            });
+            
             mediaWrapper.appendChild(video);
         } else {
             // Image Element

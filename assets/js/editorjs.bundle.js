@@ -20122,7 +20122,16 @@ var EditorJSBundle = (() => {
         controls: this.data.videoControls,
         autoplay: this.data.videoAutoplay,
         muted: this.data.videoMuted,
-        loop: this.data.videoLoop
+        loop: this.data.videoLoop,
+        preload: "metadata",
+        playsinline: true
+        // Für mobile Geräte
+      });
+      video.addEventListener("error", (e) => {
+        console.warn("Video load error in Card:", e, this.data.mediaUrl);
+      });
+      video.addEventListener("loadedmetadata", () => {
+        console.log("Video loaded successfully in Card:", this.data.mediaUrl);
       });
       video.addEventListener("click", () => {
         if (!this.readOnly) {
@@ -20676,7 +20685,18 @@ var EditorJSBundle = (() => {
         const video = this._make("video", [this.CSS.video], {
           src: item.mediaUrl,
           controls: true,
-          preload: "metadata"
+          preload: "metadata",
+          playsinline: true,
+          // Für mobile Geräte
+          muted: false,
+          // Erlaubt Playback ohne Autoplay-Beschränkungen
+          loop: false
+        });
+        video.addEventListener("error", (e) => {
+          console.warn("Video load error:", e, item.mediaUrl);
+        });
+        video.addEventListener("loadedmetadata", () => {
+          console.log("Video loaded successfully:", item.mediaUrl);
         });
         mediaWrapper.appendChild(video);
       } else {
